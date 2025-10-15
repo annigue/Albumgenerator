@@ -128,29 +128,30 @@ export default function Home() {
             </p>
 
             {/* 🔘 Voting Buttons */}
-            <div className="flex justify-center space-x-4 mt-6">
-              <button
-                onClick={() => handleVote("Hit")}
-                disabled={voting}
-                className="bg-brandlgreen-400 hover:bg-brandlgreen-600 disabled:brandlightgrey text-white px-4 py-2 rounded-lg"
-              >
-                🔥 Hit
-              </button>
-              <button
-                onClick={() => handleVote("Geht in Ordnung")}
-                disabled={voting}
-                className="bg-brandOrange-400 hover:bg-brandorange-600 disabled:bg-brandlightgrey text-white px-4 py-2 rounded-lg"
-              >
-                🙂 Geht in Ordnung
-              </button>
-              <button
-                onClick={() => handleVote("Niete")}
-                disabled={voting}
-                className="bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white px-4 py-2 rounded-lg"
-              >
-                💩 Niete
-              </button>
-            </div>
+<div className="flex justify-center space-x-4 mt-6">
+  <button
+    onClick={() => handleVote("Hit")}
+    disabled={voting}
+    className="bg-brandlgreen-400 hover:bg-brandlgreen-600 disabled:bg-brandlightgrey text-white px-4 py-2 rounded-lg"
+  >
+    🔥 Hit
+  </button>
+  <button
+    onClick={() => handleVote("Geht in Ordnung")}
+    disabled={voting}
+    className="bg-brandOrange-400 hover:bg-brandOrange-600 disabled:bg-brandlightgrey text-white px-4 py-2 rounded-lg"
+  >
+    🙂 Geht in Ordnung
+  </button>
+  <button
+    onClick={() => handleVote("Niete")}
+    disabled={voting}
+    className="bg-brandPink-500 hover:bg-brandPink-600 disabled:bg-brandlightgrey text-white px-4 py-2 rounded-lg"
+  >
+    💩 Niete
+  </button>
+</div>
+
           </div>
         ) : (
           <p className="text-center text-gray-500 mb-8">
