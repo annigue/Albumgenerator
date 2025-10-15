@@ -86,7 +86,7 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 p-6 text-gray-800">
       <div className="max-w-xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-6">
-          🎵 Album des Tages
+          🎵 Schnaggile - Album des Tages
         </h1>
 
         {/* 🎧 Heutiges Album */}
