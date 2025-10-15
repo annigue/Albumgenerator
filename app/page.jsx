@@ -132,14 +132,14 @@ export default function Home() {
               <button
                 onClick={() => handleVote("Hit")}
                 disabled={voting}
-                className="bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white px-4 py-2 rounded-lg"
+                className="bg-brandlgreen-400 hover:bg-brandlgreen-600 disabled:brandlightgrey text-white px-4 py-2 rounded-lg"
               >
                 🔥 Hit
               </button>
               <button
                 onClick={() => handleVote("Geht in Ordnung")}
                 disabled={voting}
-                className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-300 text-white px-4 py-2 rounded-lg"
+                className="bg-brandOrange-400 hover:bg-brandorange-600 disabled:bg-brandlightgrey text-white px-4 py-2 rounded-lg"
               >
                 🙂 Geht in Ordnung
               </button>
