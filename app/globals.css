@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Optional eigene globale Styles */
 body {
-  font-family: system-ui, sans-serif;
+  background-color: #	#d3d3d3;
+  color: #333;
+}
+
+a {
+  text-decoration: none;
 }
