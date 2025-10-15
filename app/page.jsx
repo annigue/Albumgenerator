@@ -161,7 +161,7 @@ export default function Home() {
         {/* ➕ Neues Album vorschlagen */}
 <div className="text-center mb-10">
   <a
-    href="https://docs.google.com/forms/d/e/DEINE-FORM-ID/viewform" // <--- hier dein Formular-Link
+    href="https://docs.google.com/forms/d/e/1FAIpQLScUIi-782VvUZRQTAsoLTiPNm8-z6Z7nO0e_rGMZW_5ZNV9uw/viewform" // <--- hier dein Formular-Link
     target="_blank"
     rel="noopener noreferrer"
     className="inline-block bg-pink-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-600 transition"
