@@ -7,19 +7,19 @@ module.exports = {
     extend: {
       colors: {
         brandPink: {
-          400: "#ff7070",
-          500: "#ff4040",
-          600: "#cc3333",
+          400: "#ff6230", // etwas kräftiger
+          500: "#ff4500", // Originalfarbe
+          600: "#e03c00", // leicht dunkler, satter
         },
         brandOrange: {
-          400: "#ffc27a",
-          500: "#ffa54f",
-          600: "#e68e38",
+          400: "#ffef99", // weicher Pastellton
+          500: "#ffec8b", // Originalfarbe – angenehm warm
+          600: "#e6d67a", // etwas gedeckter, weniger leuchtend
         },
         brandlgreen: {
-          400: "#80e0b0",
-          500: "#66cdaa",
-          600: "#4ba885",
+          400: "#4edd4e",
+          500: "#32cd32",
+          600: "#28a428",
         },
         brandlightgrey: {
           400: "#e0e0e0",
