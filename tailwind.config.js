@@ -12,9 +12,9 @@ module.exports = {
           600: "#e03c00", // leicht dunkler, satter
         },
         brandOrange: {
-          400: "#ffef99", // weicher Pastellton
-          500: "#ffec8b", // Originalfarbe – angenehm warm
-          600: "#e6d67a", // etwas gedeckter, weniger leuchtend
+          400: "#ffc733", // kräftig, sonnig
+          500: "#ffb90f", // Originalfarbe – Goldenrod
+          600: "#e6a70d", // etwas dunkler, satter
         },
         brandlgreen: {
           400: "#4edd4e",
