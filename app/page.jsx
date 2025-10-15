@@ -158,6 +158,18 @@ export default function Home() {
           </p>
         )}
 
+        {/* ➕ Neues Album vorschlagen */}
+<div className="text-center mb-10">
+  <a
+    href="https://docs.google.com/forms/d/e/DEINE-FORM-ID/viewform" // <--- hier dein Formular-Link
+    target="_blank"
+    rel="noopener noreferrer"
+    className="inline-block bg-pink-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-600 transition"
+  >
+    ➕ Neues Album vorschlagen
+  </a>
+</div>
+
         {/* 📚 Vergangene Alben */}
         <h3 className="text-lg font-semibold mb-2">📚 Bisherige Alben</h3>
         {pastAlbums.length === 0 ? (
