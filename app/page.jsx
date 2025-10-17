@@ -5,7 +5,7 @@ export default function Home() {
   const SHEET_ID = "1J2wNwi1T86IEIVPhqHD0WV8v1uWZ90ohz07irUlEF50";
   const SHEET_NAME = "Album des Tages";
   const VOTE_API_URL = "/api/vote";
-"; // <--- einfügen
+
 
   const [albums, setAlbums] = useState([]);
   const [error, setError] = useState(null);
