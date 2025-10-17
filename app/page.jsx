@@ -124,9 +124,16 @@ export default function Home() {
               );
             })()}
 
-            <p className="mt-4 text-sm text-gray-500">
-              Vorgeschlagen von {albumOfTheDay["Dein Name"]}
-            </p>
+        <p className="mt-4 text-sm text-gray-500">
+          Vorgeschlagen von {albumOfTheDay["Dein Name"]}
+        </p>
+
+        {albumOfTheDay["Begründung"] && (
+  <p className="mt-3 italic text-gray-600">
+    „{albumOfTheDay["Begründung"]}“
+  </p>
+)}
+
 
             {/* 🔘 Voting Buttons */}
 <div className="flex justify-center space-x-4 mt-6">
