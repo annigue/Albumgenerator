@@ -128,9 +128,9 @@ export default function Home() {
           Vorgeschlagen von {albumOfTheDay["Dein Name"]}
         </p>
 
-        {albumOfTheDay["Warum möchtest du das Album teilen"] && (
+        {albumOfTheDay["Warum möchtest du das Album teilen?"] && (
   <p className="mt-3 italic text-gray-600">
-    „{albumOfTheDay["Warum möchtest du das Album teilen"]}“
+    „{albumOfTheDay["Warum möchtest du das Album teilen?"]}“
   </p>
 )}
 
