@@ -113,7 +113,7 @@ function BewertungForm({ albumTitel }) {
     );
 
   return (
-    <form onSubmit={onSubmit} className="disco-card p-6 space-y-3 text-white">
+    <form onSubmit={onSubmit} className="text-xl font-disco card-title text-center mb-3">
       <h3 className="text-center font-semibold text-brandPink-400 disco-glow">
         💬 Album bewerten
       </h3>
@@ -238,7 +238,7 @@ function VorschlagForm() {
     );
 
   return (
-    <form onSubmit={onSubmit} className="disco-card p-6 mt-10 space-y-4 text-white">
+    <form onSubmit={onSubmit} className="text-xl font-disco card-title text-center mb-3">
       <h3 className="text-lg font-semibold text-center text-brandPink-400 disco-glow">
         💡 Neues Album vorschlagen
       </h3>
@@ -393,11 +393,11 @@ export default function Home() {
       <div className="max-w-2xl mx-auto space-y-10">
         {/* Heutiges Album */}
         {albumOfTheDay && (
-          <div className="disco-card p-6 text-center">
+          <div className="text-xl font-disco card-title text-center mb-3">
             <h2 className="text-2xl font-disco disco-glow mb-4">
               🪩 Album des Tages
             </h2>
-            <p className="font-semibold text-brandTeal-400 mb-1">
+            <p className="text-xl font-disco card-title text-center mb-3">
               {albumOfTheDay["Albumtitel"]}
             </p>
             <p className="text-sm italic mb-4">

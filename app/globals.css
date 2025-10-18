@@ -24,9 +24,18 @@ h1, h2, h3 {
   font-family: 'Syncopate', sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #ff3ea5;
-  text-shadow: 0 0 10px rgba(255, 62, 165, 0.6);
+  background: linear-gradient(90deg, #ffd1dc 0%, #ffb6c1 50%, #ffe7ba 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 6px rgba(255, 200, 200, 0.3);
 }
+
+/* ✨ dezenter Glamour-Glow */
+.disco-glow {
+  filter: drop-shadow(0 0 4px rgba(255, 225, 200, 0.25))
+          drop-shadow(0 0 8px rgba(255, 182, 193, 0.15));
+}
+
 
 /* ✨ Karten-Stil */
 .disco-card {
