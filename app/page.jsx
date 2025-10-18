@@ -50,22 +50,26 @@ function GiphyGif({ keyword }) {
   );
 }
 
-/* 🔹 Einfaches Bewertungsformular */
-function VorschlagForm() {
+/* 🔹 Bewertungsformular */
+function BewertungForm({ albumTitel }) {
   const [form, setForm] = useState({
     Name: "",
-    Albumtitel: "",
-    Interpret: "",
-    Begruendung: "",
-    SpotifyLink: "",
+    Albumtitel: albumTitel || "",
+    LiebstesLied: "",
+    BesteTextzeile: "",
+    SchlechtestesLied: "",
+    Bewertung: "",
   });
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"]; // 👈 gleiche Liste
+  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
 
-  const onChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  useEffect(() => {
+    setForm((f) => ({ ...f, Albumtitel: albumTitel || "" }));
+  }, [albumTitel]);
+
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -74,22 +78,25 @@ function VorschlagForm() {
       const res = await fetch("https://script.google.com/macros/s/DEIN_SCRIPT_ID/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "vorschlag", ...form }),
+        body: JSON.stringify({ type: "bewertung", ...form }),
       });
-      const result = await res.json();
-      if (result.status === "success") {
+      const result = await res.json().catch(() => ({}));
+      if (result?.status === "success" || res.ok) {
         setOk(true);
         setForm({
           Name: "",
-          Albumtitel: "",
-          Interpret: "",
-          Begruendung: "",
-          SpotifyLink: "",
+          Albumtitel: albumTitel || "",
+          LiebstesLied: "",
+          BesteTextzeile: "",
+          SchlechtestesLied: "",
+          Bewertung: "",
         });
+      } else {
+        alert("Konnte nicht senden. Prüfe Apps Script URL & Berechtigungen.");
       }
     } catch (err) {
       console.error(err);
-      alert("Fehler beim Absenden");
+      alert("Fehler beim Senden.");
     } finally {
       setSending(false);
     }
@@ -98,20 +105,18 @@ function VorschlagForm() {
   if (ok)
     return (
       <div className="text-center text-green-600 font-medium mt-4">
-        ✅ Danke für deinen Vorschlag!
+        ✅ Danke für deine Bewertung!
       </div>
     );
 
   return (
     <form
       onSubmit={onSubmit}
-      className="bg-white p-6 rounded-xl shadow-md mt-10 space-y-4"
+      className="bg-white p-5 rounded-xl shadow-inner border space-y-3"
     >
-      <h3 className="text-lg font-semibold text-center">
-        💡 Neues Album vorschlagen
-      </h3>
+      <h3 className="text-center font-semibold">💬 Album bewerten</h3>
 
-      {/* Name Dropdown */}
+      {/* Teilnehmer-Dropdown */}
       <select
         name="Name"
         value={form.Name}
@@ -136,39 +141,50 @@ function VorschlagForm() {
         required
       />
       <input
-        name="Interpret"
-        value={form.Interpret}
+        name="LiebstesLied"
+        value={form.LiebstesLied}
         onChange={onChange}
-        placeholder="Interpret"
+        placeholder="Liebstes Lied"
         className="w-full border rounded-lg p-2"
-        required
       />
       <textarea
-        name="Begruendung"
-        value={form.Begruendung}
+        name="BesteTextzeile"
+        value={form.BesteTextzeile}
         onChange={onChange}
-        placeholder="Warum möchtest du das Album teilen?"
+        placeholder="Beste Textzeile"
         className="w-full border rounded-lg p-2"
       />
       <input
-        name="SpotifyLink"
-        value={form.SpotifyLink}
+        name="SchlechtestesLied"
+        value={form.SchlechtestesLied}
         onChange={onChange}
-        placeholder="Spotify-Link (optional)"
+        placeholder="Schlechtestes Lied"
         className="w-full border rounded-lg p-2"
       />
+
+      <select
+        name="Bewertung"
+        value={form.Bewertung}
+        onChange={onChange}
+        className="w-full border rounded-lg p-2"
+        required
+      >
+        <option value="">Gesamtbewertung wählen</option>
+        <option value="Hit">Hit</option>
+        <option value="Geht in Ordnung">Geht in Ordnung</option>
+        <option value="Niete">Niete</option>
+      </select>
 
       <button
         type="submit"
         disabled={sending}
-        className="w-full bg-orange-400 text-white py-2 rounded-lg hover:bg-orange-500 transition"
+        className="w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 transition"
       >
-        {sending ? "Wird gesendet..." : "Albumvorschlag abschicken"}
+        {sending ? "Wird gesendet…" : "Bewertung abschicken"}
       </button>
     </form>
   );
 }
-
 
 /* 🔹 Neues Album vorschlagen */
 function VorschlagForm() {
@@ -182,8 +198,9 @@ function VorschlagForm() {
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const onChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
+
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -229,14 +246,22 @@ function VorschlagForm() {
         💡 Neues Album vorschlagen
       </h3>
 
-      <input
+      {/* Teilnehmer-Dropdown */}
+      <select
         name="Name"
         value={form.Name}
         onChange={onChange}
-        placeholder="Dein Name"
         className="w-full border rounded-lg p-2"
         required
-      />
+      >
+        <option value="">Teilnehmer wählen</option>
+        {teilnehmer.map((name) => (
+          <option key={name} value={name}>
+            {name}
+          </option>
+        ))}
+      </select>
+
       <input
         name="Albumtitel"
         value={form.Albumtitel}
@@ -296,9 +321,7 @@ export default function Home() {
       .trim()
       .split(/\r?\n/)
       .map((line) =>
-        line
-          .split(/","|",|,"/)
-          .map((v) => v.replace(/^"+|"+$/g, "").trim())
+        line.split(/","|",|,"/).map((v) => v.replace(/^"+|"+$/g, "").trim())
       );
     const headers = rows.shift();
     return rows.map((row) =>
@@ -336,7 +359,6 @@ export default function Home() {
     })();
   }, []);
 
-  // 🔹 Auswahl & Datum
   const todayStr = new Date().toISOString().slice(0, 10);
   const albumOfTheDay = albums.find((a) => a.Datum === todayStr);
   const pastAlbums = albums
@@ -375,7 +397,7 @@ export default function Home() {
           <div className="bg-white p-6 rounded-2xl shadow-md mb-10 text-center">
             <h2 className="text-xl font-semibold mb-2 flex justify-center items-center space-x-2">
               <span>{albumOfTheDay["Albumtitel"]}</span>
-              {albumOfTheDay["SpotifyLink"] && (
+              {albumOfTheDay["SpotifyLink"] ? (
                 <a
                   href={albumOfTheDay["SpotifyLink"]}
                   target="_blank"
@@ -388,30 +410,45 @@ export default function Home() {
                     className="w-5 h-5"
                   />
                 </a>
+              ) : (
+                <span className="text-gray-400 text-sm ml-2">(kein Link)</span>
               )}
             </h2>
+
             <p className="text-gray-600 mb-4">{albumOfTheDay["Interpret"]}</p>
 
-            {/* Spotify Embed */}
-            {albumOfTheDay["SpotifyLink"] && (() => {
-              const m = albumOfTheDay["SpotifyLink"].match(/album\/([a-zA-Z0-9]+)/);
-              const id = m ? m[1] : null;
-              return id ? (
-                <iframe
-                  style={{ borderRadius: "12px" }}
-                  src={`https://open.spotify.com/embed/album/${id}`}
-                  width="100%"
-                  height="352"
-                  frameBorder="0"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                ></iframe>
-              ) : null;
-            })()}
+            {/* Spotify Embed oder Fallback */}
+            {albumOfTheDay["SpotifyLink"] ? (
+              (() => {
+                const m = albumOfTheDay["SpotifyLink"].match(/album\/([a-zA-Z0-9]+)/);
+                const id = m ? m[1] : null;
+                return id ? (
+                  <iframe
+                    style={{ borderRadius: "12px" }}
+                    src={`https://open.spotify.com/embed/album/${id}`}
+                    width="100%"
+                    height="352"
+                    frameBorder="0"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                  ></iframe>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">
+                    Kein Spotify-Embed verfügbar.
+                  </p>
+                );
+              })()
+            ) : (
+              <p className="text-sm text-gray-500 italic">
+                Kein Spotify-Link eingereicht.
+              </p>
+            )}
 
-            <p className="mt-4 text-sm text-gray-500">
-              Vorgeschlagen von {albumOfTheDay["Dein Name"]}
-            </p>
+            {albumOfTheDay["Dein Name"] && (
+              <p className="mt-4 text-sm text-gray-500">
+                Vorgeschlagen von {albumOfTheDay["Dein Name"]}
+              </p>
+            )}
 
             {albumOfTheDay["Warum möchtest du das Album teilen?"] && (
               <p className="mt-2 italic text-gray-600">
@@ -427,77 +464,75 @@ export default function Home() {
         )}
 
         {/* Vergangene Alben */}
-        <h3 className="text-lg font-semibold mb-4 text-center">
-          📚 Bisherige Alben
-        </h3>
         {selectedAlbum && (
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <div className="flex flex-col items-center mb-4">
-              {coverUrl && (
-                <img
-                  src={coverUrl}
-                  alt={`${selectedAlbum["Albumtitel"]} Cover`}
-                  className="w-48 h-48 rounded-xl shadow-md mb-3 object-cover"
-                />
+          <div className="bg-white p-6 rounded-xl shadow-md mb-10">
+            <h3 className="text-lg font-semibold mb-4 text-center">
+              📚 Bisherige Alben
+            </h3>
+
+            {coverUrl && (
+              <img
+                src={coverUrl}
+                alt={`${selectedAlbum["Albumtitel"]} Cover`}
+                className="w-48 h-48 rounded-xl shadow-md mb-3 object-cover mx-auto"
+              />
+            )}
+
+            <h4 className="text-xl font-semibold mb-1 flex items-center justify-center space-x-2">
+              <span>{selectedAlbum["Albumtitel"]}</span>
+              {selectedAlbum["SpotifyLink"] && (
+                <a
+                  href={selectedAlbum["SpotifyLink"]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="opacity-80 hover:opacity-100"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                    alt="Spotify"
+                    className="w-5 h-5"
+                  />
+                </a>
               )}
+            </h4>
 
-              <h4 className="text-xl font-semibold mb-1 flex items-center justify-center space-x-2">
-                <span>{selectedAlbum["Albumtitel"]}</span>
-                {selectedAlbum["SpotifyLink"] && (
-                  <a
-                    href={selectedAlbum["SpotifyLink"]}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="opacity-80 hover:opacity-100"
-                  >
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                      alt="Spotify"
-                      className="w-5 h-5"
-                    />
-                  </a>
-                )}
-              </h4>
-              <p className="text-gray-500 mb-2">
-                {selectedAlbum["Interpret"]}
-              </p>
+            <p className="text-gray-500 mb-2">{selectedAlbum["Interpret"]}</p>
 
-              {/* Ergebnis + GIF */}
-              {(() => {
-                const list = selectedAlbum.reviews || [];
-                if (list.length === 0) return null;
-                const counts = { Hit: 0, "Geht in Ordnung": 0, Niete: 0 };
-                list.forEach((r) => {
-                  const v = r["Gesamtbewertung"] || r["Bewertung"];
-                  if (counts[v] !== undefined) counts[v]++;
-                });
-                const [topVote, topCount] = Object.entries(counts).sort(
-                  (a, b) => b[1] - a[1]
-                )[0];
-                const colors = {
-                  Hit: "text-green-600",
-                  "Geht in Ordnung": "text-yellow-600",
-                  Niete: "text-pink-600",
-                };
-                const keyword =
-                  topVote === "Hit"
-                    ? "winner"
-                    : topVote === "Geht in Ordnung"
-                    ? "average"
-                    : "do not want";
-                return (
-                  <>
-                    <p className={`text-sm font-medium ${colors[topVote]}`}>
-                      🏆 Mehrheitlich bewertet als: {topVote} ({topCount} Stimmen)
-                    </p>
-                    <GiphyGif keyword={keyword} />
-                  </>
-                );
-              })()}
-            </div>
+            {/* Ergebnis + GIF */}
+            {(() => {
+              const list = selectedAlbum.reviews || [];
+              if (list.length === 0) return null;
+              const counts = { Hit: 0, "Geht in Ordnung": 0, Niete: 0 };
+              list.forEach((r) => {
+                const v = r["Gesamtbewertung"] || r["Bewertung"];
+                if (counts[v] !== undefined) counts[v]++;
+              });
+              const [topVote, topCount] = Object.entries(counts).sort(
+                (a, b) => b[1] - a[1]
+              )[0];
+              const colors = {
+                Hit: "text-green-600",
+                "Geht in Ordnung": "text-yellow-600",
+                Niete: "text-pink-600",
+              };
+              const keyword =
+                topVote === "Hit"
+                  ? "winner"
+                  : topVote === "Geht in Ordnung"
+                  ? "average"
+                  : "do not want";
+              return (
+                <>
+                  <p className={`text-sm font-medium ${colors[topVote]}`}>
+                    🏆 Mehrheitlich bewertet als: {topVote} ({topCount} Stimmen)
+                  </p>
+                  <GiphyGif keyword={keyword} />
+                </>
+              );
+            })()}
 
             {/* Bewertungs-Tabelle */}
-            <h5 className="font-semibold mb-2">💬 Bewertungen</h5>
+            <h5 className="font-semibold mb-2 mt-6">💬 Bewertungen</h5>
             {selectedAlbum.reviews?.length ? (
               <table className="min-w-full text-sm border-t">
                 <thead className="bg-gray-50">
