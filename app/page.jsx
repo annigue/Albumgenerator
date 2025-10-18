@@ -68,7 +68,7 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // --- Alben laden ---
+        // --- 1️⃣ Alben laden ---
         const albumUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(
           SHEET_NAME
         )}`;
@@ -86,7 +86,7 @@ export default function Home() {
           Object.fromEntries(albumHeaders.map((h, i) => [h, row[i] || ""]))
         );
 
-        // --- Bewertungen laden ---
+        // --- 2️⃣ Bewertungen laden ---
         const reviewUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(
           SHEET_REVIEWS
         )}`;
@@ -104,6 +104,7 @@ export default function Home() {
           Object.fromEntries(reviewHeaders.map((h, i) => [h, row[i] || ""]))
         );
 
+        // --- 3️⃣ Bewertungen zu Alben zuordnen ---
         setAlbums(
           albumsData.map((album) => ({
             ...album,
@@ -181,6 +182,7 @@ export default function Home() {
             </h2>
             <p className="text-gray-600 mb-4">{albumOfTheDay["Interpret"]}</p>
 
+            {/* Spotify Embed */}
             {albumOfTheDay["SpotifyLink"] && (() => {
               const match = albumOfTheDay["SpotifyLink"].match(/album\/([a-zA-Z0-9]+)/);
               const albumId = match ? match[1] : null;
@@ -287,6 +289,59 @@ export default function Home() {
                   </div>
                 );
               })()}
+            </div>
+
+            {/* 💬 Bewertungen */}
+            <h5 className="font-semibold mb-2">💬 Bewertungen</h5>
+            {selectedAlbum.reviews && selectedAlbum.reviews.length > 0 ? (
+              <table className="min-w-full text-sm border-t">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="py-2 px-2 text-left">Teilnehmer</th>
+                    <th className="py-2 px-2 text-left">Liebstes Lied</th>
+                    <th className="py-2 px-2 text-left">Beste Textzeile</th>
+                    <th className="py-2 px-2 text-left">Schlechtestes Lied</th>
+                    <th className="py-2 px-2 text-left">Bewertung</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedAlbum.reviews.map((r, i) => (
+                    <tr key={i} className="border-t">
+                      <td className="py-2 px-2">{r["Name"]}</td>
+                      <td className="py-2 px-2">{r["Liebstes Lied"]}</td>
+                      <td className="py-2 px-2 italic">{r["Beste Textzeile"]}</td>
+                      <td className="py-2 px-2">{r["Schlechtestes Lied"]}</td>
+                      <td className="py-2 px-2">{r["Bewertung"]}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-sm text-gray-500 italic">
+                Noch keine Bewertungen vorhanden.
+              </p>
+            )}
+
+            {/* Navigation */}
+            <div className="flex justify-between mt-6">
+              <button
+                onClick={() => setCurrentIndex((i) => Math.max(i - 1, 0))}
+                disabled={currentIndex === 0}
+                className="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50"
+              >
+                ◀ Vorheriges
+              </button>
+              <button
+                onClick={() =>
+                  setCurrentIndex((i) =>
+                    Math.min(i + 1, pastAlbums.length - 1)
+                  )
+                }
+                disabled={currentIndex === pastAlbums.length - 1}
+                className="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50"
+              >
+                Nächstes ▶
+              </button>
             </div>
           </div>
         ) : (
