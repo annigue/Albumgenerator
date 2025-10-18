@@ -44,7 +44,7 @@ function GiphyGif({ keyword }) {
       <img
         src={src}
         alt={`GIF: ${keyword}`}
-        className="rounded-xl disco-img w-64 h-48 object-cover"
+        className="rounded-xl disco-img w-64 h-48 object-cover shadow-lg border border-white/20"
       />
     </div>
   );
@@ -107,14 +107,14 @@ function BewertungForm({ albumTitel }) {
 
   if (ok)
     return (
-      <div className="text-center text-brandTeal-400 font-medium mt-4 disco-glow">
+      <div className="text-center text-green-400 font-medium mt-4 disco-glow">
         ✅ Danke für deine Bewertung!
       </div>
     );
 
   return (
-    <form onSubmit={onSubmit} className="text-xl font-disco card-title text-center mb-3">
-      <h3 className="text-center font-semibold text-brandPink-400 disco-glow">
+    <form onSubmit={onSubmit} className="disco-card space-y-3">
+      <h3 className="text-center text-lg font-semibold disco-title">
         💬 Album bewerten
       </h3>
 
@@ -122,7 +122,7 @@ function BewertungForm({ albumTitel }) {
         name="Name"
         value={form.Name}
         onChange={onChange}
-        className="w-full p-2 rounded-lg text-black"
+        className="disco-input"
         required
       >
         <option value="">Teilnehmer wählen</option>
@@ -138,7 +138,7 @@ function BewertungForm({ albumTitel }) {
         value={form.Albumtitel}
         onChange={onChange}
         placeholder="Albumtitel"
-        className="w-full p-2 rounded-lg text-black"
+        className="disco-input"
         required
       />
       <input
@@ -146,28 +146,28 @@ function BewertungForm({ albumTitel }) {
         value={form.LiebstesLied}
         onChange={onChange}
         placeholder="Liebstes Lied"
-        className="w-full p-2 rounded-lg text-black"
+        className="disco-input"
       />
       <textarea
         name="BesteTextzeile"
         value={form.BesteTextzeile}
         onChange={onChange}
         placeholder="Beste Textzeile"
-        className="w-full p-2 rounded-lg text-black"
+        className="disco-input"
       />
       <input
         name="SchlechtestesLied"
         value={form.SchlechtestesLied}
         onChange={onChange}
         placeholder="Schlechtestes Lied"
-        className="w-full p-2 rounded-lg text-black"
+        className="disco-input"
       />
 
       <select
         name="Bewertung"
         value={form.Bewertung}
         onChange={onChange}
-        className="w-full p-2 rounded-lg text-black"
+        className="disco-input"
         required
       >
         <option value="">Gesamtbewertung wählen</option>
@@ -232,14 +232,14 @@ function VorschlagForm() {
 
   if (ok)
     return (
-      <div className="text-center text-brandTeal-400 font-medium mt-4 disco-glow">
+      <div className="text-center text-green-400 font-medium mt-4 disco-glow">
         ✅ Danke für deinen Vorschlag!
       </div>
     );
 
   return (
-    <form onSubmit={onSubmit} className="text-xl font-disco card-title text-center mb-3">
-      <h3 className="text-lg font-semibold text-center text-brandPink-400 disco-glow">
+    <form onSubmit={onSubmit} className="disco-card space-y-3 mt-10">
+      <h3 className="text-center text-lg font-semibold disco-title">
         💡 Neues Album vorschlagen
       </h3>
 
@@ -247,7 +247,7 @@ function VorschlagForm() {
         name="Name"
         value={form.Name}
         onChange={onChange}
-        className="w-full p-2 rounded-lg text-black"
+        className="disco-input"
         required
       >
         <option value="">Teilnehmer wählen</option>
@@ -263,7 +263,7 @@ function VorschlagForm() {
         value={form.Albumtitel}
         onChange={onChange}
         placeholder="Albumtitel"
-        className="w-full p-2 rounded-lg text-black"
+        className="disco-input"
         required
       />
       <input
@@ -271,7 +271,7 @@ function VorschlagForm() {
         value={form.Interpret}
         onChange={onChange}
         placeholder="Interpret"
-        className="w-full p-2 rounded-lg text-black"
+        className="disco-input"
         required
       />
       <textarea
@@ -279,14 +279,14 @@ function VorschlagForm() {
         value={form.Begruendung}
         onChange={onChange}
         placeholder="Warum möchtest du das Album teilen?"
-        className="w-full p-2 rounded-lg text-black"
+        className="disco-input"
       />
       <input
         name="SpotifyLink"
         value={form.SpotifyLink}
         onChange={onChange}
         placeholder="Spotify-Link (optional)"
-        className="w-full p-2 rounded-lg text-black"
+        className="disco-input"
       />
 
       <button type="submit" disabled={sending} className="btn-disco w-full">
@@ -375,8 +375,7 @@ export default function Home() {
     return <main className="p-8 text-center text-gray-600">Lade Alben…</main>;
 
   return (
-    <main className="min-h-screen p-6 text-white">
-      {/* 🪩 Disco Hero Header */}
+    <main className="min-h-screen p-6 text-white bg-gradient-to-br from-pink-50 via-orange-50 to-pink-100">
       <div className="relative mb-12 rounded-3xl overflow-hidden">
         <img
           src="/fidel-fernando-249DzAuJTqQ-unsplash.jpg"
@@ -384,7 +383,7 @@ export default function Home() {
           className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm"
         />
         <div className="relative z-10 text-center py-16">
-          <h1 className="font-disco text-4xl md:text-5xl disco-glow">
+          <h1 className="font-disco text-4xl md:text-5xl disco-title">
             🎶 Schnaggile – Album der Woche
           </h1>
         </div>
@@ -393,16 +392,15 @@ export default function Home() {
       <div className="max-w-2xl mx-auto space-y-10">
         {/* Heutiges Album */}
         {albumOfTheDay && (
-          <div className="text-xl font-disco card-title text-center mb-3">
-            <h2 className="text-2xl font-disco disco-glow mb-4">
+          <div className="disco-card text-center">
+            <h2 className="text-2xl font-disco disco-title mb-4">
               🪩 Album des Tages
             </h2>
-            <p className="text-xl font-disco card-title text-center mb-3">
-              {albumOfTheDay["Albumtitel"]}
-            </p>
+            <p className="text-lg">{albumOfTheDay["Albumtitel"]}</p>
             <p className="text-sm italic mb-4">
               {albumOfTheDay["Interpret"]}
             </p>
+
             {/* Spotify Embed */}
             {(() => {
               const m = albumOfTheDay["SpotifyLink"]?.match(
@@ -435,7 +433,7 @@ export default function Home() {
         {/* Vergangene Alben */}
         {selectedAlbum && (
           <div className="disco-card p-6">
-            <h3 className="font-disco text-xl disco-glow text-center mb-6">
+            <h3 className="font-disco text-xl disco-title text-center mb-6">
               📚 Bisherige Alben
             </h3>
 
