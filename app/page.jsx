@@ -198,7 +198,7 @@ function VorschlagForm() {
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
+  const teilnehmer = ["Tobi","Anne", "Moritz", "Max", "Kathi", "Lena"];
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
