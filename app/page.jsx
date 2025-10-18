@@ -51,21 +51,18 @@ function GiphyGif({ keyword }) {
 }
 
 /* 🔹 Einfaches Bewertungsformular */
-function BewertungForm({ albumTitel }) {
+function VorschlagForm() {
   const [form, setForm] = useState({
     Name: "",
-    Albumtitel: albumTitel || "",
-    LiebstesLied: "",
-    BesteTextzeile: "",
-    SchlechtestesLied: "",
-    Bewertung: "",
+    Albumtitel: "",
+    Interpret: "",
+    Begruendung: "",
+    SpotifyLink: "",
   });
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    setForm((f) => ({ ...f, Albumtitel: albumTitel || "" }));
-  }, [albumTitel]);
+  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"]; // 👈 gleiche Liste
 
   const onChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -77,25 +74,22 @@ function BewertungForm({ albumTitel }) {
       const res = await fetch("https://script.google.com/macros/s/DEIN_SCRIPT_ID/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "bewertung", ...form }),
+        body: JSON.stringify({ type: "vorschlag", ...form }),
       });
-      const result = await res.json().catch(() => ({}));
-      if (result?.status === "success" || res.ok) {
+      const result = await res.json();
+      if (result.status === "success") {
         setOk(true);
         setForm({
           Name: "",
-          Albumtitel: albumTitel || "",
-          LiebstesLied: "",
-          BesteTextzeile: "",
-          SchlechtestesLied: "",
-          Bewertung: "",
+          Albumtitel: "",
+          Interpret: "",
+          Begruendung: "",
+          SpotifyLink: "",
         });
-      } else {
-        alert("Konnte nicht senden. Prüfe Apps Script Web-App URL & Berechtigungen.");
       }
     } catch (err) {
       console.error(err);
-      alert("Fehler beim Senden.");
+      alert("Fehler beim Absenden");
     } finally {
       setSending(false);
     }
@@ -104,33 +98,34 @@ function BewertungForm({ albumTitel }) {
   if (ok)
     return (
       <div className="text-center text-green-600 font-medium mt-4">
-        ✅ Danke für deine Bewertung!
+        ✅ Danke für deinen Vorschlag!
       </div>
     );
 
   return (
     <form
       onSubmit={onSubmit}
-      className="bg-white p-5 rounded-xl shadow-inner border space-y-3"
+      className="bg-white p-6 rounded-xl shadow-md mt-10 space-y-4"
     >
-      <h3 className="text-center font-semibold">💬 Album bewerten</h3>
+      <h3 className="text-lg font-semibold text-center">
+        💡 Neues Album vorschlagen
+      </h3>
 
+      {/* Name Dropdown */}
       <select
         name="Name"
         value={form.Name}
         onChange={onChange}
-  className="w-full border rounded-lg p-2"
-  required
->
-  <option value="">Teilnehmer wählen</option>
-  <option value="Anne">Anneke</option>
-  <option value="Moritz">Lukas</option>
-  <option value="Max">Miri</option>
-  <option value="Tobi">Paul</option>
-  <option value="Lena">Tobias</option>
-  <option value="Kathi">Tobias</option>
-
-</select>
+        className="w-full border rounded-lg p-2"
+        required
+      >
+        <option value="">Teilnehmer wählen</option>
+        {teilnehmer.map((name) => (
+          <option key={name} value={name}>
+            {name}
+          </option>
+        ))}
+      </select>
 
       <input
         name="Albumtitel"
@@ -141,49 +136,39 @@ function BewertungForm({ albumTitel }) {
         required
       />
       <input
-        name="LiebstesLied"
-        value={form.LiebstesLied}
+        name="Interpret"
+        value={form.Interpret}
         onChange={onChange}
-        placeholder="Liebstes Lied"
+        placeholder="Interpret"
         className="w-full border rounded-lg p-2"
+        required
       />
       <textarea
-        name="BesteTextzeile"
-        value={form.BesteTextzeile}
+        name="Begruendung"
+        value={form.Begruendung}
         onChange={onChange}
-        placeholder="Beste Textzeile"
+        placeholder="Warum möchtest du das Album teilen?"
         className="w-full border rounded-lg p-2"
       />
       <input
-        name="SchlechtestesLied"
-        value={form.SchlechtestesLied}
+        name="SpotifyLink"
+        value={form.SpotifyLink}
         onChange={onChange}
-        placeholder="Schlechtestes Lied"
+        placeholder="Spotify-Link (optional)"
         className="w-full border rounded-lg p-2"
       />
-      <select
-        name="Bewertung"
-        value={form.Bewertung}
-        onChange={onChange}
-        className="w-full border rounded-lg p-2"
-        required
-      >
-        <option value="">Gesamtbewertung wählen</option>
-        <option value="Hit">Hit</option>
-        <option value="Geht in Ordnung">Geht in Ordnung</option>
-        <option value="Niete">Niete</option>
-      </select>
 
       <button
         type="submit"
         disabled={sending}
-        className="w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 transition"
+        className="w-full bg-orange-400 text-white py-2 rounded-lg hover:bg-orange-500 transition"
       >
-        {sending ? "Wird gesendet…" : "Bewertung abschicken"}
+        {sending ? "Wird gesendet..." : "Albumvorschlag abschicken"}
       </button>
     </form>
   );
 }
+
 
 /* 🔹 Neues Album vorschlagen */
 function VorschlagForm() {
