@@ -190,30 +190,7 @@ export default function Home() {
               </p>
             )}
 
-            {/* 🔘 Voting Buttons */}
-            <div className="flex justify-center space-x-4 mt-6">
-              <button
-                onClick={() => handleVote("Hit")}
-                disabled={voting}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
-              >
-                🔥 Hit
-              </button>
-              <button
-                onClick={() => handleVote("Geht in Ordnung")}
-                disabled={voting}
-                className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg"
-              >
-                🙂 Geht in Ordnung
-              </button>
-              <button
-                onClick={() => handleVote("Niete")}
-                disabled={voting}
-                className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg"
-              >
-                💩 Niete
-              </button>
-            </div>
+          
           </div>
         ) : (
           <p className="text-center text-gray-500 mb-8">
