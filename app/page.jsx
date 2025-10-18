@@ -3,46 +3,42 @@ import { useEffect, useState } from "react";
 
 /* 🔹 Kleine Giphy-Komponente für zufälliges GIF */
 function GiphyGif({ keyword }) {
-  const [embedUrl, setEmbedUrl] = useState(null);
+  const [gifId, setGifId] = useState(null);
 
   useEffect(() => {
-    const loadGif = async () => {
-      try {
-        const apiKey = "dc6zaTOxFJmzC"; // öffentlicher Demo-Key
-        const response = await fetch(
-          `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(
-            keyword
-          )}&api_key=${apiKey}&limit=10`
-        );
-        const data = await response.json();
-
-        if (data.data.length > 0) {
+    const apiKey = "dc6zaTOxFJmzC"; // öffentlicher Demo-Key
+    fetch(
+      `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(
+        keyword
+      )}&limit=10&rating=g`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.data && data.data.length > 0) {
           const randomGif =
             data.data[Math.floor(Math.random() * data.data.length)];
-          setEmbedUrl(
-            `https://giphy.com/embed/${randomGif.id}`
-          );
+          setGifId(randomGif.id);
         }
-      } catch (err) {
-        console.error("Fehler beim Laden des Giphy-GIFs:", err);
-      }
-    };
-
-    loadGif();
+      })
+      .catch((err) => console.error("Fehler beim Laden des Giphy-GIFs:", err));
   }, [keyword]);
 
-  if (!embedUrl) return null;
+  if (!gifId) return null;
 
   return (
-    <div className="flex justify-center mt-3">
+    <div className="flex justify-center mt-4">
       <iframe
-        src={embedUrl}
+        src={`https://giphy.com/embed/${gifId}`}
         width="240"
         height="180"
-        style={{ border: "none" }}
+        style={{
+          border: "none",
+          borderRadius: "12px",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        }}
         allowFullScreen
-        title={keyword}
         loading="lazy"
+        title={`GIF zu ${keyword}`}
       ></iframe>
     </div>
   );
