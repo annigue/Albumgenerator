@@ -433,4 +433,112 @@ export default function Home() {
       </div>
     </main>
   );
+  function VorschlagForm() {
+    const [form, setForm] = useState({
+      Name: "",
+      Albumtitel: "",
+      Interpret: "",
+      Begruendung: "",
+      SpotifyLink: "",
+    });
+    const [ok, setOk] = useState(false);
+    const [sending, setSending] = useState(false);
+  
+    const onChange = (e) =>
+      setForm({ ...form, [e.target.name]: e.target.value });
+  
+    const onSubmit = async (e) => {
+      e.preventDefault();
+      setSending(true);
+      try {
+        const res = await fetch("https://script.google.com/macros/s/DEIN_SCRIPT_ID/exec", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "vorschlag", ...form }),
+        });
+        const result = await res.json();
+        if (result.status === "success") {
+          setOk(true);
+          setForm({
+            Name: "",
+            Albumtitel: "",
+            Interpret: "",
+            Begruendung: "",
+            SpotifyLink: "",
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Fehler beim Absenden");
+      } finally {
+        setSending(false);
+      }
+    };
+  
+    if (ok)
+      return (
+        <div className="text-center text-green-600 font-medium mt-4">
+          ✅ Danke für deinen Vorschlag!
+        </div>
+      );
+  
+    return (
+      <form
+        onSubmit={onSubmit}
+        className="bg-white p-6 rounded-xl shadow-md mt-10 space-y-4"
+      >
+        <h3 className="text-lg font-semibold text-center">
+          💡 Neues Album vorschlagen
+        </h3>
+  
+        <input
+          name="Name"
+          value={form.Name}
+          onChange={onChange}
+          placeholder="Dein Name"
+          className="w-full border rounded-lg p-2"
+          required
+        />
+        <input
+          name="Albumtitel"
+          value={form.Albumtitel}
+          onChange={onChange}
+          placeholder="Albumtitel"
+          className="w-full border rounded-lg p-2"
+          required
+        />
+        <input
+          name="Interpret"
+          value={form.Interpret}
+          onChange={onChange}
+          placeholder="Interpret"
+          className="w-full border rounded-lg p-2"
+          required
+        />
+        <textarea
+          name="Begruendung"
+          value={form.Begruendung}
+          onChange={onChange}
+          placeholder="Warum möchtest du das Album teilen?"
+          className="w-full border rounded-lg p-2"
+        />
+        <input
+          name="SpotifyLink"
+          value={form.SpotifyLink}
+          onChange={onChange}
+          placeholder="Spotify-Link (optional)"
+          className="w-full border rounded-lg p-2"
+        />
+  
+        <button
+          type="submit"
+          disabled={sending}
+          className="w-full bg-orange-400 text-white py-2 rounded-lg hover:bg-orange-500 transition"
+        >
+          {sending ? "Wird gesendet..." : "Albumvorschlag abschicken"}
+        </button>
+      </form>
+    );
+  }
+  
 }
