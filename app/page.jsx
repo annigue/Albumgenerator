@@ -44,7 +44,7 @@ function GiphyGif({ keyword }) {
       <img
         src={src}
         alt={`GIF: ${keyword}`}
-        className="rounded-xl shadow-md w-64 h-48 object-cover border border-pink-100"
+        className="rounded-xl disco-img w-64 h-48 object-cover"
       />
     </div>
   );
@@ -75,11 +75,14 @@ function BewertungForm({ albumTitel }) {
     e.preventDefault();
     setSending(true);
     try {
-      const res = await fetch("https://script.google.com/macros/s/1J2wNwi1T86IEIVPhqHD0WV8v1uWZ90ohz07irUlEF50/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "bewertung", ...form }),
-      });
+      const res = await fetch(
+        "https://script.google.com/macros/s/1J2wNwi1T86IEIVPhqHD0WV8v1uWZ90ohz07irUlEF50/exec",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "bewertung", ...form }),
+        }
+      );
       const result = await res.json().catch(() => ({}));
       if (result?.status === "success" || res.ok) {
         setOk(true);
@@ -104,24 +107,22 @@ function BewertungForm({ albumTitel }) {
 
   if (ok)
     return (
-      <div className="text-center text-green-600 font-medium mt-4">
+      <div className="text-center text-brandTeal-400 font-medium mt-4 disco-glow">
         ✅ Danke für deine Bewertung!
       </div>
     );
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="bg-white p-5 rounded-xl shadow-inner border space-y-3"
-    >
-      <h3 className="text-center font-semibold">💬 Album bewerten</h3>
+    <form onSubmit={onSubmit} className="disco-card p-6 space-y-3 text-white">
+      <h3 className="text-center font-semibold text-brandPink-400 disco-glow">
+        💬 Album bewerten
+      </h3>
 
-      {/* Teilnehmer-Dropdown */}
       <select
         name="Name"
         value={form.Name}
         onChange={onChange}
-        className="w-full border rounded-lg p-2"
+        className="w-full p-2 rounded-lg text-black"
         required
       >
         <option value="">Teilnehmer wählen</option>
@@ -137,7 +138,7 @@ function BewertungForm({ albumTitel }) {
         value={form.Albumtitel}
         onChange={onChange}
         placeholder="Albumtitel"
-        className="w-full border rounded-lg p-2"
+        className="w-full p-2 rounded-lg text-black"
         required
       />
       <input
@@ -145,28 +146,28 @@ function BewertungForm({ albumTitel }) {
         value={form.LiebstesLied}
         onChange={onChange}
         placeholder="Liebstes Lied"
-        className="w-full border rounded-lg p-2"
+        className="w-full p-2 rounded-lg text-black"
       />
       <textarea
         name="BesteTextzeile"
         value={form.BesteTextzeile}
         onChange={onChange}
         placeholder="Beste Textzeile"
-        className="w-full border rounded-lg p-2"
+        className="w-full p-2 rounded-lg text-black"
       />
       <input
         name="SchlechtestesLied"
         value={form.SchlechtestesLied}
         onChange={onChange}
         placeholder="Schlechtestes Lied"
-        className="w-full border rounded-lg p-2"
+        className="w-full p-2 rounded-lg text-black"
       />
 
       <select
         name="Bewertung"
         value={form.Bewertung}
         onChange={onChange}
-        className="w-full border rounded-lg p-2"
+        className="w-full p-2 rounded-lg text-black"
         required
       >
         <option value="">Gesamtbewertung wählen</option>
@@ -175,11 +176,7 @@ function BewertungForm({ albumTitel }) {
         <option value="Niete">Niete</option>
       </select>
 
-      <button
-        type="submit"
-        disabled={sending}
-        className="w-full bg-pink-500 text-white py-2 rounded-lg hover:bg-pink-600 transition"
-      >
+      <button type="submit" disabled={sending} className="btn-disco w-full">
         {sending ? "Wird gesendet…" : "Bewertung abschicken"}
       </button>
     </form>
@@ -198,7 +195,7 @@ function VorschlagForm() {
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const teilnehmer = ["Tobi","Anne", "Moritz", "Max", "Kathi", "Lena"];
+  const teilnehmer = ["Tobi", "Anne", "Moritz", "Max", "Kathi", "Lena"];
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -206,11 +203,14 @@ function VorschlagForm() {
     e.preventDefault();
     setSending(true);
     try {
-      const res = await fetch("https://script.google.com/macros/s/DEIN_SCRIPT_ID/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "vorschlag", ...form }),
-      });
+      const res = await fetch(
+        "https://script.google.com/macros/s/DEIN_SCRIPT_ID/exec",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "vorschlag", ...form }),
+        }
+      );
       const result = await res.json();
       if (result.status === "success") {
         setOk(true);
@@ -232,26 +232,22 @@ function VorschlagForm() {
 
   if (ok)
     return (
-      <div className="text-center text-green-600 font-medium mt-4">
+      <div className="text-center text-brandTeal-400 font-medium mt-4 disco-glow">
         ✅ Danke für deinen Vorschlag!
       </div>
     );
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="bg-white p-6 rounded-xl shadow-md mt-10 space-y-4"
-    >
-      <h3 className="text-lg font-semibold text-center">
+    <form onSubmit={onSubmit} className="disco-card p-6 mt-10 space-y-4 text-white">
+      <h3 className="text-lg font-semibold text-center text-brandPink-400 disco-glow">
         💡 Neues Album vorschlagen
       </h3>
 
-      {/* Teilnehmer-Dropdown */}
       <select
         name="Name"
         value={form.Name}
         onChange={onChange}
-        className="w-full border rounded-lg p-2"
+        className="w-full p-2 rounded-lg text-black"
         required
       >
         <option value="">Teilnehmer wählen</option>
@@ -267,7 +263,7 @@ function VorschlagForm() {
         value={form.Albumtitel}
         onChange={onChange}
         placeholder="Albumtitel"
-        className="w-full border rounded-lg p-2"
+        className="w-full p-2 rounded-lg text-black"
         required
       />
       <input
@@ -275,7 +271,7 @@ function VorschlagForm() {
         value={form.Interpret}
         onChange={onChange}
         placeholder="Interpret"
-        className="w-full border rounded-lg p-2"
+        className="w-full p-2 rounded-lg text-black"
         required
       />
       <textarea
@@ -283,21 +279,17 @@ function VorschlagForm() {
         value={form.Begruendung}
         onChange={onChange}
         placeholder="Warum möchtest du das Album teilen?"
-        className="w-full border rounded-lg p-2"
+        className="w-full p-2 rounded-lg text-black"
       />
       <input
         name="SpotifyLink"
         value={form.SpotifyLink}
         onChange={onChange}
         placeholder="Spotify-Link (optional)"
-        className="w-full border rounded-lg p-2"
+        className="w-full p-2 rounded-lg text-black"
       />
 
-      <button
-        type="submit"
-        disabled={sending}
-        className="w-full bg-orange-400 text-white py-2 rounded-lg hover:bg-orange-500 transition"
-      >
+      <button type="submit" disabled={sending} className="btn-disco w-full">
         {sending ? "Wird gesendet..." : "Albumvorschlag abschicken"}
       </button>
     </form>
@@ -315,7 +307,6 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [coverUrl, setCoverUrl] = useState(null);
 
-  // CSV → Array of objects
   const parseCsv = (text) => {
     const rows = text
       .trim()
@@ -329,7 +320,6 @@ export default function Home() {
     );
   };
 
-  // 🔹 Daten laden
   useEffect(() => {
     (async () => {
       try {
@@ -366,13 +356,14 @@ export default function Home() {
     .sort((a, b) => new Date(b.Datum) - new Date(a.Datum));
   const selectedAlbum = pastAlbums[currentIndex];
 
-  // 🔹 Spotify Cover laden
   useEffect(() => {
     if (!selectedAlbum?.SpotifyLink) return setCoverUrl(null);
     const m = selectedAlbum.SpotifyLink.match(/album\/([a-zA-Z0-9]+)/);
     const id = m ? m[1] : null;
     if (!id) return setCoverUrl(null);
-    fetch(`https://open.spotify.com/oembed?url=https://open.spotify.com/album/${id}`)
+    fetch(
+      `https://open.spotify.com/oembed?url=https://open.spotify.com/album/${id}`
+    )
       .then((r) => r.json())
       .then((d) => setCoverUrl(d.thumbnail_url))
       .catch(() => setCoverUrl(null));
@@ -381,96 +372,60 @@ export default function Home() {
   if (error)
     return <main className="p-8 text-center text-red-600">{error}</main>;
   if (albums.length === 0)
-    return (
-      <main className="p-8 text-center text-gray-600">Lade Alben…</main>
-    );
+    return <main className="p-8 text-center text-gray-600">Lade Alben…</main>;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 p-6 text-gray-800">
-      <div className="max-w-2xl mx-auto">
-      <h1 className="font-disco text-4xl disco-glow text-center mb-6">
-  🎶 Schnaggile – Album der Woche
-</h1>
+    <main className="min-h-screen p-6 text-white">
+      {/* 🪩 Disco Hero Header */}
+      <div className="relative mb-12 rounded-3xl overflow-hidden">
+        <img
+          src="/fidel-fernando-249DzAuJTqQ-unsplash.jpg"
+          alt="Disco Background"
+          className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm"
+        />
+        <div className="relative z-10 text-center py-16">
+          <h1 className="font-disco text-4xl md:text-5xl disco-glow">
+            🎶 Schnaggile – Album der Woche
+          </h1>
+        </div>
+      </div>
 
-<div className="disco-card p-6 mt-6 text-center">
-  <img src="/public/disco1.jpg" alt="Disco" className="disco-img mx-auto mb-4" />
-  <button className="btn-disco">Album bewerten</button>
-</div>
-
-<div className="relative">
-  <img src="/public/disco1.jpg" alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-  <div className="relative z-10 p-8">
-    <h1 className="font-disco text-5xl disco-glow">Album des Tages</h1>
-  </div>
-</div>
-
-
-
+      <div className="max-w-2xl mx-auto space-y-10">
         {/* Heutiges Album */}
         {albumOfTheDay && (
-          <div className="bg-white p-6 rounded-2xl shadow-md mb-10 text-center">
-            <h2 className="text-xl font-semibold mb-2 flex justify-center items-center space-x-2">
-              <span>{albumOfTheDay["Albumtitel"]}</span>
-              {albumOfTheDay["SpotifyLink"] ? (
-                <a
-                  href={albumOfTheDay["SpotifyLink"]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="opacity-80 hover:opacity-100 transition"
-                >
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                    alt="Spotify"
-                    className="w-5 h-5"
-                  />
-                </a>
-              ) : (
-                <span className="text-gray-400 text-sm ml-2">(kein Link)</span>
-              )}
+          <div className="disco-card p-6 text-center">
+            <h2 className="text-2xl font-disco disco-glow mb-4">
+              🪩 Album des Tages
             </h2>
+            <p className="font-semibold text-brandTeal-400 mb-1">
+              {albumOfTheDay["Albumtitel"]}
+            </p>
+            <p className="text-sm italic mb-4">
+              {albumOfTheDay["Interpret"]}
+            </p>
+            {/* Spotify Embed */}
+            {(() => {
+              const m = albumOfTheDay["SpotifyLink"]?.match(
+                /album\/([a-zA-Z0-9]+)/
+              );
+              const id = m ? m[1] : null;
+              return id ? (
+                <iframe
+                  style={{ borderRadius: "12px" }}
+                  src={`https://open.spotify.com/embed/album/${id}`}
+                  width="100%"
+                  height="352"
+                  frameBorder="0"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  loading="lazy"
+                ></iframe>
+              ) : (
+                <p className="text-sm text-gray-300 italic">
+                  Kein Spotify-Link eingereicht.
+                </p>
+              );
+            })()}
 
-            <p className="text-gray-600 mb-4">{albumOfTheDay["Interpret"]}</p>
-
-            {/* Spotify Embed oder Fallback */}
-            {albumOfTheDay["SpotifyLink"] ? (
-              (() => {
-                const m = albumOfTheDay["SpotifyLink"].match(/album\/([a-zA-Z0-9]+)/);
-                const id = m ? m[1] : null;
-                return id ? (
-                  <iframe
-                    style={{ borderRadius: "12px" }}
-                    src={`https://open.spotify.com/embed/album/${id}`}
-                    width="100%"
-                    height="352"
-                    frameBorder="0"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                  ></iframe>
-                ) : (
-                  <p className="text-sm text-gray-500 italic">
-                    Kein Spotify-Embed verfügbar.
-                  </p>
-                );
-              })()
-            ) : (
-              <p className="text-sm text-gray-500 italic">
-                Kein Spotify-Link eingereicht.
-              </p>
-            )}
-
-            {albumOfTheDay["Dein Name"] && (
-              <p className="mt-4 text-sm text-gray-500">
-                Vorgeschlagen von {albumOfTheDay["Dein Name"]}
-              </p>
-            )}
-
-            {albumOfTheDay["Warum möchtest du das Album teilen?"] && (
-              <p className="mt-2 italic text-gray-600">
-                „{albumOfTheDay["Warum möchtest du das Album teilen?"]}“
-              </p>
-            )}
-
-            {/* Bewertungsformular */}
             <div className="mt-6">
               <BewertungForm albumTitel={albumOfTheDay["Albumtitel"]} />
             </div>
@@ -479,8 +434,8 @@ export default function Home() {
 
         {/* Vergangene Alben */}
         {selectedAlbum && (
-          <div className="bg-white p-6 rounded-xl shadow-md mb-10">
-            <h3 className="text-lg font-semibold mb-4 text-center">
+          <div className="disco-card p-6">
+            <h3 className="font-disco text-xl disco-glow text-center mb-6">
               📚 Bisherige Alben
             </h3>
 
@@ -488,31 +443,17 @@ export default function Home() {
               <img
                 src={coverUrl}
                 alt={`${selectedAlbum["Albumtitel"]} Cover`}
-                className="w-48 h-48 rounded-xl shadow-md mb-3 object-cover mx-auto"
+                className="w-48 h-48 disco-img mx-auto mb-3 object-cover"
               />
             )}
 
-            <h4 className="text-xl font-semibold mb-1 flex items-center justify-center space-x-2">
-              <span>{selectedAlbum["Albumtitel"]}</span>
-              {selectedAlbum["SpotifyLink"] && (
-                <a
-                  href={selectedAlbum["SpotifyLink"]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="opacity-80 hover:opacity-100"
-                >
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                    alt="Spotify"
-                    className="w-5 h-5"
-                  />
-                </a>
-              )}
+            <h4 className="text-lg text-center font-semibold">
+              {selectedAlbum["Albumtitel"]}
             </h4>
+            <p className="text-center text-sm mb-4">
+              {selectedAlbum["Interpret"]}
+            </p>
 
-            <p className="text-gray-500 mb-2">{selectedAlbum["Interpret"]}</p>
-
-            {/* Ergebnis + GIF */}
             {(() => {
               const list = selectedAlbum.reviews || [];
               if (list.length === 0) return null;
@@ -524,11 +465,6 @@ export default function Home() {
               const [topVote, topCount] = Object.entries(counts).sort(
                 (a, b) => b[1] - a[1]
               )[0];
-              const colors = {
-                Hit: "text-green-600",
-                "Geht in Ordnung": "text-yellow-600",
-                Niete: "text-pink-600",
-              };
               const keyword =
                 topVote === "Hit"
                   ? "winner"
@@ -537,7 +473,7 @@ export default function Home() {
                   : "do not want";
               return (
                 <>
-                  <p className={`text-sm font-medium ${colors[topVote]}`}>
+                  <p className="text-center font-medium mt-2">
                     🏆 Mehrheitlich bewertet als: {topVote} ({topCount} Stimmen)
                   </p>
                   <GiphyGif keyword={keyword} />
@@ -545,11 +481,10 @@ export default function Home() {
               );
             })()}
 
-            {/* Bewertungs-Tabelle */}
-            <h5 className="font-semibold mb-2 mt-6">💬 Bewertungen</h5>
+            <h5 className="font-semibold mt-6 mb-2">💬 Bewertungen</h5>
             {selectedAlbum.reviews?.length ? (
-              <table className="min-w-full text-sm border-t">
-                <thead className="bg-gray-50">
+              <table className="min-w-full text-sm border-t border-white/30">
+                <thead>
                   <tr>
                     <th className="py-2 px-2 text-left">Teilnehmer</th>
                     <th className="py-2 px-2 text-left">Liebstes Lied</th>
@@ -560,13 +495,15 @@ export default function Home() {
                 </thead>
                 <tbody>
                   {selectedAlbum.reviews.map((r, i) => (
-                    <tr key={i} className="border-t">
+                    <tr key={i} className="border-t border-white/20">
                       <td className="py-2 px-2">{r["Name"]}</td>
                       <td className="py-2 px-2">{r["Liebstes Lied"]}</td>
                       <td className="py-2 px-2 italic">
                         {r["Beste Textzeile"]}
                       </td>
-                      <td className="py-2 px-2">{r["Schlechtestes Lied"]}</td>
+                      <td className="py-2 px-2">
+                        {r["Schlechtestes Lied"]}
+                      </td>
                       <td className="py-2 px-2">
                         {r["Gesamtbewertung"] || r["Bewertung"]}
                       </td>
@@ -575,28 +512,25 @@ export default function Home() {
                 </tbody>
               </table>
             ) : (
-              <p className="text-sm text-gray-500 italic">
+              <p className="text-sm italic text-gray-300">
                 Noch keine Bewertungen vorhanden.
               </p>
             )}
 
-            {/* Navigation */}
             <div className="flex justify-between mt-6">
               <button
                 onClick={() => setCurrentIndex((i) => Math.max(i - 1, 0))}
                 disabled={currentIndex === 0}
-                className="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50"
+                className="btn-disco disabled:opacity-40"
               >
                 ◀ Vorheriges
               </button>
               <button
                 onClick={() =>
-                  setCurrentIndex((i) =>
-                    Math.min(i + 1, pastAlbums.length - 1)
-                  )
+                  setCurrentIndex((i) => Math.min(i + 1, pastAlbums.length - 1))
                 }
                 disabled={currentIndex === pastAlbums.length - 1}
-                className="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50"
+                className="btn-disco disabled:opacity-40"
               >
                 Nächstes ▶
               </button>
@@ -604,10 +538,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Neues Album vorschlagen */}
-        <div className="max-w-2xl mx-auto mt-12 mb-10">
-          <VorschlagForm />
-        </div>
+        <VorschlagForm />
       </div>
     </main>
   );
