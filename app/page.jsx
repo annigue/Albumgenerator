@@ -89,7 +89,7 @@ export default function Home() {
 
   const selectedAlbum = pastAlbums[currentIndex];
 
-  // 🔹 Spotify-Cover laden (Variante 3)
+  // 🔹 Spotify-Cover laden
   useEffect(() => {
     if (!selectedAlbum?.SpotifyLink) {
       setCoverUrl(null);
@@ -111,26 +111,6 @@ export default function Home() {
       });
   }, [selectedAlbum]);
 
-  // 🔹 Voting
-  const handleVote = async (type) => {
-    if (!albumOfTheDay || voting) return;
-    setVoting(true);
-
-    try {
-      await fetch(VOTE_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: albumOfTheDay["Datum"], type }),
-      });
-      alert(`Danke für deine Bewertung: ${type}`);
-    } catch (err) {
-      console.error(err);
-      alert("Fehler beim Senden der Bewertung.");
-    } finally {
-      setVoting(false);
-    }
-  };
-
   // 🔹 Fehler / Ladezustände
   if (error)
     return <main className="p-8 text-center text-red-600">{error}</main>;
@@ -146,59 +126,7 @@ export default function Home() {
           🎵 Schnaggile – Album des Tages
         </h1>
 
-        {/* 🎧 Heutiges Album */}
-        {albumOfTheDay ? (
-          <div className="bg-white p-6 rounded-2xl shadow-md mb-10 text-center">
-            <h2 className="text-xl font-semibold mb-2">
-              {albumOfTheDay["Albumtitel"]}
-            </h2>
-            <p className="text-gray-600 mb-4">{albumOfTheDay["Interpret"]}</p>
-
-            {/* Spotify Embed */}
-            {albumOfTheDay["SpotifyLink"] && (() => {
-              const match = albumOfTheDay["SpotifyLink"].match(/album\/([a-zA-Z0-9]+)/);
-              const albumId = match ? match[1] : null;
-              return albumId ? (
-                <iframe
-                  style={{ borderRadius: "12px" }}
-                  src={`https://open.spotify.com/embed/album/${albumId}`}
-                  width="100%"
-                  height="352"
-                  frameBorder="0"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                ></iframe>
-              ) : (
-                <a
-                  href={albumOfTheDay["SpotifyLink"]}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600 transition"
-                >
-                  Auf Spotify öffnen
-                </a>
-              );
-            })()}
-
-            <p className="mt-4 text-sm text-gray-500">
-              Vorgeschlagen von {albumOfTheDay["Dein Name"]}
-            </p>
-
-            {albumOfTheDay["Warum möchtest du das Album teilen?"] && (
-              <p className="mt-3 italic text-gray-600">
-                „{albumOfTheDay["Warum möchtest du das Album teilen?"]}“
-              </p>
-            )}
-
-          
-          </div>
-        ) : (
-          <p className="text-center text-gray-500 mb-8">
-            Für heute ist noch kein Album eingetragen.
-          </p>
-        )}
-
-        {/* 📚 Vergangene Alben mit Bewertungen */}
+        {/* 📚 Vergangene Alben */}
         <h3 className="text-lg font-semibold mb-4 text-center">
           📚 Bisherige Alben
         </h3>
@@ -213,54 +141,59 @@ export default function Home() {
                   className="w-48 h-48 rounded-xl shadow-md mb-3 object-cover"
                 />
               )}
-              <h4 className="text-xl font-semibold text-center flex items-center justify-center space-x-2">
-  <span>{selectedAlbum["Albumtitel"]}</span>
-  {selectedAlbum["SpotifyLink"] && (
-    <a
-      href={selectedAlbum["SpotifyLink"]}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-block opacity-80 hover:opacity-100 transition"
-    >
-      <img
-        src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-        alt="Spotify"
-        className="w-5 h-5"
-      />
-    </a>
-  )}
-<h4 className="text-xl font-semibold text-center mb-1">
-  {selectedAlbum["Albumtitel"]}
-</h4>
-<p className="text-center text-gray-500 mb-2">
-  {selectedAlbum["Interpret"]}
-</p>
 
-{/* 🔹 Mehrheitsergebnis */}
-{(() => {
-  if (!selectedAlbum.reviews || selectedAlbum.reviews.length === 0) return null;
+              {/* 🎵 Albumtitel + Spotify-Link */}
+              <h4 className="text-xl font-semibold text-center flex items-center justify-center space-x-2 mb-1">
+                <span>{selectedAlbum["Albumtitel"]}</span>
+                {selectedAlbum["SpotifyLink"] && (
+                  <a
+                    href={selectedAlbum["SpotifyLink"]}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block opacity-80 hover:opacity-100 transition"
+                  >
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                      alt="Spotify"
+                      className="w-5 h-5"
+                    />
+                  </a>
+                )}
+              </h4>
 
-  const counts = { "Hit": 0, "Geht in Ordnung": 0, "Niete": 0 };
-  selectedAlbum.reviews.forEach((r) => {
-    const v = r["Gesamtbewertung"]; // ← ggf. anpassen an deine Spaltenüberschrift
-    if (counts[v] !== undefined) counts[v]++;
-  });
+              <p className="text-center text-gray-500 mb-2">
+                {selectedAlbum["Interpret"]}
+              </p>
 
-  const [topVote, topCount] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+              {/* 🏆 Mehrheitsergebnis */}
+              {(() => {
+                if (!selectedAlbum.reviews || selectedAlbum.reviews.length === 0)
+                  return null;
 
-  const colors = {
-    "Hit": "text-green-600",
-    "Geht in Ordnung": "text-yellow-600",
-    "Niete": "text-pink-600"
-  };
+                const counts = { Hit: 0, "Geht in Ordnung": 0, Niete: 0 };
+                selectedAlbum.reviews.forEach((r) => {
+                  const v = r["Gesamtbewertung"] || r["Bewertung"];
+                  if (counts[v] !== undefined) counts[v]++;
+                });
 
-  return (
-    <p className={`text-sm font-medium text-center ${colors[topVote]}`}>
-      🏆 Mehrheitlich bewertet als: {topVote} ({topCount} Stimmen)
-    </p>
-  );
-})()}
+                const [topVote, topCount] = Object.entries(counts).sort(
+                  (a, b) => b[1] - a[1]
+                )[0];
 
+                const colors = {
+                  Hit: "text-green-600",
+                  "Geht in Ordnung": "text-yellow-600",
+                  Niete: "text-pink-600",
+                };
+
+                return (
+                  <p
+                    className={`text-sm font-medium text-center ${colors[topVote]}`}
+                  >
+                    🏆 Mehrheitlich bewertet als: {topVote} ({topCount} Stimmen)
+                  </p>
+                );
+              })()}
             </div>
 
             {/* 💬 Bewertungen */}
@@ -281,7 +214,9 @@ export default function Home() {
                     <tr key={i} className="border-t">
                       <td className="py-2 px-2">{r["Name"]}</td>
                       <td className="py-2 px-2">{r["Liebstes Lied"]}</td>
-                      <td className="py-2 px-2 italic">{r["Beste Textzeile"]}</td>
+                      <td className="py-2 px-2 italic">
+                        {r["Beste Textzeile"]}
+                      </td>
                       <td className="py-2 px-2">{r["Schlechtestes Lied"]}</td>
                       <td className="py-2 px-2">{r["Bewertung"]}</td>
                     </tr>
