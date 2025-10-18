@@ -55,7 +55,7 @@ function GiphyGif({ keyword }) {
 export default function Home() {
   const SHEET_ID = "1J2wNwi1T86IEIVPhqHD0WV8v1uWZ90ohz07irUlEF50";
   const SHEET_NAME = "Album des Tages";
-  const SHEET_REVIEWS = "Bewertungen";
+  const SHEET_REVIEWS = "Formularantworten Bewertungen";
   const VOTE_API_URL = "/api/vote";
 
   const [albums, setAlbums] = useState([]);
