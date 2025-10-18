@@ -1,6 +1,45 @@
 "use client";
 import { useEffect, useState } from "react";
 
+/* 🔹 Kleine Giphy-Komponente für zufälliges GIF */
+function GiphyGif({ keyword }) {
+  const [gifUrl, setGifUrl] = useState(null);
+
+  useEffect(() => {
+    const fetchGif = async () => {
+      try {
+        const apiKey = "dc6zaTOxFJmzC"; // öffentlicher Demo-API-Key von Giphy
+        const res = await fetch(
+          `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(
+            keyword
+          )}&api_key=${apiKey}&limit=10`
+        );
+        const data = await res.json();
+        if (data.data.length > 0) {
+          const randomGif =
+            data.data[Math.floor(Math.random() * data.data.length)];
+          setGifUrl(randomGif.images.fixed_height.url);
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden des Giphy-GIFs:", err);
+      }
+    };
+
+    fetchGif();
+  }, [keyword]);
+
+  if (!gifUrl) return null;
+
+  return (
+    <img
+      src={gifUrl}
+      alt={keyword}
+      className="w-full max-w-xs mx-auto rounded-xl mt-3 shadow-sm"
+    />
+  );
+}
+
+/* 🔸 Hauptkomponente */
 export default function Home() {
   const SHEET_ID = "1J2wNwi1T86IEIVPhqHD0WV8v1uWZ90ohz07irUlEF50";
   const SHEET_NAME = "Album des Tages";
@@ -220,7 +259,7 @@ export default function Home() {
                 {selectedAlbum["Interpret"]}
               </p>
 
-              {/* 🏆 Mehrheitsergebnis */}
+              {/* 🏆 Mehrheitsergebnis + Giphy */}
               {(() => {
                 if (!selectedAlbum.reviews || selectedAlbum.reviews.length === 0)
                   return null;
@@ -240,23 +279,23 @@ export default function Home() {
                   "Geht in Ordnung": "text-yellow-600",
                   Niete: "text-pink-600",
                 };
+
                 return (
                   <div className="text-center">
                     <p className={`text-sm font-medium ${colors[topVote]}`}>
                       🏆 Mehrheitlich bewertet als: {topVote} ({topCount} Stimmen)
                     </p>
-                
-                    {/* 🔹 Giphy GIF einbinden */}
-                    <GiphyGif keyword={
-                      topVote === "Hit"
-                        ? "winner"
-                        : topVote === "Geht in Ordnung"
-                        ? "average"
-                        : "do not want"
-                    } />
+                    <GiphyGif
+                      keyword={
+                        topVote === "Hit"
+                          ? "winner"
+                          : topVote === "Geht in Ordnung"
+                          ? "average"
+                          : "do not want"
+                      }
+                    />
                   </div>
                 );
-                
               })()}
             </div>
 
