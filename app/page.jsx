@@ -31,7 +31,6 @@ function GiphyGif({ keyword }) {
   }, [keyword]);
 
   if (!gifUrl) {
-    // Fallback, wenn kein GIF geladen werden konnte
     const fallbackEmoji =
       keyword === "winner"
         ? "🏆"
@@ -69,12 +68,11 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // --- 1️⃣ Alben laden ---
+        // --- Alben laden ---
         const albumUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(
           SHEET_NAME
         )}`;
         const albumRes = await fetch(albumUrl);
-        if (!albumRes.ok) throw new Error("Fehler beim Laden der Alben");
         const albumText = await albumRes.text();
 
         const albumRows = albumText
@@ -88,13 +86,11 @@ export default function Home() {
           Object.fromEntries(albumHeaders.map((h, i) => [h, row[i] || ""]))
         );
 
-        // --- 2️⃣ Bewertungen laden ---
+        // --- Bewertungen laden ---
         const reviewUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(
           SHEET_REVIEWS
         )}`;
         const reviewRes = await fetch(reviewUrl);
-        if (!reviewRes.ok)
-          throw new Error("Fehler beim Laden der Bewertungen");
         const reviewText = await reviewRes.text();
 
         const reviewRows = reviewText
@@ -108,7 +104,6 @@ export default function Home() {
           Object.fromEntries(reviewHeaders.map((h, i) => [h, row[i] || ""]))
         );
 
-        // --- 3️⃣ Bewertungen zu Alben zuordnen ---
         setAlbums(
           albumsData.map((album) => ({
             ...album,
@@ -126,7 +121,7 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // 🔹 Datum & Auswahl
+  // 🔹 Datum
   const todayStr = new Date().toISOString().slice(0, 10);
   const albumOfTheDay = albums.find((a) => a.Datum === todayStr);
   const pastAlbums = albums
@@ -164,7 +159,65 @@ export default function Home() {
           🎵 Schnaggile – Album des Tages
         </h1>
 
+        {/* 🎧 Heutiges Album */}
+        {albumOfTheDay ? (
+          <div className="bg-white p-6 rounded-2xl shadow-md mb-10 text-center">
+            <h2 className="text-xl font-semibold mb-2 flex justify-center items-center space-x-2">
+              <span>{albumOfTheDay["Albumtitel"]}</span>
+              {albumOfTheDay["SpotifyLink"] && (
+                <a
+                  href={albumOfTheDay["SpotifyLink"]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block opacity-80 hover:opacity-100 transition"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                    alt="Spotify"
+                    className="w-5 h-5"
+                  />
+                </a>
+              )}
+            </h2>
+            <p className="text-gray-600 mb-4">{albumOfTheDay["Interpret"]}</p>
+
+            {albumOfTheDay["SpotifyLink"] && (() => {
+              const match = albumOfTheDay["SpotifyLink"].match(/album\/([a-zA-Z0-9]+)/);
+              const albumId = match ? match[1] : null;
+              return albumId ? (
+                <iframe
+                  style={{ borderRadius: "12px" }}
+                  src={`https://open.spotify.com/embed/album/${albumId}`}
+                  width="100%"
+                  height="352"
+                  frameBorder="0"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  loading="lazy"
+                ></iframe>
+              ) : null;
+            })()}
+
+            <p className="mt-4 text-sm text-gray-500">
+              Vorgeschlagen von {albumOfTheDay["Dein Name"]}
+            </p>
+
+            {albumOfTheDay["Warum möchtest du das Album teilen?"] && (
+              <p className="mt-3 italic text-gray-600">
+                „{albumOfTheDay["Warum möchtest du das Album teilen?"]}“
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 mb-8">
+            Für heute ist noch kein Album eingetragen.
+          </p>
+        )}
+
         {/* 📚 Vergangene Alben */}
+        <h3 className="text-lg font-semibold mb-4 text-center">
+          📚 Bisherige Alben
+        </h3>
+
         {pastAlbums.length > 0 && selectedAlbum ? (
           <div className="bg-white p-6 rounded-xl shadow-md">
             <div className="flex flex-col items-center mb-4">
@@ -176,7 +229,6 @@ export default function Home() {
                 />
               )}
 
-              {/* 🎵 Titel + Spotify */}
               <h4 className="text-xl font-semibold flex items-center justify-center space-x-2 mb-1">
                 <span>{selectedAlbum["Albumtitel"]}</span>
                 {selectedAlbum["SpotifyLink"] && (
@@ -197,7 +249,7 @@ export default function Home() {
                 {selectedAlbum["Interpret"]}
               </p>
 
-              {/* 🏆 Mehrheitsergebnis + Giphy */}
+              {/* 🏆 Mehrheitsergebnis + GIF */}
               {(() => {
                 if (!selectedAlbum.reviews || selectedAlbum.reviews.length === 0)
                   return null;
