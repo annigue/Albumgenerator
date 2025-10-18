@@ -3,41 +3,51 @@ import { useEffect, useState } from "react";
 
 /* 🔹 Kleine Giphy-Komponente für zufälliges GIF */
 function GiphyGif({ keyword }) {
-  const [gifUrl, setGifUrl] = useState(null);
+  const [embedUrl, setEmbedUrl] = useState(null);
 
   useEffect(() => {
-    const fetchGif = async () => {
+    const loadGif = async () => {
       try {
-        const apiKey = "dc6zaTOxFJmzC"; // öffentlicher Demo-API-Key von Giphy
-        const res = await fetch(
+        const apiKey = "dc6zaTOxFJmzC"; // öffentlicher Demo-Key
+        const response = await fetch(
           `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(
             keyword
           )}&api_key=${apiKey}&limit=10`
         );
-        const data = await res.json();
+        const data = await response.json();
+
         if (data.data.length > 0) {
           const randomGif =
             data.data[Math.floor(Math.random() * data.data.length)];
-          setGifUrl(randomGif.images.fixed_height.url);
+          setEmbedUrl(
+            `https://giphy.com/embed/${randomGif.id}`
+          );
         }
       } catch (err) {
         console.error("Fehler beim Laden des Giphy-GIFs:", err);
       }
     };
 
-    fetchGif();
+    loadGif();
   }, [keyword]);
 
-  if (!gifUrl) return null;
+  if (!embedUrl) return null;
 
   return (
-    <img
-      src={gifUrl}
-      alt={keyword}
-      className="w-full max-w-xs mx-auto rounded-xl mt-3 shadow-sm"
-    />
+    <div className="flex justify-center mt-3">
+      <iframe
+        src={embedUrl}
+        width="240"
+        height="180"
+        style={{ border: "none" }}
+        allowFullScreen
+        title={keyword}
+        loading="lazy"
+      ></iframe>
+    </div>
   );
 }
+
 
 /* 🔸 Hauptkomponente */
 export default function Home() {
