@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 /* 🔹 Giphy-Komponente mit festen GIFs (kein API-Call nötig) */
 function GiphyGif({ keyword }) {
   const gifs = {
-    winner: "https://media.giphy.com/media/26ufnwz3wDUli7GU0/giphy.gif", // 🏆 jubelnd
-    average: "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif", // 😐 neutral / ok
-    "do not want": "https://media.giphy.com/media/3ohhwJ6DW9b0Nf3fUQ/giphy.gif", // 💩 ablehnend
+    winner: "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3cGJicGVhdW80c2Z1cWNsamNqYWFqaTl3bHRoejQ3eHMxbGFuZ290bCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Rhf0uSWt1P2TFqVMZK/giphy.gif", // 🏆 jubelnd
+    average: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2d3bWI0cHpsbWJnbmN4dHQ3NWVkeDV1czNnNGxpdDNtYzdnZGRxYSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/XCct4Twj5bx48HXtZU/giphy.gif", // 😐 neutral / ok
+    "do not want": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOTl2dnNxazR2cThhejlyc2pwMnN3d3diZ2N1c21mYWs3dWY4MmRtayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/W28eWcremV69Id7gJX/giphy.gif", // 💩 ablehnend
   };
 
   const gifUrl = gifs[keyword] || gifs.average;
