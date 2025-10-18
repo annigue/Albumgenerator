@@ -240,14 +240,23 @@ export default function Home() {
                   "Geht in Ordnung": "text-yellow-600",
                   Niete: "text-pink-600",
                 };
-
                 return (
-                  <p
-                    className={`text-sm font-medium text-center ${colors[topVote]}`}
-                  >
-                    🏆 Mehrheitlich bewertet als: {topVote} ({topCount} Stimmen)
-                  </p>
+                  <div className="text-center">
+                    <p className={`text-sm font-medium ${colors[topVote]}`}>
+                      🏆 Mehrheitlich bewertet als: {topVote} ({topCount} Stimmen)
+                    </p>
+                
+                    {/* 🔹 Giphy GIF einbinden */}
+                    <GiphyGif keyword={
+                      topVote === "Hit"
+                        ? "winner"
+                        : topVote === "Geht in Ordnung"
+                        ? "average"
+                        : "do not want"
+                    } />
+                  </div>
                 );
+                
               })()}
             </div>
 
