@@ -237,6 +237,20 @@ export default function Home() {
                 />
               )}
               <h4 className="text-xl font-semibold text-center">
+  {selectedAlbum["SpotifyLink"] ? (
+    <a
+      href={selectedAlbum["SpotifyLink"]}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-pink-600 hover:text-pink-700 underline decoration-pink-400 hover:decoration-pink-600 transition"
+    >
+      {selectedAlbum["Albumtitel"]}
+    </a>
+  ) : (
+    selectedAlbum["Albumtitel"]
+  )}
+</h4>
+<h4 className="text-xl font-semibold text-center">
                 {selectedAlbum["Albumtitel"]}
               </h4>
               <p className="text-center text-gray-500">
