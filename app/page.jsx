@@ -236,23 +236,24 @@ export default function Home() {
                   className="w-48 h-48 rounded-xl shadow-md mb-3 object-cover"
                 />
               )}
-              <h4 className="text-xl font-semibold text-center">
-  {selectedAlbum["SpotifyLink"] ? (
+              <h4 className="text-xl font-semibold text-center flex items-center justify-center space-x-2">
+  <span>{selectedAlbum["Albumtitel"]}</span>
+  {selectedAlbum["SpotifyLink"] && (
     <a
       href={selectedAlbum["SpotifyLink"]}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-pink-600 hover:text-pink-700 underline decoration-pink-400 hover:decoration-pink-600 transition"
+      className="inline-block opacity-80 hover:opacity-100 transition"
     >
-      {selectedAlbum["Albumtitel"]}
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+        alt="Spotify"
+        className="w-5 h-5"
+      />
     </a>
-  ) : (
-    selectedAlbum["Albumtitel"]
   )}
 </h4>
-<h4 className="text-xl font-semibold text-center">
-                {selectedAlbum["Albumtitel"]}
-              </h4>
+
               <p className="text-center text-gray-500">
                 {selectedAlbum["Interpret"]}
               </p>
