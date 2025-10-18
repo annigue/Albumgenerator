@@ -218,6 +218,24 @@ export default function Home() {
           </p>
         )}
 
+<div className="bg-white p-6 rounded-2xl shadow-md mt-8">
+  <h3 className="text-xl font-semibold text-center mb-4">
+    💬 Neues Album bewerten
+  </h3>
+  <iframe
+    src="https://docs.google.com/forms/d/e/DEIN_FORMULAR_ID/viewform?embedded=true"
+    width="100%"
+    height="900"
+    frameBorder="0"
+    marginHeight="0"
+    marginWidth="0"
+    className="rounded-xl shadow-inner"
+  >
+    Wird geladen…
+  </iframe>
+</div>
+
+
         {/* 📚 Vergangene Alben */}
         <h3 className="text-lg font-semibold mb-4 text-center">
           📚 Bisherige Alben
