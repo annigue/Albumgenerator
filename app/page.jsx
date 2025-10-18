@@ -17,7 +17,10 @@ function GiphyGif({ keyword }) {
         if (data.data && data.data.length > 0) {
           const randomGif =
             data.data[Math.floor(Math.random() * data.data.length)];
+          console.log("✅ Giphy gefunden:", randomGif.id, randomGif.url); // 👉 Debug
           setGifId(randomGif.id);
+        } else {
+          console.warn("⚠️ Kein Giphy-Ergebnis für:", keyword);
         }
       })
       .catch((err) => console.error("Fehler beim Laden des Giphy-GIFs:", err));
@@ -26,12 +29,14 @@ function GiphyGif({ keyword }) {
   if (!gifId) return null;
 
   return (
-    <div className="flex justify-center mt-4">
+    // 👇 Hier ist der pinke Rahmen – du siehst ihn sofort, wenn das Element gerendert wird
+    <div className="flex justify-center mt-4 border border-dashed border-pink-400 p-2 rounded-xl">
       <iframe
         src={`https://giphy.com/embed/${gifId}`}
         width="240"
         height="180"
         style={{
+          display: "block",
           border: "none",
           borderRadius: "12px",
           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
@@ -43,6 +48,7 @@ function GiphyGif({ keyword }) {
     </div>
   );
 }
+
 
 
 /* 🔸 Hauptkomponente */
