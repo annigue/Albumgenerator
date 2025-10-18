@@ -11,6 +11,7 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [voting, setVoting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [coverUrl, setCoverUrl] = useState(null);
 
   // 🔹 Daten laden
   useEffect(() => {
@@ -87,6 +88,28 @@ export default function Home() {
     .sort((a, b) => new Date(b.Datum) - new Date(a.Datum));
 
   const selectedAlbum = pastAlbums[currentIndex];
+
+  // 🔹 Spotify-Cover laden (Variante 3)
+  useEffect(() => {
+    if (!selectedAlbum?.SpotifyLink) {
+      setCoverUrl(null);
+      return;
+    }
+
+    const match = selectedAlbum.SpotifyLink.match(/album\/([a-zA-Z0-9]+)/);
+    const albumId = match ? match[1] : null;
+    if (!albumId) return;
+
+    fetch(
+      `https://open.spotify.com/oembed?url=https://open.spotify.com/album/${albumId}`
+    )
+      .then((res) => res.json())
+      .then((data) => setCoverUrl(data.thumbnail_url))
+      .catch((err) => {
+        console.error("Fehler beim Laden des Covers:", err);
+        setCoverUrl(null);
+      });
+  }, [selectedAlbum]);
 
   // 🔹 Voting
   const handleVote = async (type) => {
@@ -205,33 +228,21 @@ export default function Home() {
 
         {pastAlbums.length > 0 && selectedAlbum ? (
           <div className="bg-white p-6 rounded-xl shadow-md">
-           <div className="text-center mb-4">
-  {selectedAlbum["SpotifyLink"] && (() => {
-    const match = selectedAlbum["SpotifyLink"].match(/album\/([a-zA-Z0-9]+)/);
-    const albumId = match ? match[1] : null;
-    return albumId ? (
-      <iframe
-        src={`https://open.spotify.com/embed/album/${albumId}`}
-        width="100%"
-        height="152"
-        frameBorder="0"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-        loading="lazy"
-        className="rounded-xl"
-      ></iframe>
-    ) : (
-      <a
-        href={selectedAlbum["SpotifyLink"]}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-pink-600 underline"
-      >
-        Auf Spotify ansehen
-      </a>
-    );
-  })()}
-</div>
-
+            <div className="flex flex-col items-center mb-4">
+              {coverUrl && (
+                <img
+                  src={coverUrl}
+                  alt={`${selectedAlbum["Albumtitel"]} Cover`}
+                  className="w-48 h-48 rounded-xl shadow-md mb-3 object-cover"
+                />
+              )}
+              <h4 className="text-xl font-semibold text-center">
+                {selectedAlbum["Albumtitel"]}
+              </h4>
+              <p className="text-center text-gray-500">
+                {selectedAlbum["Interpret"]}
+              </p>
+            </div>
 
             {/* 💬 Bewertungen */}
             <h5 className="font-semibold mb-2">💬 Bewertungen</h5>
