@@ -115,14 +115,23 @@ function BewertungForm({ albumTitel }) {
     >
       <h3 className="text-center font-semibold">💬 Album bewerten</h3>
 
-      <input
+      <select
         name="Name"
         value={form.Name}
         onChange={onChange}
-        placeholder="Dein Name"
-        className="w-full border rounded-lg p-2"
-        required
-      />
+  className="w-full border rounded-lg p-2"
+  required
+>
+  <option value="">Teilnehmer wählen</option>
+  <option value="Anne">Anneke</option>
+  <option value="Moritz">Lukas</option>
+  <option value="Max">Miri</option>
+  <option value="Tobi">Paul</option>
+  <option value="Lena">Tobias</option>
+  <option value="Kathi">Tobias</option>
+
+</select>
+
       <input
         name="Albumtitel"
         value={form.Albumtitel}
