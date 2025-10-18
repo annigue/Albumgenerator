@@ -2,45 +2,15 @@
 import { useEffect, useState } from "react";
 
 /* 🔹 Giphy-Komponente mit direkter Bildanzeige */
+/* 🔹 Giphy-Komponente mit festen GIFs (kein API-Call nötig) */
 function GiphyGif({ keyword }) {
-  const [gifUrl, setGifUrl] = useState(null);
+  const gifs = {
+    winner: "https://media.giphy.com/media/26ufnwz3wDUli7GU0/giphy.gif", // 🏆 jubelnd
+    average: "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif", // 😐 neutral / ok
+    "do not want": "https://media.giphy.com/media/3ohhwJ6DW9b0Nf3fUQ/giphy.gif", // 💩 ablehnend
+  };
 
-  useEffect(() => {
-    const apiKey = "dc6zaTOxFJmzC"; // öffentlicher Demo-Key
-    fetch(
-      `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(
-        keyword
-      )}&limit=10&rating=g`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.data && data.data.length > 0) {
-          const randomGif =
-            data.data[Math.floor(Math.random() * data.data.length)];
-          console.log("🎞 Giphy geladen:", randomGif.url);
-          setGifUrl(randomGif.images.fixed_height.url);
-        } else {
-          console.warn("⚠️ Kein Giphy-Ergebnis für:", keyword);
-          setGifUrl(null);
-        }
-      })
-      .catch((err) => {
-        console.error("❌ Fehler beim Laden des GIFs:", err);
-        setGifUrl(null);
-      });
-  }, [keyword]);
-
-  if (!gifUrl) {
-    const fallbackEmoji =
-      keyword === "winner"
-        ? "🏆"
-        : keyword === "average"
-        ? "😐"
-        : "💩";
-    return (
-      <div className="flex justify-center mt-4 text-3xl">{fallbackEmoji}</div>
-    );
-  }
+  const gifUrl = gifs[keyword] || gifs.average;
 
   return (
     <div className="flex justify-center mt-4">
@@ -52,6 +22,8 @@ function GiphyGif({ keyword }) {
     </div>
   );
 }
+
+
 
 /* 🔸 Hauptkomponente */
 export default function Home() {
