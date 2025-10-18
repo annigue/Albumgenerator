@@ -75,7 +75,7 @@ function BewertungForm({ albumTitel }) {
     e.preventDefault();
     setSending(true);
     try {
-      const res = await fetch("https://script.google.com/macros/s/DEIN_SCRIPT_ID/exec", {
+      const res = await fetch("https://script.google.com/macros/s/1J2wNwi1T86IEIVPhqHD0WV8v1uWZ90ohz07irUlEF50/exec", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "bewertung", ...form }),
