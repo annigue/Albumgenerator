@@ -393,9 +393,17 @@ export default function Home() {
 </h1>
 
 <div className="disco-card p-6 mt-6 text-center">
-  <img src="/disco1.jpg" alt="Disco" className="disco-img mx-auto mb-4" />
+  <img src="/public/disco1.jpg" alt="Disco" className="disco-img mx-auto mb-4" />
   <button className="btn-disco">Album bewerten</button>
 </div>
+
+<div className="relative">
+  <img src="/public/disco1.jpg" alt="Background" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+  <div className="relative z-10 p-8">
+    <h1 className="font-disco text-5xl disco-glow">Album des Tages</h1>
+  </div>
+</div>
+
 
 
         {/* Heutiges Album */}
