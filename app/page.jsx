@@ -1,23 +1,54 @@
 "use client";
 import { useEffect, useState } from "react";
 
-/* 🔹 Giphy-Komponente mit direkter Bildanzeige */
-/* 🔹 Giphy-Komponente mit festen GIFs (kein API-Call nötig) */
+/* 🔹 Dynamische Giphy-Komponente mit Fallback */
 function GiphyGif({ keyword }) {
-  const gifs = {
-    winner: "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3cGJicGVhdW80c2Z1cWNsamNqYWFqaTl3bHRoejQ3eHMxbGFuZ290bCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Rhf0uSWt1P2TFqVMZK/giphy.gif", // 🏆 jubelnd
-    average: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2d3bWI0cHpsbWJnbmN4dHQ3NWVkeDV1czNnNGxpdDNtYzdnZGRxYSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/XCct4Twj5bx48HXtZU/giphy.gif", // 😐 neutral / ok
-    "do not want": "https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExOTl2dnNxazR2cThhejlyc2pwMnN3d3diZ2N1c21mYWs3dWY4MmRtayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/W28eWcremV69Id7gJX/giphy.gif", // 💩 ablehnend
+  const [gifUrl, setGifUrl] = useState(null);
+
+  // 👉 Deinen eigenen API-Key hier eintragen:
+  const apiKey = process.env.NEXT_PUBLIC_GIPHY_API_KEY;
+
+  useEffect(() => {
+    async function fetchGif() {
+      try {
+        const res = await fetch(
+          `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(
+            keyword
+          )}&limit=25&rating=g`
+        );
+        const data = await res.json();
+
+        if (data?.data?.length > 0) {
+          const random = data.data[Math.floor(Math.random() * data.data.length)];
+          setGifUrl(random.images.fixed_height.url);
+        } else {
+          console.warn("⚠️ Kein GIF für:", keyword);
+          setGifUrl(null);
+        }
+      } catch (err) {
+        console.error("❌ Fehler beim Laden des Giphy-GIFs:", err);
+        setGifUrl(null);
+      }
+    }
+
+    fetchGif();
+  }, [keyword]);
+
+  // 🔸 Falls kein GIF gefunden wurde → Fallback-GIFs
+  const fallbackGifs = {
+    winner: "https://media.giphy.com/media/26ufnwz3wDUli7GU0/giphy.gif",
+    average: "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
+    "do not want": "https://media.giphy.com/media/3ohhwJ6DW9b0Nf3fUQ/giphy.gif",
   };
 
-  const gifUrl = gifs[keyword] || gifs.average;
+  const finalGif = gifUrl || fallbackGifs[keyword] || fallbackGifs.average;
 
   return (
     <div className="flex justify-center mt-4">
       <img
-        src={gifUrl}
+        src={finalGif}
         alt={`GIF zu ${keyword}`}
-        className="rounded-xl shadow-md w-64 h-48 object-cover border border-pink-100"
+        className="rounded-xl shadow-md w-64 h-48 object-cover border border-pink-100 animate-fadeIn"
       />
     </div>
   );
