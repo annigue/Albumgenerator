@@ -126,6 +126,61 @@ export default function Home() {
           🎵 Schnaggile – Album des Tages
         </h1>
 
+        {/* 🎧 Heutiges Album */}
+        {albumOfTheDay ? (
+          <div className="bg-white p-6 rounded-2xl shadow-md mb-10 text-center">
+            <h2 className="text-xl font-semibold mb-2 flex justify-center items-center space-x-2">
+              <span>{albumOfTheDay["Albumtitel"]}</span>
+              {albumOfTheDay["SpotifyLink"] && (
+                <a
+                  href={albumOfTheDay["SpotifyLink"]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block opacity-80 hover:opacity-100 transition"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                    alt="Spotify"
+                    className="w-5 h-5"
+                  />
+                </a>
+              )}
+            </h2>
+            <p className="text-gray-600 mb-4">{albumOfTheDay["Interpret"]}</p>
+
+            {/* Spotify Embed */}
+            {albumOfTheDay["SpotifyLink"] && (() => {
+              const match = albumOfTheDay["SpotifyLink"].match(/album\/([a-zA-Z0-9]+)/);
+              const albumId = match ? match[1] : null;
+              return albumId ? (
+                <iframe
+                  style={{ borderRadius: "12px" }}
+                  src={`https://open.spotify.com/embed/album/${albumId}`}
+                  width="100%"
+                  height="352"
+                  frameBorder="0"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  loading="lazy"
+                ></iframe>
+              ) : null;
+            })()}
+
+            <p className="mt-4 text-sm text-gray-500">
+              Vorgeschlagen von {albumOfTheDay["Dein Name"]}
+            </p>
+
+            {albumOfTheDay["Warum möchtest du das Album teilen?"] && (
+              <p className="mt-3 italic text-gray-600">
+                „{albumOfTheDay["Warum möchtest du das Album teilen?"]}“
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 mb-8">
+            Für heute ist noch kein Album eingetragen.
+          </p>
+        )}
+
         {/* 📚 Vergangene Alben */}
         <h3 className="text-lg font-semibold mb-4 text-center">
           📚 Bisherige Alben
