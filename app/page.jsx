@@ -229,11 +229,38 @@ export default function Home() {
       />
     </a>
   )}
+<h4 className="text-xl font-semibold text-center mb-1">
+  {selectedAlbum["Albumtitel"]}
 </h4>
+<p className="text-center text-gray-500 mb-2">
+  {selectedAlbum["Interpret"]}
+</p>
 
-              <p className="text-center text-gray-500">
-                {selectedAlbum["Interpret"]}
-              </p>
+{/* 🔹 Mehrheitsergebnis */}
+{(() => {
+  if (!selectedAlbum.reviews || selectedAlbum.reviews.length === 0) return null;
+
+  const counts = { "Hit": 0, "Geht in Ordnung": 0, "Niete": 0 };
+  selectedAlbum.reviews.forEach((r) => {
+    const v = r["Gesamtbewertung"]; // ← ggf. anpassen an deine Spaltenüberschrift
+    if (counts[v] !== undefined) counts[v]++;
+  });
+
+  const [topVote, topCount] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+
+  const colors = {
+    "Hit": "text-green-600",
+    "Geht in Ordnung": "text-yellow-600",
+    "Niete": "text-pink-600"
+  };
+
+  return (
+    <p className={`text-sm font-medium text-center ${colors[topVote]}`}>
+      🏆 Mehrheitlich bewertet als: {topVote} ({topCount} Stimmen)
+    </p>
+  );
+})()}
+
             </div>
 
             {/* 💬 Bewertungen */}
