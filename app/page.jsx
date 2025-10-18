@@ -4,100 +4,79 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const SHEET_ID = "1J2wNwi1T86IEIVPhqHD0WV8v1uWZ90ohz07irUlEF50";
   const SHEET_NAME = "Album des Tages";
-  const REVIEWS_SHEET = "Bewertungen";
-  const VOTE_API_URL = "/api/vote";
   const SHEET_REVIEWS = "Bewertungen";
-
+  const VOTE_API_URL = "/api/vote";
 
   const [albums, setAlbums] = useState([]);
-  const [reviews, setReviews] = useState([]);
   const [error, setError] = useState(null);
   const [voting, setVoting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // 🔹 Albumdaten laden
+  // 🔹 Daten laden
   useEffect(() => {
     const fetchData = async () => {
       try {
         // --- 1️⃣ Alben laden ---
-        const albumUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+        const albumUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(
+          SHEET_NAME
+        )}`;
         const albumRes = await fetch(albumUrl);
         if (!albumRes.ok) throw new Error("Fehler beim Laden der Alben");
         const albumText = await albumRes.text();
-  
-        const albumRows = albumText.trim().split(/\r?\n/).map(line =>
-          line.split(/","|",|,"/).map(v => v.replace(/^"+|"+$/g, "").trim())
-        );
-        const albumHeaders = albumRows.shift().map(h => h.trim());
-        const albumsData = albumRows.map(row =>
+
+        const albumRows = albumText
+          .trim()
+          .split(/\r?\n/)
+          .map((line) =>
+            line.split(/","|",|,"/).map((v) => v.replace(/^"+|"+$/g, "").trim())
+          );
+        const albumHeaders = albumRows.shift().map((h) => h.trim());
+        const albumsData = albumRows.map((row) =>
           Object.fromEntries(albumHeaders.map((h, i) => [h, row[i] || ""]))
         );
-  
+
         // --- 2️⃣ Bewertungen laden ---
-        const reviewUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_REVIEWS)}`;
+        const reviewUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(
+          SHEET_REVIEWS
+        )}`;
         const reviewRes = await fetch(reviewUrl);
-        if (!reviewRes.ok) throw new Error("Fehler beim Laden der Bewertungen");
+        if (!reviewRes.ok)
+          throw new Error("Fehler beim Laden der Bewertungen");
         const reviewText = await reviewRes.text();
-  
-        const reviewRows = reviewText.trim().split(/\r?\n/).map(line =>
-          line.split(/","|",|,"/).map(v => v.replace(/^"+|"+$/g, "").trim())
-        );
-        const reviewHeaders = reviewRows.shift().map(h => h.trim());
-        const reviewsData = reviewRows.map(row =>
+
+        const reviewRows = reviewText
+          .trim()
+          .split(/\r?\n/)
+          .map((line) =>
+            line.split(/","|",|,"/).map((v) => v.replace(/^"+|"+$/g, "").trim())
+          );
+        const reviewHeaders = reviewRows.shift().map((h) => h.trim());
+        const reviewsData = reviewRows.map((row) =>
           Object.fromEntries(reviewHeaders.map((h, i) => [h, row[i] || ""]))
         );
-  
-        // --- 3️⃣ In State speichern ---
-        setAlbums(albumsData.map(album => ({
-          ...album,
-          reviews: reviewsData.filter(r => r.Albumtitel === album.Albumtitel),
-        })));
+
+        // --- 3️⃣ Bewertungen zu Alben zuordnen ---
+        setAlbums(
+          albumsData.map((album) => ({
+            ...album,
+            reviews: reviewsData.filter(
+              (r) => r.Albumtitel === album.Albumtitel
+            ),
+          }))
+        );
       } catch (err) {
         console.error(err);
         setError("Fehler beim Laden der Daten");
       }
     };
-  
+
     fetchData();
-  }, []);
-  
-
-  // 🔹 Bewertungen laden
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(
-          REVIEWS_SHEET
-        )}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Fehler beim Laden der Bewertungen");
-        const text = await res.text();
-
-        const rows = text
-          .trim()
-          .split(/\r?\n/)
-          .map((line) =>
-            line
-              .split(/","|",|,"/)
-              .map((v) => v.replace(/^"+|"+$/g, "").trim())
-          );
-
-        const headers = rows.shift().map((h) => h.trim());
-        const data = rows.map((row) =>
-          Object.fromEntries(headers.map((h, i) => [h, row[i] || ""]))
-        );
-
-        setReviews(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchReviews();
   }, []);
 
   // 🔹 Datum
-  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const searchParams = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : ""
+  );
   const testDate = searchParams.get("date");
   const today = testDate ? new Date(testDate) : new Date();
   const todayStr = today.toISOString().slice(0, 10);
@@ -133,7 +112,9 @@ export default function Home() {
   if (error)
     return <main className="p-8 text-center text-red-600">{error}</main>;
   if (albums.length === 0)
-    return <main className="p-8 text-center text-gray-600">Lade Alben...</main>;
+    return (
+      <main className="p-8 text-center text-gray-600">Lade Alben...</main>
+    );
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 p-6 text-gray-800">
@@ -191,21 +172,21 @@ export default function Home() {
               <button
                 onClick={() => handleVote("Hit")}
                 disabled={voting}
-                className="bg-brandlgreen-400 hover:bg-brandlgreen-600 disabled:bg-brandlightgrey text-white px-4 py-2 rounded-lg"
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg"
               >
                 🔥 Hit
               </button>
               <button
                 onClick={() => handleVote("Geht in Ordnung")}
                 disabled={voting}
-                className="bg-brandOrange-400 hover:bg-brandOrange-600 disabled:bg-brandlightgrey text-white px-4 py-2 rounded-lg"
+                className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg"
               >
                 🙂 Geht in Ordnung
               </button>
               <button
                 onClick={() => handleVote("Niete")}
                 disabled={voting}
-                className="bg-brandPink-500 hover:bg-brandPink-600 disabled:bg-brandlightgrey text-white px-4 py-2 rounded-lg"
+                className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg"
               >
                 💩 Niete
               </button>
@@ -216,18 +197,6 @@ export default function Home() {
             Für heute ist noch kein Album eingetragen.
           </p>
         )}
-
-        {/* ➕ Neues Album vorschlagen */}
-        <div className="text-center mb-10">
-          <a
-            href="https://docs.google.com/forms/d/e/1FAIpQLScUIi-782VvUZRQTAsoLTiPNm8-z6Z7nO0e_rGMZW_5ZNV9uw/viewform"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-pink-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-pink-600 transition"
-          >
-            ➕ Neues Album vorschlagen
-          </a>
-        </div>
 
         {/* 📚 Vergangene Alben mit Bewertungen */}
         <h3 className="text-lg font-semibold mb-4 text-center">
@@ -245,52 +214,39 @@ export default function Home() {
 
             {/* 💬 Bewertungen */}
             <h5 className="font-semibold mb-2">💬 Bewertungen</h5>
-            <table className="min-w-full text-sm border-t">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="py-2 px-2 text-left">Teilnehmer</th>
-                  <th className="py-2 px-2 text-left">Liebstes Lied</th>
-                  <th className="py-2 px-2 text-left">Beste Textzeile</th>
-                  <th className="py-2 px-2 text-left">Schlechtestes Lied</th>
-                  <th className="py-2 px-2 text-left">Bewertung</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reviews
-                  .filter((r) => r.Albumtitel === selectedAlbum["Albumtitel"])
-                  .map((r, i) => (
+            {selectedAlbum.reviews && selectedAlbum.reviews.length > 0 ? (
+              <table className="min-w-full text-sm border-t">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="py-2 px-2 text-left">Teilnehmer</th>
+                    <th className="py-2 px-2 text-left">Liebstes Lied</th>
+                    <th className="py-2 px-2 text-left">Beste Textzeile</th>
+                    <th className="py-2 px-2 text-left">Schlechtestes Lied</th>
+                    <th className="py-2 px-2 text-left">Bewertung</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedAlbum.reviews.map((r, i) => (
                     <tr key={i} className="border-t">
-                      <td className="py-2 px-2">{r["Teilnehmer"]}</td>
+                      <td className="py-2 px-2">{r["Name"]}</td>
                       <td className="py-2 px-2">{r["Liebstes Lied"]}</td>
                       <td className="py-2 px-2 italic">{r["Beste Textzeile"]}</td>
                       <td className="py-2 px-2">{r["Schlechtestes Lied"]}</td>
                       <td className="py-2 px-2">{r["Bewertung"]}</td>
                     </tr>
                   ))}
-              </tbody>
-            </table>
-
-            {album.reviews && album.reviews.length > 0 && (
-  <div className="mt-3 border-t border-gray-200 pt-2 text-sm text-gray-700">
-    <h4 className="font-medium mb-1">💬 Bewertungen</h4>
-    {album.reviews.map((rev, j) => (
-      <div key={j} className="mb-2 bg-gray-50 p-2 rounded">
-        <p><span className="font-semibold">{rev.Name}:</span> {rev.Bewertung}</p>
-        {rev["Liebstes Lied"] && <p>🎧 Lieblingslied: {rev["Liebstes Lied"]}</p>}
-        {rev["Beste Textzeile"] && <p>✍️ Beste Zeile: „{rev["Beste Textzeile"]}“</p>}
-        {rev["Schlechtestes Lied"] && <p>🚫 Schlechtestes Lied: {rev["Schlechtestes Lied"]}</p>}
-      </div>
-    ))}
-  </div>
-)}
-
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-sm text-gray-500 italic">
+                Noch keine Bewertungen vorhanden.
+              </p>
+            )}
 
             {/* Navigation */}
             <div className="flex justify-between mt-6">
               <button
-                onClick={() =>
-                  setCurrentIndex((i) => Math.max(i - 1, 0))
-                }
+                onClick={() => setCurrentIndex((i) => Math.max(i - 1, 0))}
                 disabled={currentIndex === 0}
                 className="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50"
               >
