@@ -388,9 +388,15 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 p-6 text-gray-800">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-6">
-          🎵 Schnaggile – Album der Woche
-        </h1>
+      <h1 className="font-disco text-4xl disco-glow text-center mb-6">
+  🎶 Schnaggile – Album der Woche
+</h1>
+
+<div className="disco-card p-6 mt-6 text-center">
+  <img src="/disco1.jpg" alt="Disco" className="disco-img mx-auto mb-4" />
+  <button className="btn-disco">Album bewerten</button>
+</div>
+
 
         {/* Heutiges Album */}
         {albumOfTheDay && (
