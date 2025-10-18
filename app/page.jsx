@@ -205,12 +205,33 @@ export default function Home() {
 
         {pastAlbums.length > 0 && selectedAlbum ? (
           <div className="bg-white p-6 rounded-xl shadow-md">
-            <h4 className="text-xl font-semibold mb-2 text-center">
-              {selectedAlbum["Albumtitel"]}
-            </h4>
-            <p className="text-center text-gray-500 mb-4">
-              {selectedAlbum["Interpret"]}
-            </p>
+           <div className="text-center mb-4">
+  {selectedAlbum["SpotifyLink"] && (() => {
+    const match = selectedAlbum["SpotifyLink"].match(/album\/([a-zA-Z0-9]+)/);
+    const albumId = match ? match[1] : null;
+    return albumId ? (
+      <iframe
+        src={`https://open.spotify.com/embed/album/${albumId}`}
+        width="100%"
+        height="152"
+        frameBorder="0"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"
+        className="rounded-xl"
+      ></iframe>
+    ) : (
+      <a
+        href={selectedAlbum["SpotifyLink"]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-pink-600 underline"
+      >
+        Auf Spotify ansehen
+      </a>
+    );
+  })()}
+</div>
+
 
             {/* 💬 Bewertungen */}
             <h5 className="font-semibold mb-2">💬 Bewertungen</h5>
