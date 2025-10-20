@@ -375,7 +375,7 @@ export default function Home() {
     return <main className="p-8 text-center text-gray-600">Lade Alben…</main>;
 
   return (
-    <main className="min-h-screen p-6 text-gray-800 bg-gradient-to-br from-pink-50 via-orange-50 to-pink-100">
+    <main className="min-h-screen p-6 text-white bg-gradient-to-br from-pink-50 via-orange-50 to-pink-100">
       <div className="relative mb-12 rounded-3xl overflow-hidden">
         <img
           src="/fidel-fernando-249DzAuJTqQ-unsplash.jpg"
