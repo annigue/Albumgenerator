@@ -359,23 +359,42 @@ export default function Home() {
     })();
   }, []);
 
-  const today = new Date();
-  const formatDate = (d) =>
-    new Date(d).toISOString().slice(0, 10); // in ISO umwandeln
-  
-  // Wir versuchen, beide Formate (ISO & lokal) zu matchen
-  const albumOfTheDay = albums.find((a) => {
-    const cellDate = a.Datum?.trim();
-    return (
-      cellDate === today.toISOString().slice(0, 10) || // ISO-Format
-      cellDate === today.toLocaleDateString("de-DE")   // deutsches Format
-    );
-  });
-  
-  const pastAlbums = albums
-    .filter((a) => a.Datum < todayStr)
-    .sort((a, b) => new Date(b.Datum) - new Date(a.Datum));
-  const selectedAlbum = pastAlbums[currentIndex];
+  // 🧩 Datum robust vergleichen
+const today = new Date();
+const formatDate = (d) => {
+  try {
+    if (!d) return "";
+    const parsed = new Date(d);
+    if (!isNaN(parsed)) return parsed.toISOString().slice(0, 10);
+    // Versuch deutsches Format zu erkennen (z. B. 18.10.2025)
+    const parts = d.split(".");
+    if (parts.length === 3) {
+      const [tag, monat, jahr] = parts;
+      return new Date(`${jahr}-${monat}-${tag}`).toISOString().slice(0, 10);
+    }
+    return "";
+  } catch {
+    return "";
+  }
+};
+
+// Heutiges Album finden
+const albumOfTheDay = albums.find((a) => {
+  const cellDate = a?.Datum?.trim?.() || "";
+  const formattedCell = formatDate(cellDate);
+  const formattedToday = today.toISOString().slice(0, 10);
+  return formattedCell === formattedToday;
+});
+
+// Vergangene Alben (nur mit Datum, das vor heute liegt)
+const pastAlbums = albums
+  .filter((a) => {
+    const formatted = formatDate(a?.Datum);
+    return formatted && formatted < today.toISOString().slice(0, 10);
+  })
+  .sort((a, b) => new Date(b.Datum) - new Date(a.Datum));
+
+const selectedAlbum = pastAlbums[currentIndex];
 
   // 🔹 Spotify Cover laden
   useEffect(() => {
