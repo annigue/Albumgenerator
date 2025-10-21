@@ -359,8 +359,19 @@ export default function Home() {
     })();
   }, []);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const albumOfTheDay = albums.find((a) => a.Datum === todayStr);
+  const today = new Date();
+  const formatDate = (d) =>
+    new Date(d).toISOString().slice(0, 10); // in ISO umwandeln
+  
+  // Wir versuchen, beide Formate (ISO & lokal) zu matchen
+  const albumOfTheDay = albums.find((a) => {
+    const cellDate = a.Datum?.trim();
+    return (
+      cellDate === today.toISOString().slice(0, 10) || // ISO-Format
+      cellDate === today.toLocaleDateString("de-DE")   // deutsches Format
+    );
+  });
+  
   const pastAlbums = albums
     .filter((a) => a.Datum < todayStr)
     .sort((a, b) => new Date(b.Datum) - new Date(a.Datum));
