@@ -399,7 +399,9 @@ const selectedAlbum = pastAlbums[currentIndex];
   // 🔹 Spotify Cover laden
   useEffect(() => {
     if (!selectedAlbum?.SpotifyLink) return setCoverUrl(null);
-    const m = selectedAlbum.SpotifyLink.match(/album\/([a-zA-Z0-9]+)/);
+    const link = albumOfTheDay["SpotifyLink"] || "";
+    const m = link.match(/album\/([a-zA-Z0-9]+)/);
+
     const id = m ? m[1] : null;
     if (!id) return setCoverUrl(null);
     fetch(`https://open.spotify.com/oembed?url=https://open.spotify.com/album/${id}`)
