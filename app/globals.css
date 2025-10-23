@@ -2,143 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 🪩 Hipster Disco Global Theme */
-@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Space+Grotesk:wght@400;600&display=swap');
+/* 🪩 Retro Music Theme Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;700&display=swap');
 
-/* Hintergrund und Textfarben */
+/* 🌼 Grundlayout */
 body {
-  @apply text-white;
-  font-family: 'Space Grotesk', sans-serif;
-  background: radial-gradient(circle at 20% 30%, #0b0b2b 0%, #331f4a 60%, #55285c 100%);
-  background-attachment: fixed;
-  min-height: 100vh;
+  @apply bg-retro-bg text-retro-text font-sans min-h-screen;
 }
 
+/* 🏁 Typografie */
+h1, h2, h3, h4, h5 {
+  @apply font-display tracking-widest text-retro-accent;
+}
+
+/* 🔲 Formulare & Felder */
+input,
+select,
+textarea {
+  @apply border border-retro-border bg-transparent text-retro-text 
+    p-2 text-sm tracking-wider focus:outline-none focus:ring-2 focus:ring-retro-accent;
+}
+
+/* 🔴 Buttons */
+button {
+  @apply bg-retro-accent text-white font-display text-lg py-2 px-4 
+    border-2 border-retro-border shadow-sm tracking-wide hover:bg-black transition disabled:opacity-50;
+}
+
+/* 🔘 Container für Formulare, Alben usw. */
+.form-box {
+  @apply border-2 border-retro-border bg-retro-bg p-6 rounded-none shadow-sm 
+    space-y-4 text-center;
+}
+
+/* 🪞 Tabellen (Bewertungen) */
+table {
+  @apply w-full border-t border-retro-border text-left text-sm;
+}
+
+th, td {
+  @apply border-t border-retro-border py-2 px-2;
+}
+
+thead {
+  @apply bg-retro-bg text-retro-accent font-medium;
+}
+
+/* 🎞 Bilder */
+img {
+  @apply border border-retro-border shadow-sm;
+}
+
+/* ✨ Link-Stil */
 a {
-  text-decoration: none;
-  color: inherit;
-}
-
-/* 🩵 Headline */
-h1, h2, h3 {
-  font-family: 'Syncopate', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  background: linear-gradient(90deg, #ffd1dc 0%, #ffb6c1 50%, #ffe7ba 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 6px rgba(255, 200, 200, 0.3);
-}
-
-/* ✨ dezenter Glamour-Glow */
-.disco-glow {
-  filter: drop-shadow(0 0 4px rgba(255, 225, 200, 0.25))
-          drop-shadow(0 0 8px rgba(255, 182, 193, 0.15));
-}
-
-
-/* ✨ Karten-Stil */
-.disco-card {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 1.5rem;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
-  transition: all 0.3s ease;
-}
-
-.disco-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 0 30px rgba(255, 62, 165, 0.3);
-}
-
-/* 🌈 Buttons */
-.btn-disco {
-  background: linear-gradient(135deg, #ff3ea5, #58fcec);
-  border: none;
-  color: #0b0b2b;
-  font-weight: 600;
-  border-radius: 9999px;
-  padding: 0.6rem 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.btn-disco:hover {
-  box-shadow: 0 0 15px rgba(88, 252, 236, 0.8);
-  transform: translateY(-1px);
-}
-
-/* 💫 Glow-Effekt */
-.disco-glow {
-  filter: drop-shadow(0 0 6px #ff3ea5) drop-shadow(0 0 10px #58fcec);
-}
-
-/* 📸 Bilder */
-.disco-img {
-  border-radius: 1.5rem;
-  filter: contrast(1.1) brightness(1.1) saturate(1.2);
-  box-shadow: 0 0 25px rgba(255, 62, 165, 0.25);
-}
-
-/* Sanfter Verlauf für Cards-Titel */
-.card-title {
-  background: linear-gradient(90deg, #fff0f5, #ffe4b5);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 4px rgba(255, 240, 245, 0.2);
-}
-
-/* 🌸 Glamour-Glass-Stil für Formulare */
-.disco-card {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px) saturate(130%);
-  -webkit-backdrop-filter: blur(12px) saturate(130%);
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow:
-    0 4px 30px rgba(0, 0, 0, 0.1),
-    inset 0 0 15px rgba(255, 255, 255, 0.15);
-  padding: 1.5rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.disco-card:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 8px 32px rgba(255, 182, 193, 0.25),
-    inset 0 0 20px rgba(255, 255, 255, 0.15);
-}
-
-/* 🪩 Inputs & Textareas passend dazu */
-.disco-input {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  color: #333;
-  width: 100%;
-  transition: all 0.2s ease;
-}
-
-.disco-input:focus {
-  outline: none;
-  border-color: #ffb6c1;
-  box-shadow: 0 0 8px rgba(255, 182, 193, 0.4);
-}
-
-/* Für Buttons */
-.btn-disco {
-  background: linear-gradient(90deg, #ffb6c1, #ffe4b5);
-  color: #222;
-  font-weight: 600;
-  border-radius: 0.75rem;
-  padding: 0.6rem 1.2rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 3px 8px rgba(255, 182, 193, 0.25);
-}
-
-.btn-disco:hover {
-  background: linear-gradient(90deg, #ffe4b5, #ffb6c1);
-  box-shadow: 0 6px 15px rgba(255, 182, 193, 0.35);
-  transform: translateY(-1px);
+  @apply text-retro-accent hover:underline;
 }
