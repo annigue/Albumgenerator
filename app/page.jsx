@@ -329,7 +329,6 @@ export default function Home() {
     );
   };
 
-  // 🔹 Daten laden
   useEffect(() => {
     (async () => {
       try {
@@ -359,49 +358,40 @@ export default function Home() {
     })();
   }, []);
 
-  // 🧩 Datum robust vergleichen
-const today = new Date();
-const formatDate = (d) => {
-  try {
+  // 🧩 Robust: Datum erkennen (ISO oder DE)
+  const today = new Date();
+  const isoToday = today.toISOString().slice(0, 10);
+  const formatDate = (d) => {
     if (!d) return "";
     const parsed = new Date(d);
     if (!isNaN(parsed)) return parsed.toISOString().slice(0, 10);
-    // Versuch deutsches Format zu erkennen (z. B. 18.10.2025)
-    const parts = d.split(".");
+    const parts = String(d).split(".");
     if (parts.length === 3) {
-      const [tag, monat, jahr] = parts;
-      return new Date(`${jahr}-${monat}-${tag}`).toISOString().slice(0, 10);
+      const [tag, monat, jahr] = parts.map((p) => p.padStart(2, "0"));
+      const dd = `${jahr}-${monat}-${tag}`;
+      const p2 = new Date(dd);
+      if (!isNaN(p2)) return p2.toISOString().slice(0, 10);
     }
     return "";
-  } catch {
-    return "";
-  }
-};
+  };
 
-// Heutiges Album finden
-const albumOfTheDay = albums.find((a) => {
-  const cellDate = a?.Datum?.trim?.() || "";
-  const formattedCell = formatDate(cellDate);
-  const formattedToday = today.toISOString().slice(0, 10);
-  return formattedCell === formattedToday;
-});
+  // Heutiges Album
+  const albumOfTheDay = albums.find((a) => formatDate(a?.Datum) === isoToday);
 
-// Vergangene Alben (nur mit Datum, das vor heute liegt)
-const pastAlbums = albums
-  .filter((a) => {
-    const formatted = formatDate(a?.Datum);
-    return formatted && formatted < today.toISOString().slice(0, 10);
-  })
-  .sort((a, b) => new Date(b.Datum) - new Date(a.Datum));
+  // Vergangene Alben
+  const pastAlbums = albums
+    .filter((a) => {
+      const f = formatDate(a?.Datum);
+      return f && f < isoToday;
+    })
+    .sort((a, b) => new Date(formatDate(b.Datum)) - new Date(formatDate(a.Datum)));
 
-const selectedAlbum = pastAlbums[currentIndex];
+  const selectedAlbum = pastAlbums[currentIndex];
 
-  // 🔹 Spotify Cover laden
+  // Cover für ausgewähltes vergangenes Album
   useEffect(() => {
-    if (!selectedAlbum?.SpotifyLink) return setCoverUrl(null);
-    const link = albumOfTheDay["SpotifyLink"] || "";
-    const m = link.match(/album\/([a-zA-Z0-9]+)/);
-
+    const link = selectedAlbum?.SpotifyLink || "";
+    const m = link.match?.(/album\/([a-zA-Z0-9]+)/);
     const id = m ? m[1] : null;
     if (!id) return setCoverUrl(null);
     fetch(`https://open.spotify.com/oembed?url=https://open.spotify.com/album/${id}`)
@@ -413,9 +403,7 @@ const selectedAlbum = pastAlbums[currentIndex];
   if (error)
     return <main className="p-8 text-center text-red-600">{error}</main>;
   if (albums.length === 0)
-    return (
-      <main className="p-8 text-center text-gray-600">Lade Alben…</main>
-    );
+    return <main className="p-8 text-center text-gray-600">Lade Alben…</main>;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50 p-6 text-gray-800">
@@ -424,8 +412,8 @@ const selectedAlbum = pastAlbums[currentIndex];
           🎵 Schnaggile – Album der Woche
         </h1>
 
-        {/* Heutiges Album */}
-        {albumOfTheDay && (
+        {/* Heutiges Album + Bewertung */}
+        {albumOfTheDay ? (
           <div className="bg-white p-6 rounded-2xl shadow-md mb-10 text-center">
             <h2 className="text-xl font-semibold mb-2 flex justify-center items-center space-x-2">
               <span>{albumOfTheDay["Albumtitel"]}</span>
@@ -449,54 +437,47 @@ const selectedAlbum = pastAlbums[currentIndex];
 
             <p className="text-gray-600 mb-4">{albumOfTheDay["Interpret"]}</p>
 
-            {/* Spotify Embed oder Fallback */}
-            {albumOfTheDay["SpotifyLink"] ? (
-              (() => {
-                const m = albumOfTheDay["SpotifyLink"].match(/album\/([a-zA-Z0-9]+)/);
-                const id = m ? m[1] : null;
-                return id ? (
-                  <iframe
-                    style={{ borderRadius: "12px" }}
-                    src={`https://open.spotify.com/embed/album/${id}`}
-                    width="100%"
-                    height="352"
-                    frameBorder="0"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                  ></iframe>
-                ) : (
-                  <p className="text-sm text-gray-500 italic">
-                    Kein Spotify-Embed verfügbar.
-                  </p>
-                );
-              })()
-            ) : (
-              <p className="text-sm text-gray-500 italic">
-                Kein Spotify-Link eingereicht.
-              </p>
-            )}
+            {/* Spotify-Embed wenn möglich */}
+            {(() => {
+              const m = albumOfTheDay["SpotifyLink"]?.match?.(/album\/([a-zA-Z0-9]+)/);
+              const id = m ? m[1] : null;
+              return id ? (
+                <iframe
+                  style={{ borderRadius: "12px" }}
+                  src={`https://open.spotify.com/embed/album/${id}`}
+                  width="100%"
+                  height="352"
+                  frameBorder="0"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  loading="lazy"
+                />
+              ) : null;
+            })()}
 
             {albumOfTheDay["Dein Name"] && (
               <p className="mt-4 text-sm text-gray-500">
                 Vorgeschlagen von {albumOfTheDay["Dein Name"]}
               </p>
             )}
-
             {albumOfTheDay["Warum möchtest du das Album teilen?"] && (
               <p className="mt-2 italic text-gray-600">
                 „{albumOfTheDay["Warum möchtest du das Album teilen?"]}“
               </p>
             )}
 
-            {/* Bewertungsformular */}
+            {/* Bewertungsformular fürs heutige Album */}
             <div className="mt-6">
               <BewertungForm albumTitel={albumOfTheDay["Albumtitel"]} />
             </div>
           </div>
+        ) : (
+          <p className="text-center text-gray-500 mb-8">
+            Für heute ist noch kein Album eingetragen.
+          </p>
         )}
 
-        {/* Vergangene Alben */}
-        {selectedAlbum && (
+        {/* Vergangene Alben (mit GIF & Tabelle) */}
+        {selectedAlbum ? (
           <div className="bg-white p-6 rounded-xl shadow-md mb-10">
             <h3 className="text-lg font-semibold mb-4 text-center">
               📚 Bisherige Alben
@@ -530,29 +511,34 @@ const selectedAlbum = pastAlbums[currentIndex];
 
             <p className="text-gray-500 mb-2">{selectedAlbum["Interpret"]}</p>
 
-            {/* Ergebnis + GIF */}
+            {/* Mehrheitsbewertung + GIF */}
             {(() => {
               const list = selectedAlbum.reviews || [];
               if (list.length === 0) return null;
+
               const counts = { Hit: 0, "Geht in Ordnung": 0, Niete: 0 };
               list.forEach((r) => {
                 const v = r["Gesamtbewertung"] || r["Bewertung"];
                 if (counts[v] !== undefined) counts[v]++;
               });
+
               const [topVote, topCount] = Object.entries(counts).sort(
                 (a, b) => b[1] - a[1]
               )[0];
+
               const colors = {
                 Hit: "text-green-600",
                 "Geht in Ordnung": "text-yellow-600",
                 Niete: "text-pink-600",
               };
+
               const keyword =
                 topVote === "Hit"
                   ? "winner"
                   : topVote === "Geht in Ordnung"
                   ? "average"
                   : "do not want";
+
               return (
                 <>
                   <p className={`text-sm font-medium ${colors[topVote]}`}>
@@ -581,13 +567,9 @@ const selectedAlbum = pastAlbums[currentIndex];
                     <tr key={i} className="border-t">
                       <td className="py-2 px-2">{r["Name"]}</td>
                       <td className="py-2 px-2">{r["Liebstes Lied"]}</td>
-                      <td className="py-2 px-2 italic">
-                        {r["Beste Textzeile"]}
-                      </td>
+                      <td className="py-2 px-2 italic">{r["Beste Textzeile"]}</td>
                       <td className="py-2 px-2">{r["Schlechtestes Lied"]}</td>
-                      <td className="py-2 px-2">
-                        {r["Gesamtbewertung"] || r["Bewertung"]}
-                      </td>
+                      <td className="py-2 px-2">{r["Gesamtbewertung"] || r["Bewertung"]}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -598,7 +580,7 @@ const selectedAlbum = pastAlbums[currentIndex];
               </p>
             )}
 
-            {/* Navigation */}
+            {/* Navigation durch vergangene Alben */}
             <div className="flex justify-between mt-6">
               <button
                 onClick={() => setCurrentIndex((i) => Math.max(i - 1, 0))}
@@ -609,9 +591,7 @@ const selectedAlbum = pastAlbums[currentIndex];
               </button>
               <button
                 onClick={() =>
-                  setCurrentIndex((i) =>
-                    Math.min(i + 1, pastAlbums.length - 1)
-                  )
+                  setCurrentIndex((i) => Math.min(i + 1, pastAlbums.length - 1))
                 }
                 disabled={currentIndex === pastAlbums.length - 1}
                 className="px-4 py-2 bg-gray-200 rounded-lg disabled:opacity-50"
@@ -620,9 +600,13 @@ const selectedAlbum = pastAlbums[currentIndex];
               </button>
             </div>
           </div>
+        ) : (
+          <p className="text-center text-gray-500 mb-10">
+            Noch keine vergangenen Alben.
+          </p>
         )}
 
-        {/* Neues Album vorschlagen */}
+        {/* Formular: Neues Album vorschlagen */}
         <div className="max-w-2xl mx-auto mt-12 mb-10">
           <VorschlagForm />
         </div>
