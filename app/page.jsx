@@ -66,24 +66,25 @@ function BewertungForm({ albumId, albumTitel }) {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    const { error } = await supabase.from("bewertungen").insert([
+  
+    const { error } = await supabase.from("albums").insert([
       {
-        name: form.name,
-        albumtitel: form.albumtitel,
-        album_id: albumId,
-        liebstes_lied: form.liebstes_lied,
-        beste_textzeile: form.beste_textzeile,
-        schlechtestes_lied: form.schlechtestes_lied,
-        bewertung: form.bewertung,
+        title: form.title,
+        artist: form.artist,
+        spotify_link: form.spotify_link || null,
+        suggested_by: form.name,
+        date: null, // wird automatisch vom Cron-Job gesetzt
       },
     ]);
+  
     if (error) {
-      alert("Fehler beim Absenden 😢");
+      alert(`Fehler beim Vorschlagen ☹️\n\n${error.message}`);
       console.error(error);
     } else {
       setOk(true);
     }
   };
+  
 
   if (ok)
     return (
