@@ -216,8 +216,27 @@ export default function Home() {
           <div className="border-2 border-retro-border p-6 mb-12">
             <h3 className="font-display text-2xl text-retro-accent text-center mb-6">BISHERIGE ALBEN</h3>
 
-            <h4 className="text-xl font-semibold text-center mb-2">{selectedAlbum.albumtitel}</h4>
-            <p className="text-center text-sm mb-4">{selectedAlbum.interpret}</p>
+            <h4 className="text-xl font-semibold text-center mb-2 flex items-center justify-center space-x-2">
+  <span>{selectedAlbum.albumtitel}</span>
+  {selectedAlbum.spotify_link ? (
+    <a
+      href={selectedAlbum.spotify_link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="opacity-80 hover:opacity-100 transition"
+    >
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+        alt="Spotify"
+        className="w-5 h-5"
+      />
+    </a>
+  ) : (
+    <span className="text-gray-400 text-xs">(kein Link)</span>
+  )}
+</h4>
+
+<p className="text-center text-sm mb-4">{selectedAlbum.interpret}</p>
 
             {(() => {
               const reviews = bewertungen.filter((r) => r.albumtitel === selectedAlbum.albumtitel);
