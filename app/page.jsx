@@ -61,6 +61,32 @@ async function extractSpotifyAlbumId(link) {
   return null;
 }
 
+// 🔸 Spotify Player Komponente
+function SpotifyPlayer({ link }) {
+  const [albumId, setAlbumId] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const id = await extractSpotifyAlbumId(link);
+      setAlbumId(id);
+    })();
+  }, [link]);
+
+  if (!albumId) return null;
+
+  return (
+    <iframe
+      src={`https://open.spotify.com/embed/album/${albumId}`}
+      width="100%"
+      height="352"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"
+      className="border-2 border-retro-border"
+    ></iframe>
+  );
+}
+
+
 /* 🔹 Giphy GIF */
 function GiphyGif({ keyword }) {
   const [gifUrl, setGifUrl] = useState(null);
@@ -374,35 +400,26 @@ export default function Home() {
         </h1>
 
         {/* 🎧 Aktuelles Album */}
-        {currentAlbum ? (
-          <div className="border-2 border-retro-border p-6 mb-12 text-center">
-            <h2 className="font-display text-3xl mb-2">
-              {currentAlbum.albumtitel}
-            </h2>
-            <p className="text-sm mb-4">{currentAlbum.interpret}</p>
+{currentAlbum ? (
+  <div className="border-2 border-retro-border p-6 mb-12 text-center">
+    <h2 className="font-display text-3xl mb-2">
+      {currentAlbum.albumtitel}
+    </h2>
+    <p className="text-sm mb-4">{currentAlbum.interpret}</p>
 
-            {currentAlbum.spotify_link && (
-              <iframe
-                src={`https://open.spotify.com/embed/album/${currentAlbum.spotify_link.match(
-                  /album\/([a-zA-Z0-9]+)/
-                )?.[1]}`}
-                width="100%"
-                height="352"
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="lazy"
-                className="border-2 border-retro-border"
-              ></iframe>
-            )}
+    {currentAlbum.spotify_link && (
+      <SpotifyPlayer link={currentAlbum.spotify_link} />
+    )}
 
-            <div className="mt-6">
-              <BewertungForm albumTitel={currentAlbum.albumtitel} />
-            </div>
-          </div>
-        ) : (
-          <p className="text-center text-gray-500 italic mb-8">
-            Noch kein Album der Woche vorhanden.
-          </p>
-        )}
+    <div className="mt-6">
+      <BewertungForm albumTitel={currentAlbum.albumtitel} />
+    </div>
+  </div>
+) : (
+  <p className="text-center text-gray-500 italic mb-8">
+    Noch kein Album der Woche vorhanden.
+  </p>
+)}
 
         {/* 📚 Vergangene Alben */}
         {pastAlbums.length > 0 && (
