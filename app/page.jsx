@@ -220,17 +220,18 @@ export default function Home() {
   <span>{selectedAlbum.albumtitel}</span>
   {selectedAlbum.spotify_link ? (
     <a
-      href={selectedAlbum.spotify_link}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="opacity-80 hover:opacity-100 transition"
-    >
-      <img
-        src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-        alt="Spotify"
-        className="w-5 h-5"
-      />
-    </a>
+    href={selectedAlbum.spotify_link}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="opacity-80 hover:opacity-100 transition border-none outline-none focus:ring-0"
+  >
+    <img
+      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+      alt="Spotify"
+      className="w-5 h-5"
+    />
+  </a>
+  
   ) : (
     <span className="text-gray-400 text-xs">(kein Link)</span>
   )}
