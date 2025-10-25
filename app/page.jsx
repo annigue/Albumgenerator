@@ -78,7 +78,8 @@ function BewertungForm({ albumId, albumTitel }) {
     ]);
   
     if (error) {
-      alert(`Fehler beim Vorschlagen ☹️\n\n${error.message}`);
+      alert(`Fehler beim Vorschlagen ☹️\n\n${error.message}\n\nDetails: ${JSON.stringify(error, null, 2)}`);
+
       console.error(error);
     } else {
       setOk(true);
