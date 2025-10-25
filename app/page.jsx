@@ -1,34 +1,36 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+// 🔹 Supabase Client initialisieren
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
-/* 🔹 Giphy GIF-Komponente */
+/* 🔹 Giphy GIF */
 function GiphyGif({ keyword }) {
   const [gifUrl, setGifUrl] = useState(null);
   const apiKey = process.env.NEXT_PUBLIC_GIPHY_API_KEY;
 
   useEffect(() => {
-    if (!apiKey) return;
-    (async () => {
+    let cancel = false;
+    async function fetchGif() {
       try {
         const res = await fetch(
-          `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(
-            keyword
-          )}&limit=25&rating=g`
+          `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(keyword)}&limit=10&rating=g`
         );
         const data = await res.json();
-        if (data?.data?.length > 0) {
+        if (!cancel && data.data.length > 0) {
           const rnd = data.data[Math.floor(Math.random() * data.data.length)];
           setGifUrl(rnd.images.fixed_height.url);
         }
-      } catch (err) {
-        console.error(err);
+      } catch {
+        setGifUrl(null);
       }
-    })();
+    }
+    fetchGif();
+    return () => (cancel = true);
   }, [keyword, apiKey]);
 
   const fallback = {
@@ -36,22 +38,20 @@ function GiphyGif({ keyword }) {
     average: "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
     "do not want": "https://media.giphy.com/media/3ohhwJ6DW9b0Nf3fUQ/giphy.gif",
   };
-  const src = gifUrl || fallback[keyword] || fallback.average;
 
   return (
     <div className="flex justify-center mt-4">
       <img
-        src={src}
+        src={gifUrl || fallback[keyword]}
         alt={keyword}
-        className="rounded-none border-2 border-retro-border w-64 h-48 object-cover"
+        className="w-64 h-48 object-cover border-2 border-retro-border"
       />
     </div>
   );
 }
 
 /* 🔸 Bewertungsformular */
-function BewertungForm({ albumId, albumTitel }) {
-  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
+function BewertungForm({ albumTitel }) {
   const [form, setForm] = useState({
     name: "",
     albumtitel: albumTitel || "",
@@ -61,44 +61,29 @@ function BewertungForm({ albumId, albumTitel }) {
     bewertung: "",
   });
   const [ok, setOk] = useState(false);
+  const [sending, setSending] = useState(false);
+  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
+
+  useEffect(() => {
+    setForm((f) => ({ ...f, albumtitel: albumTitel || "" }));
+  }, [albumTitel]);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const onSubmit = async (e) => {
     e.preventDefault();
-  
-    const { error } = await supabase.from("albums").insert([
-      {
-        title: form.title,
-        artist: form.artist,
-        spotify_link: form.spotify_link || null,
-        suggested_by: form.name,
-        date: null, // wird automatisch vom Cron-Job gesetzt
-      },
-    ]);
-  
-    if (error) {
-      alert(`Fehler beim Vorschlagen ☹️\n\n${error.message}\n\nDetails: ${JSON.stringify(error, null, 2)}`);
-
-      console.error(error);
-    } else {
-      setOk(true);
-    }
+    setSending(true);
+    const { error } = await supabase.from("bewertungen").insert([form]);
+    setSending(false);
+    if (error) alert("Fehler beim Absenden 😢");
+    else setOk(true);
   };
-  
 
   if (ok)
-    return (
-      <div className="text-center text-green-600 font-medium mt-4">
-        ✅ Danke für deine Bewertung!
-      </div>
-    );
+    return <div className="text-center text-green-600 mt-4">✅ Danke für deine Bewertung!</div>;
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="border-2 border-retro-border bg-retro-bg p-6 text-center space-y-3"
-    >
+    <form onSubmit={onSubmit} className="border-2 border-retro-border bg-retro-bg p-6 space-y-3 text-center">
       <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">
         ALBUM BEWERTEN
       </h3>
@@ -107,29 +92,38 @@ function BewertungForm({ albumId, albumTitel }) {
         name="name"
         value={form.name}
         onChange={onChange}
-        className="w-full border border-retro-border p-2 bg-transparent"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm tracking-wider focus:outline-none"
         required
       >
-        <option value="">Teilnehmer wählen...</option>
-        {teilnehmer.map((n) => (
-          <option key={n}>{n}</option>
+        <option value="">Teilnehmer wählen</option>
+        {teilnehmer.map((t) => (
+          <option key={t} value={t}>{t}</option>
         ))}
       </select>
+
+      <input
+        name="albumtitel"
+        value={form.albumtitel}
+        onChange={onChange}
+        placeholder="Albumtitel"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm tracking-wider focus:outline-none"
+        required
+      />
 
       <input
         name="liebstes_lied"
         value={form.liebstes_lied}
         onChange={onChange}
         placeholder="Liebstes Lied"
-        className="w-full border border-retro-border p-2 bg-transparent"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
       />
 
-      <input
+      <textarea
         name="beste_textzeile"
         value={form.beste_textzeile}
         onChange={onChange}
         placeholder="Beste Textzeile"
-        className="w-full border border-retro-border p-2 bg-transparent"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
       />
 
       <input
@@ -137,27 +131,28 @@ function BewertungForm({ albumId, albumTitel }) {
         value={form.schlechtestes_lied}
         onChange={onChange}
         placeholder="Schlechtestes Lied"
-        className="w-full border border-retro-border p-2 bg-transparent"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
       />
 
       <select
         name="bewertung"
         value={form.bewertung}
         onChange={onChange}
-        className="w-full border border-retro-border p-2 bg-transparent"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
         required
       >
-        <option value="">Bewertung wählen...</option>
-        <option>Hit</option>
-        <option>Geht in Ordnung</option>
-        <option>Niete</option>
+        <option value="">Gesamtbewertung wählen</option>
+        <option value="Hit">Hit</option>
+        <option value="Geht in Ordnung">Geht in Ordnung</option>
+        <option value="Niete">Niete</option>
       </select>
 
       <button
         type="submit"
+        disabled={sending}
         className="w-full bg-retro-accent text-white font-display text-xl py-2 hover:bg-black transition"
       >
-        SUBMIT
+        {sending ? "WIRD GESENDET…" : "SUBMIT"}
       </button>
     </form>
   );
@@ -165,57 +160,33 @@ function BewertungForm({ albumId, albumTitel }) {
 
 /* 🔸 Vorschlagformular */
 function VorschlagForm() {
-  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
   const [form, setForm] = useState({
     name: "",
-    title: "",
-    artist: "",
+    albumtitel: "",
+    interpret: "",
     begruendung: "",
     spotify_link: "",
   });
   const [ok, setOk] = useState(false);
+  const [sending, setSending] = useState(false);
+  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const onSubmit = async (e) => {
     e.preventDefault();
-  
-    try {
-      const { data, error } = await supabase.from("albums").insert([
-        {
-          title: form.title,
-          artist: form.artist,
-          spotify_link: form.spotify_link || null,
-          suggested_by: form.name,
-        },
-      ]);
-  
-      if (error) {
-        console.error("SUPABASE ERROR:", error);
-        alert(`Fehler beim Vorschlagen 😢\n\n${JSON.stringify(error, null, 2)}`);
-      } else {
-        console.log("SUPABASE OK:", data);
-        setOk(true);
-      }
-    } catch (err) {
-      console.error("UNEXPECTED ERROR:", err);
-      alert(`Unerwarteter Fehler:\n${err.message}`);
-    }
+    setSending(true);
+    const { error } = await supabase.from("vorschlaege").insert([form]);
+    setSending(false);
+    if (error) alert("Fehler beim Absenden 😢");
+    else setOk(true);
   };
-  
 
   if (ok)
-    return (
-      <div className="text-center text-green-600 font-medium mt-4">
-        ✅ Danke für deinen Vorschlag!
-      </div>
-    );
+    return <div className="text-center text-green-600 mt-4">✅ Danke für deinen Vorschlag!</div>;
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="border-2 border-retro-border bg-retro-bg p-6 text-center space-y-3"
-    >
+    <form onSubmit={onSubmit} className="border-2 border-retro-border bg-retro-bg p-6 mt-10 space-y-3 text-center">
       <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">
         NEUES ALBUM VORSCHLAGEN
       </h3>
@@ -224,30 +195,30 @@ function VorschlagForm() {
         name="name"
         value={form.name}
         onChange={onChange}
-        className="w-full border border-retro-border p-2 bg-transparent"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm tracking-wider"
         required
       >
-        <option value="">Teilnehmer wählen...</option>
-        {teilnehmer.map((n) => (
-          <option key={n}>{n}</option>
+        <option value="">Teilnehmer wählen</option>
+        {teilnehmer.map((t) => (
+          <option key={t} value={t}>{t}</option>
         ))}
       </select>
 
       <input
-        name="title"
-        value={form.title}
+        name="albumtitel"
+        value={form.albumtitel}
         onChange={onChange}
         placeholder="Albumtitel"
-        className="w-full border border-retro-border p-2 bg-transparent"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
         required
       />
 
       <input
-        name="artist"
-        value={form.artist}
+        name="interpret"
+        value={form.interpret}
         onChange={onChange}
         placeholder="Interpret"
-        className="w-full border border-retro-border p-2 bg-transparent"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
         required
       />
 
@@ -256,8 +227,7 @@ function VorschlagForm() {
         value={form.begruendung}
         onChange={onChange}
         placeholder="Warum teilen?"
-        className="w-full border border-retro-border p-2 bg-transparent"
-        rows="2"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
       />
 
       <input
@@ -265,14 +235,15 @@ function VorschlagForm() {
         value={form.spotify_link}
         onChange={onChange}
         placeholder="Spotify-Link (optional)"
-        className="w-full border border-retro-border p-2 bg-transparent"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
       />
 
       <button
         type="submit"
+        disabled={sending}
         className="w-full bg-retro-accent text-white font-display text-xl py-2 hover:bg-black transition"
       >
-        SUBMIT
+        {sending ? "WIRD GESENDET…" : "SUBMIT"}
       </button>
     </form>
   );
@@ -281,32 +252,35 @@ function VorschlagForm() {
 /* 🔹 Hauptseite */
 export default function Home() {
   const [albums, setAlbums] = useState([]);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [currentAlbum, setCurrentAlbum] = useState(null);
+  const [pastAlbums, setPastAlbums] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [coverUrl, setCoverUrl] = useState(null);
 
-  // Daten laden
   useEffect(() => {
     (async () => {
-      const { data: albumData } = await supabase
-        .from("albums")
+      const { data } = await supabase
+        .from("vorschlaege")
         .select("*")
-        .order("date", { ascending: false });
-      const { data: reviewData } = await supabase
-        .from("bewertungen")
-        .select("*");
-      setAlbums(albumData || []);
-      setReviews(reviewData || []);
-      setLoading(false);
+        .order("created_at", { ascending: false });
+
+      if (!data) return;
+
+      setAlbums(data);
+      setCurrentAlbum(data[0]); // aktuelles Album der Woche
+      setPastAlbums(data.slice(1)); // übrige Alben
     })();
   }, []);
 
-  if (loading)
-    return (
-      <main className="p-10 text-center text-gray-500">Lade Alben…</main>
-    );
-
-  const current = albums.find((a) => a.is_active);
-  const past = albums.filter((a) => !a.is_active);
+  useEffect(() => {
+    const link = pastAlbums[currentIndex]?.spotify_link;
+    const id = link?.match(/album\/([a-zA-Z0-9]+)/)?.[1];
+    if (!id) return setCoverUrl(null);
+    fetch(`https://open.spotify.com/oembed?url=https://open.spotify.com/album/${id}`)
+      .then((r) => r.json())
+      .then((d) => setCoverUrl(d.thumbnail_url))
+      .catch(() => setCoverUrl(null));
+  }, [pastAlbums, currentIndex]);
 
   return (
     <main className="bg-retro-bg text-retro-text min-h-screen">
@@ -316,100 +290,88 @@ export default function Home() {
           ALBUM DER WOCHE
         </h1>
 
-        {/* 🔸 Aktuelles Album */}
-        {current ? (
-          <div className="border-2 border-retro-border p-6 mb-12">
-            <h2 className="font-display text-2xl mb-2 text-center">
-              {current.title}
-            </h2>
-            <p className="text-center text-sm mb-4">{current.artist}</p>
+        {/* 🎧 Aktuelles Album */}
+        {currentAlbum ? (
+          <div className="border-2 border-retro-border p-6 mb-12 text-center">
+            <h2 className="font-display text-3xl mb-2">{currentAlbum.albumtitel}</h2>
+            <p className="text-sm mb-4">{currentAlbum.interpret}</p>
 
-            {current.spotify_link && (
+            {currentAlbum.spotify_link && (
               <iframe
-                src={`https://open.spotify.com/embed/album/${
-                  current.spotify_link.match(/album\/([a-zA-Z0-9]+)/)?.[1]
-                }`}
+                src={`https://open.spotify.com/embed/album/${currentAlbum.spotify_link.match(/album\/([a-zA-Z0-9]+)/)?.[1]}`}
                 width="100%"
                 height="352"
-                frameBorder="0"
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                 loading="lazy"
+                className="border-2 border-retro-border"
               ></iframe>
             )}
 
-            <BewertungForm albumId={current.id} albumTitel={current.title} />
+            <div className="mt-6">
+              <BewertungForm albumTitel={currentAlbum.albumtitel} />
+            </div>
           </div>
         ) : (
-          <p className="text-center text-gray-500 mb-10">
-            Noch kein aktives Album 🎵
+          <p className="text-center text-gray-500 italic mb-8">
+            Noch kein Album der Woche vorhanden.
           </p>
         )}
 
-        {/* 🔸 Vergangene Alben */}
-        <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
-          BISHERIGE ALBEN
-        </h3>
+        {/* 📚 Vergangene Alben */}
+        {pastAlbums.length > 0 && (
+          <div className="border-2 border-retro-border p-6 mb-12">
+            <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
+              BISHERIGE ALBEN
+            </h3>
 
-        {past.map((album) => {
-          const albumReviews = reviews.filter(
-            (r) => r.album_id === album.id
-          );
-          const counts = { Hit: 0, "Geht in Ordnung": 0, Niete: 0 };
-          albumReviews.forEach((r) => {
-            if (counts[r.bewertung] !== undefined) counts[r.bewertung]++;
-          });
-          const [topVote, topCount] = Object.entries(counts).sort(
-            (a, b) => b[1] - a[1]
-          )[0];
-          const keyword =
-            topVote === "Hit"
-              ? "winner"
-              : topVote === "Geht in Ordnung"
-              ? "average"
-              : "do not want";
-          const id = album.spotify_link?.match(/album\/([a-zA-Z0-9]+)/)?.[1];
+            {coverUrl && (
+              <img src={coverUrl} alt="Cover" className="mx-auto mb-4 border-2 border-retro-border" />
+            )}
 
-          return (
-            <div
-              key={album.id}
-              className="border-2 border-retro-border p-4 mb-6"
-            >
-              {id && (
-                <img
-                  src={`https://i.scdn.co/image/${id}`}
-                  alt={album.title}
-                  className="mx-auto mb-4 border-2 border-retro-border"
-                />
+            <h4 className="text-xl text-center font-semibold mb-1">
+              {pastAlbums[currentIndex].albumtitel}
+              {pastAlbums[currentIndex].spotify_link && (
+                <a
+                  href={pastAlbums[currentIndex].spotify_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block ml-2 align-middle"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                    alt="Spotify"
+                    className="w-5 h-5 inline-block"
+                    style={{ border: "none" }}
+                  />
+                </a>
               )}
-              <h4 className="text-xl font-semibold text-center mb-2 flex items-center justify-center gap-2">
-                {album.title}
-                {album.spotify_link && (
-                  <a
-                    href={album.spotify_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                      alt="Spotify"
-                      className="w-5 h-5 inline-block"
-                    />
-                  </a>
-                )}
-              </h4>
-              <p className="text-center text-sm mb-4">{album.artist}</p>
-              <p className="text-center font-medium">
-                🏆 Mehrheitlich bewertet als: {topVote} ({topCount} Stimmen)
-              </p>
-              <GiphyGif keyword={keyword} />
-            </div>
-          );
-        })}
+            </h4>
 
-        {/* 🔸 Neues Album vorschlagen */}
-        <div className="mt-12">
-          <VorschlagForm />
-        </div>
+            <p className="text-sm text-center mb-4">
+              {pastAlbums[currentIndex].interpret}
+            </p>
+
+            <div className="flex justify-between mt-6">
+              <button
+                onClick={() => setCurrentIndex((i) => Math.max(i - 1, 0))}
+                disabled={currentIndex === 0}
+                className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+              >
+                ◀ Vorheriges
+              </button>
+              <button
+                onClick={() => setCurrentIndex((i) => Math.min(i + 1, pastAlbums.length - 1))}
+                disabled={currentIndex === pastAlbums.length - 1}
+                className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+              >
+                Nächstes ▶
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ✨ Vorschlag-Formular */}
+        <VorschlagForm />
       </div>
       <div className="pattern-bottom" />
     </main>
