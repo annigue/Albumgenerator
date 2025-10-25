@@ -64,12 +64,42 @@ function BewertungForm({ albumTitel }) {
   const onSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
-    const { error } = await supabase.from("bewertungen").insert([form]);
-    setSending(false);
-    if (error) alert("Fehler beim Absenden 😢");
-    else setOk(true);
+  
+    try {
+      // Spotify-Link automatisch abrufen
+      const res = await fetch("/api/findSpotifyId", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          albumtitel: form.albumtitel,
+          interpret: form.interpret,
+        }),
+      });
+  
+      const { spotify_id, spotify_link, cover } = await res.json();
+  
+      const { error } = await supabase.from("vorschlaege").insert([
+        {
+          name: form.name,
+          albumtitel: form.albumtitel,
+          interpret: form.interpret,
+          begruendung: form.begruendung,
+          spotify_id,
+          spotify_link,
+          cover_url: cover,
+        },
+      ]);
+  
+      if (error) throw error;
+      setOk(true);
+    } catch (err) {
+      console.error(err);
+      alert("Fehler beim Vorschlagen 😢");
+    } finally {
+      setSending(false);
+    }
   };
-
+  
   if (ok) return <div className="text-center text-green-600 mt-4">✅ Danke für deine Bewertung!</div>;
 
   return (
