@@ -216,26 +216,46 @@ export default function Home() {
           <div className="border-2 border-retro-border p-6 mb-12">
             <h3 className="font-display text-2xl text-retro-accent text-center mb-6">BISHERIGE ALBEN</h3>
 
-            <h4 className="text-xl font-semibold text-center mb-2 flex items-center justify-center space-x-2">
+            {/* Album-Cover */}
+{selectedAlbum.spotify_link && (
+  (() => {
+    const match = selectedAlbum.spotify_link.match(/album\/([a-zA-Z0-9]+)/);
+    const albumId = match ? match[1] : null;
+    return albumId ? (
+      <img
+        src={`https://i.scdn.co/image/${albumId}`}
+        alt={`${selectedAlbum.albumtitel} Cover`}
+        onError={(e) => {
+          e.target.src =
+            "https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg";
+        }}
+        className="mx-auto mb-4 w-48 h-48 object-cover border-2 border-retro-border shadow-sm"
+      />
+    ) : null;
+  })()
+)}
+
+{/* Albumtitel + Spotify-Link */}
+<h4 className="text-xl font-semibold text-center mb-2 flex items-center justify-center space-x-2">
   <span>{selectedAlbum.albumtitel}</span>
   {selectedAlbum.spotify_link ? (
     <a
-    href={selectedAlbum.spotify_link}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="opacity-80 hover:opacity-100 transition border-none outline-none focus:ring-0"
-  >
-    <img
-      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-      alt="Spotify"
-      className="w-5 h-5"
-    />
-  </a>
-  
+      href={selectedAlbum.spotify_link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="opacity-80 hover:opacity-100 transition border-none outline-none focus:ring-0"
+    >
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+        alt="Spotify"
+        className="w-5 h-5"
+      />
+    </a>
   ) : (
     <span className="text-gray-400 text-xs">(kein Link)</span>
   )}
 </h4>
+
 
 <p className="text-center text-sm mb-4">{selectedAlbum.interpret}</p>
 
