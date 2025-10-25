@@ -235,26 +235,31 @@ export default function Home() {
   })()
 )}
 
-{/* Albumtitel + Spotify-Link */}
-<h4 className="text-xl font-semibold text-center mb-2 flex items-center justify-center space-x-2">
-  <span>{selectedAlbum.albumtitel}</span>
-  {selectedAlbum.spotify_link ? (
-    <a
-      href={selectedAlbum.spotify_link}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="opacity-80 hover:opacity-100 transition border-none outline-none focus:ring-0"
-    >
+{/* Album-Cover über Spotify oEmbed */}
+{selectedAlbum.spotify_link && (
+  (() => {
+    const match = selectedAlbum.spotify_link.match(/album\/([a-zA-Z0-9]+)/);
+    const albumId = match ? match[1] : null;
+    const [coverUrl, setCoverUrl] = useState(null);
+
+    useEffect(() => {
+      if (!albumId) return;
+      fetch(`https://open.spotify.com/oembed?url=https://open.spotify.com/album/${albumId}`)
+        .then((res) => res.json())
+        .then((data) => setCoverUrl(data.thumbnail_url))
+        .catch(() => setCoverUrl(null));
+    }, [albumId]);
+
+    return coverUrl ? (
       <img
-        src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-        alt="Spotify"
-        className="w-5 h-5"
+        src={coverUrl}
+        alt={`${selectedAlbum.albumtitel} Cover`}
+        className="mx-auto mb-4 w-48 h-48 object-cover border-2 border-retro-border shadow-sm"
       />
-    </a>
-  ) : (
-    <span className="text-gray-400 text-xs">(kein Link)</span>
-  )}
-</h4>
+    ) : null;
+  })()
+)}
+
 
 
 <p className="text-center text-sm mb-4">{selectedAlbum.interpret}</p>
