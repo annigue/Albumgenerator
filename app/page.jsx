@@ -105,7 +105,7 @@ function BewertungForm({ albumTitel }) {
   );
 }
 
-/* 💡 Neues Album vorschlagen */
+/* 💡 Vorschlagformular */
 function VorschlagForm() {
   const [form, setForm] = useState({
     name: "",
@@ -153,19 +153,23 @@ function VorschlagForm() {
   );
 }
 
-/* 🧩 Hauptkomponente */
+/* 🧩 Hauptseite */
 export default function Home() {
   const [alben, setAlben] = useState([]);
   const [bewertungen, setBewertungen] = useState([]);
   const [error, setError] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     (async () => {
       try {
-        const { data: vorschlaege } = await supabase.from("vorschlaege").select("*").order("created_at", { ascending: false });
-        const { data: bewertungen } = await supabase.from("bewertungen").select("*");
+        const { data: vorschlaege } = await supabase
+          .from("vorschlaege")
+          .select("*")
+          .order("created_at", { ascending: false });
+        const { data: reviews } = await supabase.from("bewertungen").select("*");
         setAlben(vorschlaege || []);
-        setBewertungen(bewertungen || []);
+        setBewertungen(reviews || []);
       } catch (err) {
         console.error(err);
         setError("Fehler beim Laden der Daten");
@@ -175,7 +179,9 @@ export default function Home() {
 
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
-  const albumOfTheDay = alben?.[0]; // neuester Vorschlag = aktuelles Album
+  const albumOfTheDay = alben?.[0];
+  const pastAlbums = alben?.slice(1) || [];
+  const selectedAlbum = pastAlbums[currentIndex];
 
   return (
     <main className="bg-retro-bg text-retro-text min-h-screen">
@@ -183,6 +189,7 @@ export default function Home() {
       <div className="max-w-2xl mx-auto p-8">
         <h1 className="text-5xl font-display text-retro-accent text-center tracking-widest mb-8">ALBUM DER WOCHE</h1>
 
+        {/* Aktuelles Album */}
         {albumOfTheDay ? (
           <div className="border-2 border-retro-border p-6 mb-12">
             <h2 className="font-display text-2xl mb-2 text-center">{albumOfTheDay.albumtitel}</h2>
@@ -202,6 +209,43 @@ export default function Home() {
           </div>
         ) : (
           <p className="text-center italic text-gray-500 mb-10">Noch kein Album eingetragen.</p>
+        )}
+
+        {/* Bisherige Alben */}
+        {selectedAlbum && (
+          <div className="border-2 border-retro-border p-6 mb-12">
+            <h3 className="font-display text-2xl text-retro-accent text-center mb-6">BISHERIGE ALBEN</h3>
+
+            <h4 className="text-xl font-semibold text-center mb-2">{selectedAlbum.albumtitel}</h4>
+            <p className="text-center text-sm mb-4">{selectedAlbum.interpret}</p>
+
+            {(() => {
+              const reviews = bewertungen.filter((r) => r.albumtitel === selectedAlbum.albumtitel);
+              if (reviews.length === 0) return <p className="text-center text-gray-500 italic">Noch keine Bewertungen.</p>;
+
+              const counts = { Hit: 0, "Geht in Ordnung": 0, Niete: 0 };
+              reviews.forEach((r) => {
+                if (counts[r.bewertung] !== undefined) counts[r.bewertung]++;
+              });
+              const [topVote, topCount] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+              const keyword = topVote === "Hit" ? "winner" : topVote === "Geht in Ordnung" ? "average" : "do not want";
+
+              return (
+                <>
+                  <p className="text-center font-medium mb-4">🏆 Mehrheitlich bewertet als: {topVote} ({topCount} Stimmen)</p>
+                  <GiphyGif keyword={keyword} />
+                </>
+              );
+            })()}
+
+            <div className="flex justify-between mt-6">
+              <button onClick={() => setCurrentIndex((i) => Math.max(i - 1, 0))} disabled={currentIndex === 0}
+                className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black">◀ Vorheriges</button>
+              <button onClick={() => setCurrentIndex((i) => Math.min(i + 1, pastAlbums.length - 1))}
+                disabled={currentIndex === pastAlbums.length - 1}
+                className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black">Nächstes ▶</button>
+            </div>
+          </div>
         )}
 
         <div className="mt-12">
