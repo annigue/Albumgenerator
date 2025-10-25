@@ -179,21 +179,30 @@ function VorschlagForm() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    const { error } = await supabase.from("albums").insert([
-      {
-        title: form.title,
-        artist: form.artist,
-        spotify_link: form.spotify_link,
-        is_active: false,
-      },
-    ]);
-    if (error) {
-      alert("Fehler beim Vorschlagen 😢");
-      console.error(error);
-    } else {
-      setOk(true);
+  
+    try {
+      const { data, error } = await supabase.from("albums").insert([
+        {
+          title: form.title,
+          artist: form.artist,
+          spotify_link: form.spotify_link || null,
+          suggested_by: form.name,
+        },
+      ]);
+  
+      if (error) {
+        console.error("SUPABASE ERROR:", error);
+        alert(`Fehler beim Vorschlagen 😢\n\n${JSON.stringify(error, null, 2)}`);
+      } else {
+        console.log("SUPABASE OK:", data);
+        setOk(true);
+      }
+    } catch (err) {
+      console.error("UNEXPECTED ERROR:", err);
+      alert(`Unerwarteter Fehler:\n${err.message}`);
     }
   };
+  
 
   if (ok)
     return (
