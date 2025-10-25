@@ -8,6 +8,59 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
+// 🔸 Spotify Helper Functions
+async function fetchSpotifyAccessToken() {
+  const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_SECRET;
+  const res = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization: "Basic " + btoa(`${clientId}:${clientSecret}`),
+    },
+    body: "grant_type=client_credentials",
+  });
+  const data = await res.json();
+  return data.access_token;
+}
+
+async function fetchSpotifyLink(albumtitel, interpret) {
+  try {
+    const token = await fetchSpotifyAccessToken();
+    const q = encodeURIComponent(`${albumtitel} ${interpret}`);
+    const res = await fetch(
+      `https://api.spotify.com/v1/search?q=${q}&type=album&limit=1`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const data = await res.json();
+    return data.albums?.items?.[0]?.external_urls?.spotify || null;
+  } catch (e) {
+    console.error("Spotify-Fetch-Error:", e);
+    return null;
+  }
+}
+
+// 🔸 Album-ID aus verschiedenen Spotify-Link-Formaten extrahieren
+async function extractSpotifyAlbumId(link) {
+  if (!link) return null;
+  // spotify:album:xxxx
+  const uriMatch = link.match(/spotify:album:([a-zA-Z0-9]+)/);
+  if (uriMatch) return uriMatch[1];
+  // open.spotify.com/album/xxxx
+  const urlMatch = link.match(/album\/([a-zA-Z0-9]+)/);
+  if (urlMatch) return urlMatch[1];
+  // spotify.link Kurzlink → redirect folgen
+  if (link.includes("spotify.link")) {
+    try {
+      const res = await fetch(link, { method: "HEAD", redirect: "follow" });
+      return res.url.match(/album\/([a-zA-Z0-9]+)/)?.[1] || null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 /* 🔹 Giphy GIF */
 function GiphyGif({ keyword }) {
   const [gifUrl, setGifUrl] = useState(null);
@@ -18,7 +71,9 @@ function GiphyGif({ keyword }) {
     async function fetchGif() {
       try {
         const res = await fetch(
-          `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(keyword)}&limit=10&rating=g`
+          `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(
+            keyword
+          )}&limit=10&rating=g`
         );
         const data = await res.json();
         if (!cancel && data.data.length > 0) {
@@ -80,10 +135,17 @@ function BewertungForm({ albumTitel }) {
   };
 
   if (ok)
-    return <div className="text-center text-green-600 mt-4">✅ Danke für deine Bewertung!</div>;
+    return (
+      <div className="text-center text-green-600 mt-4">
+        ✅ Danke für deine Bewertung!
+      </div>
+    );
 
   return (
-    <form onSubmit={onSubmit} className="border-2 border-retro-border bg-retro-bg p-6 space-y-3 text-center">
+    <form
+      onSubmit={onSubmit}
+      className="border-2 border-retro-border bg-retro-bg p-6 space-y-3 text-center"
+    >
       <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">
         ALBUM BEWERTEN
       </h3>
@@ -97,7 +159,9 @@ function BewertungForm({ albumTitel }) {
       >
         <option value="">Teilnehmer wählen</option>
         {teilnehmer.map((t) => (
-          <option key={t} value={t}>{t}</option>
+          <option key={t} value={t}>
+            {t}
+          </option>
         ))}
       </select>
 
@@ -158,7 +222,7 @@ function BewertungForm({ albumTitel }) {
   );
 }
 
-/* 🔸 Vorschlagformular */
+/* 🔸 Vorschlagformular mit Spotify-Auto-Fetch */
 function VorschlagForm() {
   const [form, setForm] = useState({
     name: "",
@@ -176,17 +240,32 @@ function VorschlagForm() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
-    const { error } = await supabase.from("vorschlaege").insert([form]);
+
+    let spotify_link = form.spotify_link;
+    if (!spotify_link) {
+      spotify_link = await fetchSpotifyLink(form.albumtitel, form.interpret);
+    }
+
+    const { error } = await supabase
+      .from("vorschlaege")
+      .insert([{ ...form, spotify_link }]);
     setSending(false);
     if (error) alert("Fehler beim Absenden 😢");
     else setOk(true);
   };
 
   if (ok)
-    return <div className="text-center text-green-600 mt-4">✅ Danke für deinen Vorschlag!</div>;
+    return (
+      <div className="text-center text-green-600 mt-4">
+        ✅ Danke für deinen Vorschlag!
+      </div>
+    );
 
   return (
-    <form onSubmit={onSubmit} className="border-2 border-retro-border bg-retro-bg p-6 mt-10 space-y-3 text-center">
+    <form
+      onSubmit={onSubmit}
+      className="border-2 border-retro-border bg-retro-bg p-6 mt-10 space-y-3 text-center"
+    >
       <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">
         NEUES ALBUM VORSCHLAGEN
       </h3>
@@ -200,7 +279,9 @@ function VorschlagForm() {
       >
         <option value="">Teilnehmer wählen</option>
         {teilnehmer.map((t) => (
-          <option key={t} value={t}>{t}</option>
+          <option key={t} value={t}>
+            {t}
+          </option>
         ))}
       </select>
 
@@ -263,23 +344,25 @@ export default function Home() {
         .from("vorschlaege")
         .select("*")
         .order("created_at", { ascending: false });
-
       if (!data) return;
-
       setAlbums(data);
-      setCurrentAlbum(data[0]); // aktuelles Album der Woche
-      setPastAlbums(data.slice(1)); // übrige Alben
+      setCurrentAlbum(data[0]);
+      setPastAlbums(data.slice(1));
     })();
   }, []);
 
   useEffect(() => {
-    const link = pastAlbums[currentIndex]?.spotify_link;
-    const id = link?.match(/album\/([a-zA-Z0-9]+)/)?.[1];
-    if (!id) return setCoverUrl(null);
-    fetch(`https://open.spotify.com/oembed?url=https://open.spotify.com/album/${id}`)
-      .then((r) => r.json())
-      .then((d) => setCoverUrl(d.thumbnail_url))
-      .catch(() => setCoverUrl(null));
+    (async () => {
+      const link = pastAlbums[currentIndex]?.spotify_link;
+      const id = await extractSpotifyAlbumId(link);
+      if (!id) return setCoverUrl(null);
+      fetch(
+        `https://open.spotify.com/oembed?url=https://open.spotify.com/album/${id}`
+      )
+        .then((r) => r.json())
+        .then((d) => setCoverUrl(d.thumbnail_url))
+        .catch(() => setCoverUrl(null));
+    })();
   }, [pastAlbums, currentIndex]);
 
   return (
@@ -293,12 +376,16 @@ export default function Home() {
         {/* 🎧 Aktuelles Album */}
         {currentAlbum ? (
           <div className="border-2 border-retro-border p-6 mb-12 text-center">
-            <h2 className="font-display text-3xl mb-2">{currentAlbum.albumtitel}</h2>
+            <h2 className="font-display text-3xl mb-2">
+              {currentAlbum.albumtitel}
+            </h2>
             <p className="text-sm mb-4">{currentAlbum.interpret}</p>
 
             {currentAlbum.spotify_link && (
               <iframe
-                src={`https://open.spotify.com/embed/album/${currentAlbum.spotify_link.match(/album\/([a-zA-Z0-9]+)/)?.[1]}`}
+                src={`https://open.spotify.com/embed/album/${currentAlbum.spotify_link.match(
+                  /album\/([a-zA-Z0-9]+)/
+                )?.[1]}`}
                 width="100%"
                 height="352"
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
@@ -325,7 +412,11 @@ export default function Home() {
             </h3>
 
             {coverUrl && (
-              <img src={coverUrl} alt="Cover" className="mx-auto mb-4 border-2 border-retro-border" />
+              <img
+                src={coverUrl}
+                alt="Cover"
+                className="mx-auto mb-4 border-2 border-retro-border"
+              />
             )}
 
             <h4 className="text-xl text-center font-semibold mb-1">
@@ -340,8 +431,7 @@ export default function Home() {
                   <img
                     src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
                     alt="Spotify"
-                    className="w-5 h-5 inline-block"
-                    style={{ border: "none" }}
+                    className="w-5 h-5 inline-block border-none"
                   />
                 </a>
               )}
@@ -360,7 +450,11 @@ export default function Home() {
                 ◀ Vorheriges
               </button>
               <button
-                onClick={() => setCurrentIndex((i) => Math.min(i + 1, pastAlbums.length - 1))}
+                onClick={() =>
+                  setCurrentIndex((i) =>
+                    Math.min(i + 1, pastAlbums.length - 1)
+                  )
+                }
                 disabled={currentIndex === pastAlbums.length - 1}
                 className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
               >
