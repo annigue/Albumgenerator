@@ -8,39 +8,18 @@ const supabase = createClient(
 );
 
 /* 🔹 Spotify Embed oder Suchlink automatisch erzeugen */
-function getSpotifyEmbedOrSearchLink(link, albumtitel, interpret) {
-  if (!link) {
-    // Kein Link: Spotify-Suche fallback
-    const query = encodeURIComponent(`${albumtitel} ${interpret}`);
+function getSpotifyEmbedOrSearchLink(album) {
+  if (!album?.spotify_id) {
+    const query = encodeURIComponent(`${album.title} ${album.artist}`);
     return {
       embedUrl: `https://open.spotify.com/embed/search/${query}`,
       openUrl: `https://open.spotify.com/search/${query}`,
     };
   }
 
-  // 1️⃣ Versuche, Album-ID herauszuziehen
-  const match = link.match(/album\/([A-Za-z0-9]{10,})/);
-  if (match) {
-    const id = match[1];
-    return {
-      embedUrl: `https://open.spotify.com/embed/album/${id}`,
-      openUrl: `https://open.spotify.com/album/${id}`,
-    };
-  }
-
-  // 2️⃣ Falls ID direkt eingegeben wurde (z. B. "4aawyAB9vmqN3uQ7FjRGTy")
-  if (/^[A-Za-z0-9]{10,}$/.test(link)) {
-    return {
-      embedUrl: `https://open.spotify.com/embed/album/${link}`,
-      openUrl: `https://open.spotify.com/album/${link}`,
-    };
-  }
-
-  // 3️⃣ Fallback auf Suchergebnis
-  const query = encodeURIComponent(`${albumtitel} ${interpret}`);
   return {
-    embedUrl: `https://open.spotify.com/embed/search/${query}`,
-    openUrl: `https://open.spotify.com/search/${query}`,
+    embedUrl: `https://open.spotify.com/embed/album/${album.spotify_id}`,
+    openUrl: `https://open.spotify.com/album/${album.spotify_id}`,
   };
 }
 
@@ -64,43 +43,14 @@ function BewertungForm({ albumTitel }) {
   const onSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
-  
-    try {
-      // Spotify-Link automatisch abrufen
-      const res = await fetch("/api/findSpotifyId", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          albumtitel: form.albumtitel,
-          interpret: form.interpret,
-        }),
-      });
-  
-      const { spotify_id, spotify_link, cover } = await res.json();
-  
-      const { error } = await supabase.from("vorschlaege").insert([
-        {
-          name: form.name,
-          albumtitel: form.albumtitel,
-          interpret: form.interpret,
-          begruendung: form.begruendung,
-          spotify_id,
-          spotify_link,
-          cover_url: cover,
-        },
-      ]);
-  
-      if (error) throw error;
-      setOk(true);
-    } catch (err) {
-      console.error(err);
-      alert("Fehler beim Vorschlagen 😢");
-    } finally {
-      setSending(false);
-    }
+    const { error } = await supabase.from("bewertungen").insert([form]);
+    setSending(false);
+    if (error) alert("Fehler beim Absenden 😢");
+    else setOk(true);
   };
-  
-  if (ok) return <div className="text-center text-green-600 mt-4">✅ Danke für deine Bewertung!</div>;
+
+  if (ok)
+    return <div className="text-center text-green-600 mt-4">✅ Danke für deine Bewertung!</div>;
 
   return (
     <form onSubmit={onSubmit} className="border-2 border-retro-border bg-retro-bg p-6 space-y-3 text-center">
@@ -176,7 +126,6 @@ function VorschlagForm() {
     albumtitel: "",
     interpret: "",
     begruendung: "",
-    spotify_link: "",
   });
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
@@ -186,10 +135,25 @@ function VorschlagForm() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
-    const { error } = await supabase.from("vorschlaege").insert([form]);
-    setSending(false);
-    if (error) alert("Fehler beim Vorschlagen 😢");
-    else setOk(true);
+
+    try {
+      const { error } = await supabase.from("albums").insert([
+        {
+          title: form.albumtitel,
+          artist: form.interpret,
+          submitted_by: form.name,
+          reason: form.begruendung,
+        },
+      ]);
+
+      if (error) throw error;
+      setOk(true);
+    } catch (err) {
+      console.error(err);
+      alert("Fehler beim Vorschlagen 😢");
+    } finally {
+      setSending(false);
+    }
   };
 
   if (ok) return <div className="text-center text-green-600 mt-4">✅ Danke für deinen Vorschlag!</div>;
@@ -239,14 +203,6 @@ function VorschlagForm() {
         className="w-full border border-retro-border bg-transparent p-2 text-sm"
       />
 
-      <input
-        name="spotify_link"
-        value={form.spotify_link}
-        onChange={onChange}
-        placeholder="Spotify-Link oder Album-ID (optional)"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-      />
-
       <button
         type="submit"
         disabled={sending}
@@ -260,18 +216,28 @@ function VorschlagForm() {
 
 /* 🔸 Hauptseite */
 export default function Home() {
-  const [albums, setAlbums] = useState([]);
   const [currentAlbum, setCurrentAlbum] = useState(null);
   const [pastAlbums, setPastAlbums] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("vorschlaege").select("*").order("created_at", { ascending: false });
-      if (!data) return;
-      setAlbums(data);
-      setCurrentAlbum(data[0]);
-      setPastAlbums(data.slice(1));
+      // 🔹 Aktuelles Album
+      const { data: active } = await supabase
+        .from("albums")
+        .select("*")
+        .eq("is_active", true)
+        .single();
+
+      // 🔹 Vergangene Alben
+      const { data: past } = await supabase
+        .from("albums")
+        .select("*")
+        .neq("is_active", true)
+        .order("created_at", { ascending: false });
+
+      setCurrentAlbum(active);
+      setPastAlbums(past || []);
     })();
   }, []);
 
@@ -286,16 +252,12 @@ export default function Home() {
         {/* 🎧 Aktuelles Album */}
         {currentAlbum ? (
           <div className="border-2 border-retro-border p-6 mb-12 text-center">
-            <h2 className="font-display text-3xl mb-2">{currentAlbum.albumtitel}</h2>
-            <p className="text-sm mb-4">{currentAlbum.interpret}</p>
+            <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
+            <p className="text-sm mb-4">{currentAlbum.artist}</p>
 
             {/* Player oder Spotify-Suche */}
             {(() => {
-              const { embedUrl, openUrl } = getSpotifyEmbedOrSearchLink(
-                currentAlbum.spotify_link,
-                currentAlbum.albumtitel,
-                currentAlbum.interpret
-              );
+              const { embedUrl, openUrl } = getSpotifyEmbedOrSearchLink(currentAlbum);
               return (
                 <>
                   <iframe
@@ -324,7 +286,7 @@ export default function Home() {
             })()}
 
             <div className="mt-6">
-              <BewertungForm albumTitel={currentAlbum.albumtitel} />
+              <BewertungForm albumTitel={currentAlbum.title} />
             </div>
           </div>
         ) : (
@@ -341,33 +303,25 @@ export default function Home() {
             </h3>
 
             <h4 className="text-xl text-center font-semibold mb-1">
-              {pastAlbums[currentIndex].albumtitel}
-              {(() => {
-                const { openUrl } = getSpotifyEmbedOrSearchLink(
-                  pastAlbums[currentIndex].spotify_link,
-                  pastAlbums[currentIndex].albumtitel,
-                  pastAlbums[currentIndex].interpret
-                );
-                return (
-                  <a
-                    href={openUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block ml-2 align-middle"
+              {pastAlbums[currentIndex].title}
+              {pastAlbums[currentIndex].spotify_id && (
+                <a
+                  href={`https://open.spotify.com/album/${pastAlbums[currentIndex].spotify_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block ml-2 align-middle"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                    alt="Spotify"
+                    className="w-5 h-5 inline-block"
                     style={{ border: "none" }}
-                  >
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                      alt="Spotify"
-                      className="w-5 h-5 inline-block"
-                      style={{ border: "none" }}
-                    />
-                  </a>
-                );
-              })()}
+                  />
+                </a>
+              )}
             </h4>
 
-            <p className="text-sm text-center mb-4">{pastAlbums[currentIndex].interpret}</p>
+            <p className="text-sm text-center mb-4">{pastAlbums[currentIndex].artist}</p>
 
             <div className="flex justify-between mt-6">
               <button
