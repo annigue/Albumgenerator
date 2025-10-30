@@ -1,33 +1,76 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
+/* ──────────────────────────────────────────────────────────
+   Supabase Client
+   ────────────────────────────────────────────────────────── */
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-/* 🔹 Spotify Embed oder Suchlink automatisch erzeugen */
-function getSpotifyEmbedOrSearchLink(album) {
-  if (!album?.spotify_id) {
-    const query = encodeURIComponent(`${album.title} ${album.artist}`);
+/* ──────────────────────────────────────────────────────────
+   Spotify-Helper: aus DB-Feldern eine gültige Embed-URL + Open-URL bauen
+   - bevorzugt spotify_id
+   - sonst Link parsen
+   - sonst Such-Embed
+   ────────────────────────────────────────────────────────── */
+function getSpotifyUrls({ spotify_id, spotify_link, title, artist }) {
+  // 1) Eigene ID aus Spalte
+  if (spotify_id && /^[A-Za-z0-9]{10,}$/.test(spotify_id)) {
     return {
-      embedUrl: `https://open.spotify.com/embed/search/${query}`,
-      openUrl: `https://open.spotify.com/search/${query}`,
+      embedUrl: `https://open.spotify.com/embed/album/${spotify_id}`,
+      openUrl: `https://open.spotify.com/album/${spotify_id}`,
     };
   }
 
+  // 2) Link parsen
+  const match = spotify_link?.match?.(/album\/([A-Za-z0-9]{10,})/);
+  if (match) {
+    const id = match[1];
+    return {
+      embedUrl: `https://open.spotify.com/embed/album/${id}`,
+      openUrl: `https://open.spotify.com/album/${id}`,
+    };
+  }
+
+  // 3) Fallback: Suche (zeigt keine 404)
+  const q = encodeURIComponent(`${title ?? ""} ${artist ?? ""}`.trim());
   return {
-    embedUrl: `https://open.spotify.com/embed/album/${album.spotify_id}`,
-    openUrl: `https://open.spotify.com/album/${album.spotify_id}`,
+    embedUrl: `https://open.spotify.com/embed/search/${q}`,
+    openUrl: `https://open.spotify.com/search/${q}`,
   };
 }
 
-/* 🔸 Bewertung */
-function BewertungForm({ albumTitel }) {
+/* ──────────────────────────────────────────────────────────
+   Fun GIF je nach Mehrheitsbewertung
+   ────────────────────────────────────────────────────────── */
+function GiphyGif({ verdict }) {
+  const map = {
+    Hit: "https://media.giphy.com/media/26ufnwz3wDUli7GU0/giphy.gif",
+    "Geht in Ordnung": "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
+    Niete: "https://media.giphy.com/media/3ohhwJ6DW9b0Nf3fUQ/giphy.gif",
+  };
+  const src = map[verdict] || map["Geht in Ordnung"];
+  return (
+    <div className="flex justify-center mt-4">
+      <img
+        src={src}
+        alt={`GIF: ${verdict ?? "neutral"}`}
+        className="w-64 h-48 object-cover border-2 border-retro-border"
+      />
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   Bewertungsformular (aktuelles Album)
+   ────────────────────────────────────────────────────────── */
+function BewertungForm({ album }) {
   const [form, setForm] = useState({
     name: "",
-    albumtitel: albumTitel || "",
     liebstes_lied: "",
     beste_textzeile: "",
     schlechtestes_lied: "",
@@ -35,26 +78,54 @@ function BewertungForm({ albumTitel }) {
   });
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
+
   const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
 
-  useEffect(() => setForm((f) => ({ ...f, albumtitel: albumTitel || "" })), [albumTitel]);
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const onChange = (e) =>
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    if (!album?.id) return;
+
     setSending(true);
-    const { error } = await supabase.from("bewertungen").insert([form]);
+    const payload = {
+      album_id: album.id,
+      albumtitel: album.title, // zur Sicherheit zusätzlich speichern
+      name: form.name,
+      liebstes_lied: form.liebstes_lied,
+      beste_textzeile: form.beste_textzeile,
+      schlechtestes_lied: form.schlechtestes_lied,
+      bewertung: form.bewertung,
+    };
+    const { error } = await supabase.from("bewertungen").insert([payload]);
     setSending(false);
-    if (error) alert("Fehler beim Absenden 😢");
-    else setOk(true);
+
+    if (error) {
+      console.error(error);
+      alert("Fehler beim Absenden 😢");
+    } else {
+      setOk(true);
+    }
   };
 
+  if (!album) return null;
+
   if (ok)
-    return <div className="text-center text-green-600 mt-4">✅ Danke für deine Bewertung!</div>;
+    return (
+      <div className="text-center text-green-600 mt-4">
+        ✅ Danke für deine Bewertung!
+      </div>
+    );
 
   return (
-    <form onSubmit={onSubmit} className="border-2 border-retro-border bg-retro-bg p-6 space-y-3 text-center">
-      <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">ALBUM BEWERTEN</h3>
+    <form
+      onSubmit={onSubmit}
+      className="border-2 border-retro-border bg-retro-bg p-6 space-y-3 text-center"
+    >
+      <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">
+        ALBUM BEWERTEN
+      </h3>
 
       <select
         name="name"
@@ -119,67 +190,63 @@ function BewertungForm({ albumTitel }) {
   );
 }
 
-/* 🔸 Vorschlag */
+/* ──────────────────────────────────────────────────────────
+   Vorschlag-Formular (optional – schreibt in albums)
+   ────────────────────────────────────────────────────────── */
 function VorschlagForm() {
   const [form, setForm] = useState({
-    name: "",
-    albumtitel: "",
-    interpret: "",
-    begruendung: "",
+    title: "",
+    artist: "",
   });
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
-  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const onChange = (e) =>
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
 
-    try {
-      const { error } = await supabase.from("albums").insert([
-        {
-          title: form.albumtitel,
-          artist: form.interpret,
-          submitted_by: form.name,
-          reason: form.begruendung,
-        },
-      ]);
+    // neue Vorschläge -> als inaktive Alben speichern, ohne spotify_id (wird später ergänzt)
+    const { error } = await supabase.from("albums").insert([
+      {
+        title: form.title,
+        artist: form.artist,
+        is_active: false,
+        date: null,
+      },
+    ]);
 
-      if (error) throw error;
-      setOk(true);
-    } catch (err) {
-      console.error(err);
+    setSending(false);
+    if (error) {
+      console.error(error);
       alert("Fehler beim Vorschlagen 😢");
-    } finally {
-      setSending(false);
+    } else {
+      setOk(true);
+      setForm({ title: "", artist: "" });
     }
   };
 
-  if (ok) return <div className="text-center text-green-600 mt-4">✅ Danke für deinen Vorschlag!</div>;
+  if (ok)
+    return (
+      <div className="text-center text-green-600 mt-4">
+        ✅ Danke für deinen Vorschlag!
+      </div>
+    );
 
   return (
-    <form onSubmit={onSubmit} className="border-2 border-retro-border bg-retro-bg p-6 mt-10 space-y-3 text-center">
-      <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">NEUES ALBUM VORSCHLAGEN</h3>
-
-      <select
-        name="name"
-        value={form.name}
-        onChange={onChange}
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-        required
-      >
-        <option value="">Teilnehmer wählen</option>
-        {teilnehmer.map((t) => (
-          <option key={t} value={t}>
-            {t}
-          </option>
-        ))}
-      </select>
+    <form
+      onSubmit={onSubmit}
+      className="border-2 border-retro-border bg-retro-bg p-6 mt-10 space-y-3 text-center"
+    >
+      <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">
+        NEUES ALBUM VORSCHLAGEN
+      </h3>
 
       <input
-        name="albumtitel"
-        value={form.albumtitel}
+        name="title"
+        value={form.title}
         onChange={onChange}
         placeholder="Albumtitel"
         className="w-full border border-retro-border bg-transparent p-2 text-sm"
@@ -187,20 +254,12 @@ function VorschlagForm() {
       />
 
       <input
-        name="interpret"
-        value={form.interpret}
+        name="artist"
+        value={form.artist}
         onChange={onChange}
         placeholder="Interpret"
         className="w-full border border-retro-border bg-transparent p-2 text-sm"
         required
-      />
-
-      <textarea
-        name="begruendung"
-        value={form.begruendung}
-        onChange={onChange}
-        placeholder="Warum teilen?"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
       />
 
       <button
@@ -214,32 +273,74 @@ function VorschlagForm() {
   );
 }
 
-/* 🔸 Hauptseite */
+/* ──────────────────────────────────────────────────────────
+   Hauptseite
+   ────────────────────────────────────────────────────────── */
 export default function Home() {
   const [currentAlbum, setCurrentAlbum] = useState(null);
   const [pastAlbums, setPastAlbums] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [idx, setIdx] = useState(0);
 
+  // Reviews des aktuell im "Bisherige Alben"-Karussell ausgewählten Albums
+  const [reviews, setReviews] = useState([]);
+
+  /* Daten laden: aktuelles + vergangene Alben */
   useEffect(() => {
     (async () => {
-      // 🔹 Aktuelles Album
-      const { data: active } = await supabase
+      // Aktuelles
+      const { data: active, error: e1 } = await supabase
         .from("albums")
         .select("*")
         .eq("is_active", true)
-        .single();
+        .limit(1)
+        .maybeSingle();
 
-      // 🔹 Vergangene Alben
-      const { data: past } = await supabase
+      if (e1) console.error(e1);
+      setCurrentAlbum(active ?? null);
+
+      // Vergangene
+      const { data: past, error: e2 } = await supabase
         .from("albums")
         .select("*")
-        .neq("is_active", true)
-        .order("created_at", { ascending: false });
+        .eq("is_active", false)
+        .not("date", "is", null)
+        .order("date", { ascending: false });
 
-      setCurrentAlbum(active);
-      setPastAlbums(past || []);
+      if (e2) console.error(e2);
+      setPastAlbums(past ?? []);
+      setIdx(0);
     })();
   }, []);
+
+  /* Reviews für das ausgewählte vergangene Album laden */
+  useEffect(() => {
+    (async () => {
+      const album = pastAlbums[idx];
+      if (!album?.id) {
+        setReviews([]);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("bewertungen")
+        .select("*")
+        .eq("album_id", album.id)
+        .order("created_at", { ascending: true });
+
+      if (error) console.error(error);
+      setReviews(data ?? []);
+    })();
+  }, [pastAlbums, idx]);
+
+  /* Mehrheitsvotum berechnen */
+  const majority = useMemo(() => {
+    if (!reviews?.length) return null;
+    const counts = { Hit: 0, "Geht in Ordnung": 0, Niete: 0 };
+    for (const r of reviews) {
+      if (counts[r.bewertung] !== undefined) counts[r.bewertung]++;
+    }
+    const [winner] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    return { vote: winner, count: counts[winner] };
+  }, [reviews]);
 
   return (
     <main className="bg-retro-bg text-retro-text min-h-screen">
@@ -255,9 +356,14 @@ export default function Home() {
             <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
             <p className="text-sm mb-4">{currentAlbum.artist}</p>
 
-            {/* Player oder Spotify-Suche */}
+            {/* Player / Suche */}
             {(() => {
-              const { embedUrl, openUrl } = getSpotifyEmbedOrSearchLink(currentAlbum);
+              const { embedUrl, openUrl } = getSpotifyUrls({
+                spotify_id: currentAlbum.spotify_id,
+                spotify_link: currentAlbum.spotify_link,
+                title: currentAlbum.title,
+                artist: currentAlbum.artist,
+              });
               return (
                 <>
                   <iframe
@@ -267,7 +373,7 @@ export default function Home() {
                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                     loading="lazy"
                     className="border-2 border-retro-border mb-2"
-                  ></iframe>
+                  />
                   <a
                     href={openUrl}
                     target="_blank"
@@ -278,6 +384,7 @@ export default function Home() {
                       src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
                       className="w-5 h-5"
                       alt=""
+                      style={{ border: "none" }}
                     />
                     Auf Spotify ansehen
                   </a>
@@ -286,54 +393,88 @@ export default function Home() {
             })()}
 
             <div className="mt-6">
-              <BewertungForm albumTitel={currentAlbum.title} />
+              <BewertungForm album={currentAlbum} />
             </div>
           </div>
         ) : (
           <p className="text-center text-gray-500 italic mb-8">
-            Noch kein Album der Woche vorhanden.
+            Noch kein aktuelles Album gesetzt.
           </p>
         )}
 
-        {/* 📚 Vergangene Alben */}
+        {/* 📚 Bisherige Alben */}
         {pastAlbums.length > 0 && (
           <div className="border-2 border-retro-border p-6 mb-12">
             <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
               BISHERIGE ALBEN
             </h3>
 
+            {/* Cover falls vorhanden */}
+            {pastAlbums[idx]?.cover_url && (
+              <img
+                src={pastAlbums[idx].cover_url}
+                alt={`${pastAlbums[idx].title} Cover`}
+                className="mx-auto mb-4 border-2 border-retro-border"
+              />
+            )}
+
             <h4 className="text-xl text-center font-semibold mb-1">
-              {pastAlbums[currentIndex].title}
-              {pastAlbums[currentIndex].spotify_id && (
-                <a
-                  href={`https://open.spotify.com/album/${pastAlbums[currentIndex].spotify_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block ml-2 align-middle"
-                >
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                    alt="Spotify"
-                    className="w-5 h-5 inline-block"
+              {pastAlbums[idx].title}
+              {(() => {
+                const { openUrl } = getSpotifyUrls({
+                  spotify_id: pastAlbums[idx].spotify_id,
+                  spotify_link: pastAlbums[idx].spotify_link,
+                  title: pastAlbums[idx].title,
+                  artist: pastAlbums[idx].artist,
+                });
+                return (
+                  <a
+                    href={openUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block ml-2 align-middle"
                     style={{ border: "none" }}
-                  />
-                </a>
-              )}
+                  >
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                      alt="Spotify"
+                      className="w-5 h-5 inline-block"
+                      style={{ border: "none" }}
+                    />
+                  </a>
+                );
+              })()}
             </h4>
 
-            <p className="text-sm text-center mb-4">{pastAlbums[currentIndex].artist}</p>
+            <p className="text-sm text-center mb-4">
+              {pastAlbums[idx].artist}
+            </p>
 
+            {/* Mehrheitsbewertung + GIF */}
+            {majority && (
+              <>
+                <p className="text-center font-medium">
+                  🏆 Mehrheitlich bewertet als: {majority.vote} ({majority.count}{" "}
+                  Stimmen)
+                </p>
+                <GiphyGif verdict={majority.vote} />
+              </>
+            )}
+
+            {/* Navigation */}
             <div className="flex justify-between mt-6">
               <button
-                onClick={() => setCurrentIndex((i) => Math.max(i - 1, 0))}
-                disabled={currentIndex === 0}
+                onClick={() => setIdx((i) => Math.max(i - 1, 0))}
+                disabled={idx === 0}
                 className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
               >
                 ◀ Vorheriges
               </button>
               <button
-                onClick={() => setCurrentIndex((i) => Math.min(i + 1, pastAlbums.length - 1))}
-                disabled={currentIndex === pastAlbums.length - 1}
+                onClick={() =>
+                  setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))
+                }
+                disabled={idx === pastAlbums.length - 1}
                 className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
               >
                 Nächstes ▶
@@ -342,6 +483,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* Vorschlagen */}
         <VorschlagForm />
       </div>
       <div className="pattern-bottom" />
