@@ -192,7 +192,7 @@ function BewertungForm({ album }) {
 
 /* ──────────────────────────────────────────────────────────
    Vorschlag-Formular (optional – schreibt in albums)
-   ────────────────────────────────────────────────────────── */
+   ────────────────────────────────────────────────────────── /* 🔸 Vorschlag-Formular (mit automatischer Spotify-ID über API) */
 function VorschlagForm() {
   const [form, setForm] = useState({
     title: "",
@@ -200,59 +200,76 @@ function VorschlagForm() {
   });
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const onChange = (e) =>
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const onSubmit = async (e) => {
-      e.preventDefault();
-        setSending(true);
+    e.preventDefault();
+    setSending(true);
+    setErrorMsg("");
+    setOk(false);
 
-          try {
-              // 1️⃣ Spotify-Daten automatisch holen
-                  const res = await fetch("/api/fetchSpotifyData", {
-                        method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ title: form.title, artist: form.artist }),
-                                        });
+    try {
+      // 1️⃣ Spotify-Infos automatisch abrufen
+      const res = await fetch("/api/fetchSpotifyData", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title.trim(),
+          artist: form.artist.trim(),
+        }),
+      });
 
-                                            const { spotify_id, spotify_link, cover_url } = await res.json();
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Fehler beim Abrufen von Spotify");
+      }
 
-                                                // 2️⃣ Neues Album in Supabase speichern
-                                                    const { error } = await supabase.from("albums").insert([
-                                                          {
-                                                                  title: form.title,
-                                                                          artist: form.artist,
-                                                                                  spotify_id,
-                                                                                          spotify_link,
-                                                                                                  cover_url,
-                                                                                                          is_active: false,
-                                                                                                                },
-                                                                                                                    ]);
+      const { spotify_id, spotify_link, cover_url } = await res.json();
 
-                                                                                                                        if (error) throw error;
-                                                                                                                            setOk(true);
-                                                                                                                              } catch (err) {
-                                                                                                                                  console.error(err);
-                                                                                                                                      alert("Fehler beim Vorschlagen 😢");
-                                                                                                                                        } finally {
-                                                                                                                                            setSending(false);
-                                                                                                                                              }
-                                                                                                                                              };
-  }
+      // 2️⃣ Neues Album in Supabase einfügen
+      const { error } = await supabase.from("albums").insert([
+        {
+          title: form.title,
+          artist: form.artist,
+          spotify_id,
+          spotify_link,
+          cover_url,
+          is_active: false,
+          created_at: new Date().toISOString(),
+        },
+      ]);
 
+      if (error) throw error;
+
+      setOk(true);
+      setForm({ title: "", artist: "" });
+    } catch (err) {
+      console.error("Fehler:", err);
+      setErrorMsg("❌ Fehler beim Vorschlagen oder beim Spotify-Abruf.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   if (ok)
     return (
-      <div className="text-center text-green-600 mt-4">
-        ✅ Danke für deinen Vorschlag!
+      <div className="text-center text-green-600 mt-6">
+        ✅ Danke für deinen Vorschlag!<br />
+        <button
+          className="mt-4 text-retro-accent underline"
+          onClick={() => setOk(false)}
+        >
+          Noch ein Album vorschlagen
+        </button>
       </div>
     );
 
   return (
     <form
       onSubmit={onSubmit}
-      className="border-2 border-retro-border bg-retro-bg p-6 mt-10 space-y-3 text-center"
+      className="border-2 border-retro-border bg-retro-bg p-6 mt-10 space-y-4 text-center"
     >
       <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">
         NEUES ALBUM VORSCHLAGEN
@@ -263,7 +280,7 @@ function VorschlagForm() {
         value={form.title}
         onChange={onChange}
         placeholder="Albumtitel"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm tracking-wider focus:outline-none"
         required
       />
 
@@ -272,9 +289,13 @@ function VorschlagForm() {
         value={form.artist}
         onChange={onChange}
         placeholder="Interpret"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm tracking-wider focus:outline-none"
         required
       />
+
+      {errorMsg && (
+        <p className="text-red-600 text-sm mt-2">{errorMsg}</p>
+      )}
 
       <button
         type="submit"
