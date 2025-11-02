@@ -205,28 +205,42 @@ function VorschlagForm() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const onSubmit = async (e) => {
-    e.preventDefault();
-    setSending(true);
+      e.preventDefault();
+        setSending(true);
 
-    // neue Vorschläge -> als inaktive Alben speichern, ohne spotify_id (wird später ergänzt)
-    const { error } = await supabase.from("albums").insert([
-      {
-        title: form.title,
-        artist: form.artist,
-        is_active: false,
-        date: null,
-      },
-    ]);
+          try {
+              // 1️⃣ Spotify-Daten automatisch holen
+                  const res = await fetch("/api/fetchSpotifyData", {
+                        method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ title: form.title, artist: form.artist }),
+                                        });
 
-    setSending(false);
-    if (error) {
-      console.error(error);
-      alert("Fehler beim Vorschlagen 😢");
-    } else {
-      setOk(true);
-      setForm({ title: "", artist: "" });
-    }
-  };
+                                            const { spotify_id, spotify_link, cover_url } = await res.json();
+
+                                                // 2️⃣ Neues Album in Supabase speichern
+                                                    const { error } = await supabase.from("albums").insert([
+                                                          {
+                                                                  title: form.title,
+                                                                          artist: form.artist,
+                                                                                  spotify_id,
+                                                                                          spotify_link,
+                                                                                                  cover_url,
+                                                                                                          is_active: false,
+                                                                                                                },
+                                                                                                                    ]);
+
+                                                                                                                        if (error) throw error;
+                                                                                                                            setOk(true);
+                                                                                                                              } catch (err) {
+                                                                                                                                  console.error(err);
+                                                                                                                                      alert("Fehler beim Vorschlagen 😢");
+                                                                                                                                        } finally {
+                                                                                                                                            setSending(false);
+                                                                                                                                              }
+                                                                                                                                              };
+  }
+
 
   if (ok)
     return (

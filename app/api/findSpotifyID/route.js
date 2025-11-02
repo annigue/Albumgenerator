@@ -1,50 +1,54 @@
 import { NextResponse } from "next/server";
 
-export async function POST(req) {
-  const { albumtitel, interpret } = await req.json();
+const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 
-  if (!albumtitel || !interpret) {
-    return NextResponse.json({ error: "Albumtitel und Interpret erforderlich" }, { status: 400 });
-  }
+/* 🔹 Spotify Access Token holen */
+async function getAccessToken() {
+  const response = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      Authorization:
+        "Basic " +
+        Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString(
+          "base64"
+        ),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
+  const data = await response.json();
+  return data.access_token;
+}
+
+/* 🔹 Hauptfunktion: Album suchen */
+export async function POST(request) {
+  const { title, artist } = await request.json();
+  if (!title || !artist)
+    return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
 
   try {
-    // 🔹 Token holen
-    const tokenRes = await fetch("https://accounts.spotify.com/api/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization:
-          "Basic " +
-          Buffer.from(
-            `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
-          ).toString("base64"),
-      },
-      body: "grant_type=client_credentials",
+    const token = await getAccessToken();
+
+    const query = encodeURIComponent(`${title} ${artist}`);
+    const url = `https://api.spotify.com/v1/search?q=${query}&type=album&limit=1`;
+
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
     });
-    const tokenData = await tokenRes.json();
-    const token = tokenData.access_token;
 
-    // 🔹 Suche nach Album
-    const q = encodeURIComponent(`${albumtitel} ${interpret}`);
-    const searchRes = await fetch(
-      `https://api.spotify.com/v1/search?q=${q}&type=album&limit=1`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const data = await res.json();
+    if (!data.albums?.items?.length)
+      return NextResponse.json({ error: "No album found" }, { status: 404 });
 
-    const searchData = await searchRes.json();
-    const album = searchData.albums?.items?.[0];
-
-    if (!album) {
-      return NextResponse.json({ spotify_id: null, spotify_link: null });
-    }
-
-    const spotify_id = album.id;
-    const spotify_link = `https://open.spotify.com/album/${spotify_id}`;
-    const cover = album.images?.[0]?.url || null;
-
-    return NextResponse.json({ spotify_id, spotify_link, cover });
+    const album = data.albums.items[0];
+    return NextResponse.json({
+      spotify_id: album.id,
+      spotify_link: album.external_urls.spotify,
+      cover_url: album.images?.[0]?.url || null,
+    });
   } catch (err) {
-    console.error("Spotify search error:", err);
-    return NextResponse.json({ error: "Spotify-Suche fehlgeschlagen" }, { status: 500 });
+    console.error(err);
+    return NextResponse.json({ error: "Failed to fetch from Spotify" }, { status: 500 });
   }
 }
