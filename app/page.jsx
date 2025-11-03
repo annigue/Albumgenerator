@@ -192,7 +192,8 @@ function BewertungForm({ album }) {
 
 /* ──────────────────────────────────────────────────────────
    Vorschlag-Formular (optional – schreibt in albums)
-   ────────────────────────────────────────────────────────── /* 🔸 Vorschlag-Formular (mit automatischer Spotify-ID über API) */
+   ────────────────────────────────────────────────────────── */
+/* 🔸 Vorschlag-Formular (mit automatischer Spotify-ID über API) */
 /* 🔸 Vorschlag */
 function VorschlagForm() {
   const [form, setForm] = useState({
@@ -326,10 +327,77 @@ function VorschlagForm() {
   );
 }
 
+/* 🔹 Durchschnittliche Bewertung für ein Album */
+/* 🔹 Durchschnittliche Bewertung für ein Album */
+function PastAlbumBewertung({ albumtitel }) {
+  const [bewertung, setBewertung] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("bewertungen")
+        .select("bewertung")
+        .eq("albumtitel", albumtitel);
+
+      if (!data || data.length === 0)
+        return setBewertung({ label: "Keine Bewertungen", gif: null, color: "text-gray-500" });
+
+      const hits = data.filter((d) => d.bewertung === "Hit").length;
+      const okays = data.filter((d) => d.bewertung === "Geht in Ordnung").length;
+      const fails = data.filter((d) => d.bewertung === "Niete").length;
+      const total = data.length;
+
+      const score = (hits * 3 + okays * 2 + fails * 1) / total;
+      let result = { label: "", gif: "", color: "" };
+
+      if (score >= 2.5)
+        result = {
+          label: "Hit",
+          gif: "https://media.giphy.com/media/26ufnwz3wDUli7GU0/giphy.gif",
+          color: "text-green-600",
+        };
+      else if (score >= 1.6)
+        result = {
+          label: "Geht in Ordnung",
+          gif: "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
+          color: "text-yellow-600",
+        };
+      else
+        result = {
+          label: "Niete",
+          gif: "https://media.giphy.com/media/3ohhwJ6DW9b0Nf3fUQ/giphy.gif",
+          color: "text-red-600",
+        };
+
+      setBewertung(result);
+    })();
+  }, [albumtitel]);
+
+  if (!bewertung) return null;
+
+  return (
+    <div className="flex flex-col items-center">
+      <p className={`font-display text-xl mb-3 ${bewertung.color}`}>
+        💿 Gesamtbewertung: <b>{bewertung.label}</b>
+      </p>
+      {bewertung.gif && (
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full blur-3xl opacity-30 bg-retro-accent"></div>
+          <img
+            src={bewertung.gif}
+            alt={bewertung.label}
+            className="relative rounded-2xl border-2 border-retro-border w-64 h-48 object-cover shadow-lg"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ──────────────────────────────────────────────────────────
    Hauptseite
    ────────────────────────────────────────────────────────── */
+export default function Home() {
 export default function Home() {
   const [currentAlbum, setCurrentAlbum] = useState(null);
   const [pastAlbums, setPastAlbums] = useState([]);
@@ -404,138 +472,152 @@ export default function Home() {
           ALBUM DER WOCHE
         </h1>
 
-        {/* 🎧 Aktuelles Album */}
-        {currentAlbum ? (
-          <div className="border-2 border-retro-border p-6 mb-12 text-center">
-            <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
-            <p className="text-sm mb-4">{currentAlbum.artist}</p>
+{/* 🎧 Aktuelles Album */}
+{currentAlbum ? (
+  <div className="border-2 border-retro-border p-6 mb-12 text-center">
+    <h2 className="font-display text-3xl mb-2">{currentAlbum.albumtitel}</h2>
+    <p className="text-sm mb-4">{currentAlbum.interpret}</p>
 
-            {/* Player / Suche */}
-            {(() => {
-              const { embedUrl, openUrl } = getSpotifyUrls({
-                spotify_id: currentAlbum.spotify_id,
-                spotify_link: currentAlbum.spotify_link,
-                title: currentAlbum.title,
-                artist: currentAlbum.artist,
-              });
-              return (
-                <>
-                  <iframe
-                    src={embedUrl}
-                    width="100%"
-                    height="352"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                    className="border-2 border-retro-border mb-2"
-                  />
-                  <a
-                    href={openUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-retro-accent hover:underline"
-                  >
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                      className="w-5 h-5"
-                      alt=""
-                      style={{ border: "none" }}
-                    />
-                    Auf Spotify ansehen
-                  </a>
-                </>
-              );
-            })()}
+    {/* 💬 Vorschlagsdetails */}
+    {currentAlbum.begruendung && (
+      <p className="italic text-sm mb-2">💬 {currentAlbum.begruendung}</p>
+    )}
+    {currentAlbum.liebstes_lied && (
+      <p className="text-sm mb-1">❤️ <b>Liebstes Lied:</b> {currentAlbum.liebstes_lied}</p>
+    )}
+    {currentAlbum.liebste_textzeile && (
+      <p className="text-sm mb-1">📝 <b>Liebste Textzeile:</b> “{currentAlbum.liebste_textzeile}”</p>
+    )}
+    {currentAlbum.schlechtestes_lied && (
+      <p className="text-sm mb-4">💀 <b>Schlechtestes Lied:</b> {currentAlbum.schlechtestes_lied}</p>
+    )}
 
-            <div className="mt-6">
-              <BewertungForm album={currentAlbum} />
-            </div>
-          </div>
-        ) : (
-          <p className="text-center text-gray-500 italic mb-8">
-            Noch kein aktuelles Album gesetzt.
+    {/* Spotify Player */}
+    {(() => {
+      const { embedUrl, openUrl } = getSpotifyUrls({
+        spotify_id: currentAlbum.spotify_id,
+        spotify_link: currentAlbum.spotify_link,
+        title: currentAlbum.albumtitel ?? currentAlbum.title,
+        artist: currentAlbum.interpret ?? currentAlbum.artist,
+      });
+      return (
+        <>
+          <iframe
+            src={embedUrl}
+            width="100%"
+            height="352"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            className="border-2 border-retro-border mb-2"
+          ></iframe>
+          <a
+            href={openUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-retro-accent hover:underline"
+          >
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+              className="w-5 h-5"
+              alt=""
+            />
+            Auf Spotify ansehen
+          </a>
+        </>
+      );
+    })()}
+
+    <div className="mt-6">
+      <BewertungForm album={currentAlbum} />
+    </div>
+  </div>
+) : (
+  <p className="text-center text-gray-500 italic mb-8">
+    Noch kein aktuelles Album gesetzt.
+  </p>
+)}
+--- Past Albums ---
+{pastAlbums.length > 0 && (
+  <div className="border-2 border-retro-border p-6 mb-12 rounded-2xl bg-retro-bg shadow-lg">
+    <h3 className="font-display text-3xl text-retro-accent text-center mb-8 tracking-widest">
+      BISHERIGE ALBEN
+    </h3>
+
+    <div className="flex flex-col items-center">
+      {/* 🖼 Cover */}
+      {pastAlbums[currentIndex].cover_url ? (
+        <img
+          src={pastAlbums[currentIndex].cover_url}
+          alt={pastAlbums[currentIndex].albumtitel}
+          className="w-64 h-64 object-cover rounded-xl border-4 border-retro-border shadow-md mb-4"
+        />
+      ) : (
+        <div className="w-64 h-64 flex items-center justify-center border-4 border-dashed border-retro-border text-gray-400 mb-4">
+          Kein Cover
+        </div>
+      )}
+
+      {/* 🎵 Titel + Spotify-Link */}
+      <h4 className="text-2xl font-semibold mb-2 text-center font-display">
+        {pastAlbums[currentIndex].albumtitel}
+        {(() => {
+          const { openUrl } = getSpotifyEmbedOrSearchLink(
+            pastAlbums[currentIndex].spotify_link,
+{/* PastAlbumBewertung moved above */}
+
+
+/* 🔹 Durchschnittliche Bewertung für ein Album */
+function PastAlbumBewertung({ albumtitel }) {
+  const [bewertung, setBewertung] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("bewertungen")
+        .select("bewertung")
+        .eq("albumtitel", albumtitel);
+
+      if (!data || data.length === 0) return setBewertung("Keine Bewertungen");
+
+      const hits = data.filter((d) => d.bewertung === "Hit").length;
+      const okays = data.filter((d) => d.bewertung === "Geht in Ordnung").length;
+      const fails = data.filter((d) => d.bewertung === "Niete").length;
+      const total = data.length;
+
+      const score = (hits * 3 + okays * 2 + fails * 1) / total;
+      let summary;
+      if (score >= 2.5) summary = "Hit";
+      else if (score >= 1.6) summary = "Geht in Ordnung";
+      else summary = "Niete";
+      setBewertung(summary);
+    })();
+  }, [albumtitel]);
+
+  const gifMap = {
+    Hit: "https://media.giphy.com/media/26ufnwz3wDUli7GU0/giphy.gif",
+    "Geht in Ordnung":
+      "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
+    Niete: "https://media.giphy.com/media/3ohhwJ6DW9b0Nf3fUQ/giphy.gif",
+  };
+
+  return (
+    <div className="mt-4">
+      {bewertung && (
+        <>
+          <p className="text-lg font-display text-retro-accent mb-2">
+            Gesamtbewertung: {bewertung}
           </p>
-        )}
+          <img
+            src={gifMap[bewertung]}
+            alt={bewertung}
+            className="mx-auto w-64 h-48 object-cover border-2 border-retro-border"
+          />
+        </>
+      )}
+    </div>
+  );
+}
 
-        {/* 📚 Bisherige Alben */}
-        {pastAlbums.length > 0 && (
-          <div className="border-2 border-retro-border p-6 mb-12">
-            <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
-              BISHERIGE ALBEN
-            </h3>
-
-            {/* Cover falls vorhanden */}
-            {pastAlbums[idx]?.cover_url && (
-              <img
-                src={pastAlbums[idx].cover_url}
-                alt={`${pastAlbums[idx].title} Cover`}
-                className="mx-auto mb-4 border-2 border-retro-border"
-              />
-            )}
-
-            <h4 className="text-xl text-center font-semibold mb-1">
-              {pastAlbums[idx].title}
-              {(() => {
-                const { openUrl } = getSpotifyUrls({
-                  spotify_id: pastAlbums[idx].spotify_id,
-                  spotify_link: pastAlbums[idx].spotify_link,
-                  title: pastAlbums[idx].title,
-                  artist: pastAlbums[idx].artist,
-                });
-                return (
-                  <a
-                    href={openUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block ml-2 align-middle"
-                    style={{ border: "none" }}
-                  >
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                      alt="Spotify"
-                      className="w-5 h-5 inline-block"
-                      style={{ border: "none" }}
-                    />
-                  </a>
-                );
-              })()}
-            </h4>
-
-            <p className="text-sm text-center mb-4">
-              {pastAlbums[idx].artist}
-            </p>
-
-            {/* Mehrheitsbewertung + GIF */}
-            {majority && (
-              <>
-                <p className="text-center font-medium">
-                  🏆 Mehrheitlich bewertet als: {majority.vote} ({majority.count}{" "}
-                  Stimmen)
-                </p>
-                <GiphyGif verdict={majority.vote} />
-              </>
-            )}
-
-            {/* Navigation */}
-            <div className="flex justify-between mt-6">
-              <button
-                onClick={() => setIdx((i) => Math.max(i - 1, 0))}
-                disabled={idx === 0}
-                className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
-              >
-                ◀ Vorheriges
-              </button>
-              <button
-                onClick={() =>
-                  setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))
-                }
-                disabled={idx === pastAlbums.length - 1}
-                className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
-              >
-                Nächstes ▶
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Vorschlagen */}
         <VorschlagForm />
