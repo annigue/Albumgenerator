@@ -193,61 +193,34 @@ function BewertungForm({ album }) {
 /* ──────────────────────────────────────────────────────────
    Vorschlag-Formular (optional – schreibt in albums)
    ────────────────────────────────────────────────────────── /* 🔸 Vorschlag-Formular (mit automatischer Spotify-ID über API) */
+/* 🔸 Vorschlag */
 function VorschlagForm() {
   const [form, setForm] = useState({
-    title: "",
-    artist: "",
+    name: "",
+    albumtitel: "",
+    interpret: "",
+    begruendung: "",
+    liebstes_lied: "",
+    liebste_textzeile: "",
+    schlechtestes_lied: "",
   });
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-
+  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
-    setErrorMsg("");
-    setOk(false);
 
     try {
-      // 1️⃣ Spotify-Infos automatisch abrufen
-      const res = await fetch("/api/fetchSpotifyData", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: form.title.trim(),
-          artist: form.artist.trim(),
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Fehler beim Abrufen von Spotify");
-      }
-
-      const { spotify_id, spotify_link, cover_url } = await res.json();
-
-      // 2️⃣ Neues Album in Supabase einfügen
-      const { error } = await supabase.from("albums").insert([
-        {
-          title: form.title,
-          artist: form.artist,
-          spotify_id,
-          spotify_link,
-          cover_url,
-          is_active: false,
-          created_at: new Date().toISOString(),
-        },
-      ]);
-
+      // 🔹 Eintrag in Supabase speichern
+      const { error } = await supabase.from("vorschlaege").insert([form]);
       if (error) throw error;
-
       setOk(true);
-      setForm({ title: "", artist: "" });
     } catch (err) {
-      console.error("Fehler:", err);
-      setErrorMsg("❌ Fehler beim Vorschlagen oder beim Spotify-Abruf.");
+      console.error(err);
+      alert("Fehler beim Vorschlagen 😢");
     } finally {
       setSending(false);
     }
@@ -255,48 +228,93 @@ function VorschlagForm() {
 
   if (ok)
     return (
-      <div className="text-center text-green-600 mt-6">
-        ✅ Danke für deinen Vorschlag!<br />
-        <button
-          className="mt-4 text-retro-accent underline"
-          onClick={() => setOk(false)}
-        >
-          Noch ein Album vorschlagen
-        </button>
+      <div className="text-center text-green-600 mt-4">
+        ✅ Danke für deinen Vorschlag!
       </div>
     );
 
   return (
     <form
       onSubmit={onSubmit}
-      className="border-2 border-retro-border bg-retro-bg p-6 mt-10 space-y-4 text-center"
+      className="border-2 border-retro-border bg-retro-bg p-6 mt-10 space-y-3 text-center"
     >
       <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">
         NEUES ALBUM VORSCHLAGEN
       </h3>
 
+      {/* Teilnehmerauswahl */}
+      <select
+        name="name"
+        value={form.name}
+        onChange={onChange}
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+        required
+      >
+        <option value="">Teilnehmer wählen</option>
+        {teilnehmer.map((t) => (
+          <option key={t} value={t}>
+            {t}
+          </option>
+        ))}
+      </select>
+
+      {/* Albumtitel */}
       <input
-        name="title"
-        value={form.title}
+        name="albumtitel"
+        value={form.albumtitel}
         onChange={onChange}
         placeholder="Albumtitel"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm tracking-wider focus:outline-none"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
         required
       />
 
+      {/* Interpret */}
       <input
-        name="artist"
-        value={form.artist}
+        name="interpret"
+        value={form.interpret}
         onChange={onChange}
         placeholder="Interpret"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm tracking-wider focus:outline-none"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
         required
       />
 
-      {errorMsg && (
-        <p className="text-red-600 text-sm mt-2">{errorMsg}</p>
-      )}
+      {/* Begründung */}
+      <textarea
+        name="begruendung"
+        value={form.begruendung}
+        onChange={onChange}
+        placeholder="Warum sollen wir dieses Album hören?"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+      />
 
+      {/* Liebstes Lied */}
+      <input
+        name="liebstes_lied"
+        value={form.liebstes_lied}
+        onChange={onChange}
+        placeholder="Liebstes Lied"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+      />
+
+      {/* Liebste Textzeile */}
+      <textarea
+        name="liebste_textzeile"
+        value={form.liebste_textzeile}
+        onChange={onChange}
+        placeholder="Liebste Textzeile"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+      />
+
+      {/* Schlechtestes Lied */}
+      <input
+        name="schlechtestes_lied"
+        value={form.schlechtestes_lied}
+        onChange={onChange}
+        placeholder="Schlechtestes Lied"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+      />
+
+      {/* Submit */}
       <button
         type="submit"
         disabled={sending}
@@ -307,6 +325,7 @@ function VorschlagForm() {
     </form>
   );
 }
+
 
 /* ──────────────────────────────────────────────────────────
    Hauptseite
