@@ -398,7 +398,6 @@ function PastAlbumBewertung({ albumtitel }) {
    Hauptseite
    ────────────────────────────────────────────────────────── */
 export default function Home() {
-export default function Home() {
   const [currentAlbum, setCurrentAlbum] = useState(null);
   const [pastAlbums, setPastAlbums] = useState([]);
   const [idx, setIdx] = useState(0);
