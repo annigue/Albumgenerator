@@ -8,21 +8,15 @@ module.exports = {
     extend: {
       colors: {
         retro: {
-          bg: "#f9f5ec",     // leichtes warmes Beige
-          text: "#1c1c1c",   // dunkles Anthrazit
-          accent: "#d72638", // warmes Rot
-          border: "#2e2e2e", // dunkler Rahmen
+          bg: "#F9F8EE", // cremiges Weiß
+          text: "#111111", // tiefes Schwarz
+          accent: "#C43114", // warmes Rot
+          border: "#000000", // kräftiger schwarzer Rahmen
         },
       },
       fontFamily: {
-        sans: ["Space Grotesk", "sans-serif"],
+        sans: ["Inter", "sans-serif"],
         display: ["Bebas Neue", "sans-serif"],
-      },
-      letterSpacing: {
-        wide: "0.08em",
-      },
-      borderRadius: {
-        xl: "0.75rem",
       },
     },
   },

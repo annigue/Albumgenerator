@@ -2,35 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ───────────────────────────────
+   🎨 Grundfarben & Variablen
+─────────────────────────────── */
 :root {
-  --retro-accent: #d72638;
-  --retro-bg: #f9f5ec;
-  --retro-border: #2e2e2e;
-  --retro-text: #1c1c1c;
+  --retro-accent: #C43114;
+  --retro-bg: #F9F8EE;
+  --retro-border: #000000;
+  --retro-text: #111111;
 }
 
+/* ───────────────────────────────
+   🧱 Grundlayout
+─────────────────────────────── */
+html,
 body {
   background-color: var(--retro-bg);
   color: var(--retro-text);
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: "Inter", sans-serif;
   margin: 0;
   padding: 0;
 }
 
 .font-display {
-  font-family: 'Bebas Neue', cursive;
+  font-family: "Bebas Neue", sans-serif;
   letter-spacing: 0.05em;
 }
 
+/* ───────────────────────────────
+   🏁 Checkerboard-Muster
+─────────────────────────────── */
 .pattern-top,
 .pattern-bottom {
-  height: 20px;
-  background: repeating-linear-gradient(
+  height: 30px;
+  background-image: repeating-linear-gradient(
     45deg,
-    var(--retro-accent),
-    var(--retro-accent) 10px,
-    transparent 10px,
-    transparent 20px
+    var(--retro-border) 0,
+    var(--retro-border) 10px,
+    var(--retro-bg) 10px,
+    var(--retro-bg) 20px
   );
 }
 
@@ -38,6 +48,9 @@ body {
   transform: rotate(180deg);
 }
 
+/* ───────────────────────────────
+   📦 Karten & Rahmen
+─────────────────────────────── */
 .border-retro-border {
   border-color: var(--retro-border);
 }
@@ -59,15 +72,42 @@ select,
 input,
 textarea {
   border-radius: 0;
+  border: 1px solid var(--retro-border);
 }
 
+button {
+  background-color: var(--retro-accent);
+  color: #fff;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 0.05em;
+}
+
+button:hover {
+  background-color: #000;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+/* ───────────────────────────────
+   🎧 Spotify Player
+─────────────────────────────── */
 iframe {
   border: 2px solid var(--retro-border);
+  background-color: #fff;
+  border-radius: 0;
 }
 
+/* ───────────────────────────────
+   🖼 Bilder & Links
+─────────────────────────────── */
 img {
-  border: none;
   display: inline-block;
+  border: none;
+}
+
+a {
+  color: var(--retro-accent);
+  text-decoration: none;
 }
 
 a:hover {
