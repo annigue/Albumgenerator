@@ -17,33 +17,27 @@ const supabase = createClient(
    - sonst Link parsen
    - sonst Such-Embed
    ────────────────────────────────────────────────────────── */
-function getSpotifyUrls({ spotify_id, spotify_link, title, artist }) {
-  // 1) Eigene ID aus Spalte
-  if (spotify_id && /^[A-Za-z0-9]{10,}$/.test(spotify_id)) {
+   function getSpotifyUrls({ spotify_id, spotify_link, title, artist }) {
+    // Normalisiere: falls spotify_id ein voller Link ist, extrahiere ID
+    const idFromId = spotify_id?.match?.(/([A-Za-z0-9]{10,})$/)?.[1];
+    const idFromLink = spotify_link?.match?.(/album\/([A-Za-z0-9]{10,})/)?.[1];
+    const id = idFromId || idFromLink;
+  
+    if (id) {
+      return {
+        embedUrl: `https://open.spotify.com/embed/album/${id}`,
+        openUrl: `https://open.spotify.com/album/${id}`,
+      };
+    }
+  
+    // Fallback: Suche
+    const q = encodeURIComponent(`${title ?? ""} ${artist ?? ""}`.trim());
     return {
-      embedUrl: `https://open.spotify.com/embed/album/${spotify_id}`,
-      openUrl: `https://open.spotify.com/album/${spotify_id}`,
+      embedUrl: `https://open.spotify.com/embed/search/${q}`,
+      openUrl: `https://open.spotify.com/search/${q}`,
     };
   }
-
-  // 2) Link parsen
-  const match = spotify_link?.match?.(/album\/([A-Za-z0-9]{10,})/);
-  if (match) {
-    const id = match[1];
-    return {
-      embedUrl: `https://open.spotify.com/embed/album/${id}`,
-      openUrl: `https://open.spotify.com/album/${id}`,
-    };
-  }
-
-  // 3) Fallback: Suche (zeigt keine 404)
-  const q = encodeURIComponent(`${title ?? ""} ${artist ?? ""}`.trim());
-  return {
-    embedUrl: `https://open.spotify.com/embed/search/${q}`,
-    openUrl: `https://open.spotify.com/search/${q}`,
-  };
-}
-
+  
 /* ──────────────────────────────────────────────────────────
    Fun GIF je nach Mehrheitsbewertung von giphy
    ────────────────────────────────────────────────────────── */
