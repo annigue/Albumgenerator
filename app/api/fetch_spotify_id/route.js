@@ -1,98 +1,60 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs"; // Wichtig für Vercel, damit Buffer funktioniert
+const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
+const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 
-const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET } = process.env;
-
-/* ────────────────────────────────────────────────
-   Access Token von Spotify holen
-   ──────────────────────────────────────────────── */
+// 🔹 Access Token holen
 async function getAccessToken() {
-  const credentials = Buffer.from(
-    `${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`
-  ).toString("base64");
-
-  const res = await fetch("https://accounts.spotify.com/api/token", {
+  const response = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     headers: {
-      Authorization: `Basic ${credentials}`,
+      Authorization:
+        "Basic " +
+        Buffer.from(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`).toString("base64"),
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: "grant_type=client_credentials",
   });
-
-  if (!res.ok) {
-    console.error("Spotify token fetch failed:", await res.text());
-    throw new Error("Failed to get Spotify token");
-  }
-
-  const data = await res.json();
+  const data = await response.json();
   return data.access_token;
 }
 
-/* ────────────────────────────────────────────────
-   Hilfsfunktion: Spotify-Link normalisieren
-   ──────────────────────────────────────────────── */
-function normalizeSpotifyLink(url) {
-  if (!url) return null;
-  // entfernt Lokalisierungen wie /intl-de/, /intl-en/, /intl-fr/, usw.
-  return url.replace(/open\.spotify\.com\/intl-[a-z-]+\//, "open.spotify.com/");
-}
+// 🔹 Hauptfunktion: Album suchen
+export async function POST(request) {
+  const { title, artist } = await request.json();
+  if (!title || !artist) {
+    return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+  }
 
-/* ────────────────────────────────────────────────
-   POST: Titel + Artist → Spotify API → Albumdaten
-   ──────────────────────────────────────────────── */
-export async function POST(req) {
   try {
-    const { title, artist } = await req.json();
-
-    if (!title || !artist) {
-      return NextResponse.json(
-        { error: "Missing parameters" },
-        { status: 400 }
-      );
-    }
-
     const token = await getAccessToken();
+
     const query = encodeURIComponent(`${title} ${artist}`);
+    const url = `https://api.spotify.com/v1/search?q=${query}&type=album&limit=1`;
 
-    const res = await fetch(
-      `https://api.spotify.com/v1/search?q=${query}&type=album&limit=5`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     const data = await res.json();
 
-    // Nur echte Alben mit passendem Artistnamen akzeptieren
-    const album = data?.albums?.items?.find(
-      (a) =>
-        a.album_type === "album" &&
-        a.artists?.[0]?.name?.toLowerCase()?.includes(artist.toLowerCase())
-    );
+    if (!data.albums?.items?.length)
+      return NextResponse.json({ error: "No album found" }, { status: 404 });
 
-    if (!album) {
-      return NextResponse.json(
-        { error: "No valid album found" },
-        { status: 404 }
-      );
-    }
+    const album = data.albums.items[0];
+
+    // 🔸 locale entfernen (intl-de usw.)
+    const spotifyLink = album.external_urls.spotify.replace(
+      /open\.spotify\.com\/intl-[a-z-]+\//,
+      "open.spotify.com/"
+    );
 
     return NextResponse.json({
       spotify_id: album.id,
-      spotify_link: normalizeSpotifyLink(album.external_urls.spotify),
-      cover_url: album.images?.[0]?.url ?? null,
-      title,
-      artist,
+      spotify_link: spotifyLink,
+      cover_url: album.images?.[0]?.url || null,
     });
   } catch (err) {
-    console.error("Spotify fetch error:", err);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error(err);
+    return NextResponse.json({ error: "Failed to fetch from Spotify" }, { status: 500 });
   }
 }
