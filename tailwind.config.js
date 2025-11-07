@@ -2,26 +2,27 @@
 module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
         retro: {
-          bg: "#F9F8EE",      // warmes Cremeweiß
-          text: "#111111",    // tiefes Schwarz
-          accent: "#C43114",  // dein Retro-Rotton
-          border: "#000000",  // klarer schwarzer Rahmen
+          bg: "#f9f5ec",     // leichtes warmes Beige
+          text: "#1c1c1c",   // dunkles Anthrazit
+          accent: "#d72638", // warmes Rot
+          border: "#2e2e2e", // dunkler Rahmen
         },
       },
       fontFamily: {
-        sans: ["Inter", "sans-serif"],          // Lesefreundlich für Fließtext
-        display: ["Bebas Neue", "sans-serif"],  // Headline-Schrift im Retro-Stil
+        sans: ["Space Grotesk", "sans-serif"],
+        display: ["Bebas Neue", "sans-serif"],
       },
-      boxShadow: {
-        retro: "4px 4px 0px 0px rgba(0,0,0,1)", // harter Retro-Schatten
+      letterSpacing: {
+        wide: "0.08em",
       },
       borderRadius: {
-        retro: "1rem", // leichte Rundung für den „Polaroid“-Look
+        xl: "0.75rem",
       },
     },
   },
