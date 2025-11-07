@@ -81,109 +81,42 @@ function BewertungForm({ album }) {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (!album?.id) return;
-
     setSending(true);
-    const payload = {
-      album_id: album.id,
-      albumtitel: album.title,
-      name: form.name,
-      liebstes_lied: form.liebstes_lied,
-      beste_textzeile: form.beste_textzeile,
-      schlechtestes_lied: form.schlechtestes_lied,
-      bewertung: form.bewertung,
-    };
-    const { error } = await supabase.from("bewertungen").insert([payload]);
-    setSending(false);
-
-    if (error) {
-      console.error(error);
-      alert("Fehler beim Absenden 😢");
-    } else {
+  
+    try {
+      // 1️⃣ Spotify-API über eigene Serverroute aufrufen
+      const res = await fetch("/api/fetch_spotify_id", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.albumtitel,
+          artist: form.interpret,
+        }),
+      });
+  
+      const spotifyData = await res.json();
+      if (!res.ok) throw new Error(spotifyData.error || "Spotify error");
+  
+      // 2️⃣ Ergebnis + restliche Formulardaten in Supabase speichern
+      const payload = {
+        ...form,
+        spotify_id: spotifyData.spotify_id,
+        spotify_link: spotifyData.spotify_link,
+        cover_url: spotifyData.cover_url,
+      };
+  
+      const { error } = await supabase.from("vorschlaege").insert([payload]);
+      if (error) throw error;
+  
       setOk(true);
+    } catch (err) {
+      console.error(err);
+      alert("Fehler beim Vorschlagen 😢");
+    } finally {
+      setSending(false);
     }
   };
-
-  if (!album) return null;
-
-  if (ok)
-    return (
-      <div className="text-center text-green-600 mt-4">
-        ✅ Danke für deine Bewertung!
-      </div>
-    );
-
-  return (
-    <form
-      onSubmit={onSubmit}
-      className="border-2 border-retro-border bg-retro-bg p-6 space-y-3 text-center"
-    >
-      <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">
-        ALBUM BEWERTEN
-      </h3>
-
-      <select
-        name="name"
-        value={form.name}
-        onChange={onChange}
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-        required
-      >
-        <option value="">Teilnehmer wählen</option>
-        {teilnehmer.map((t) => (
-          <option key={t} value={t}>
-            {t}
-          </option>
-        ))}
-      </select>
-
-      <input
-        name="liebstes_lied"
-        value={form.liebstes_lied}
-        onChange={onChange}
-        placeholder="Liebstes Lied"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-      />
-
-      <textarea
-        name="beste_textzeile"
-        value={form.beste_textzeile}
-        onChange={onChange}
-        placeholder="Beste Textzeile"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-      />
-
-      <input
-        name="schlechtestes_lied"
-        value={form.schlechtestes_lied}
-        onChange={onChange}
-        placeholder="Schlechtestes Lied"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-      />
-
-      <select
-        name="bewertung"
-        value={form.bewertung}
-        onChange={onChange}
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-        required
-      >
-        <option value="">Gesamtbewertung wählen</option>
-        <option value="Hit">Hit</option>
-        <option value="Geht in Ordnung">Geht in Ordnung</option>
-        <option value="Niete">Niete</option>
-      </select>
-
-      <button
-        type="submit"
-        disabled={sending}
-        className="w-full bg-retro-accent text-white font-display text-xl py-2 hover:bg-black transition"
-      >
-        {sending ? "WIRD GESENDET…" : "SUBMIT"}
-      </button>
-    </form>
-  );
-}
+  
 
 /* ──────────────────────────────────────────────────────────
    Vorschlag-Formular (mit Spotify-ID über API)
