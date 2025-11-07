@@ -45,7 +45,7 @@ function getSpotifyUrls({ spotify_id, spotify_link, title, artist }) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Fun GIF je nach Mehrheitsbewertung
+   Fun GIF je nach Mehrheitsbewertung von giphy
    ────────────────────────────────────────────────────────── */
 function GiphyGif({ verdict }) {
   const map = {
