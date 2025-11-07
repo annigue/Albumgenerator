@@ -50,7 +50,8 @@ function getSpotifyUrls({ spotify_id, spotify_link, title, artist }) {
 function GiphyGif({ verdict }) {
   const map = {
     Hit: "https://media.giphy.com/media/26ufnwz3wDUli7GU0/giphy.gif",
-    "Geht in Ordnung": "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
+    "Geht in Ordnung":
+      "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
     Niete: "https://media.giphy.com/media/3ohhwJ6DW9b0Nf3fUQ/giphy.gif",
   };
   const src = map[verdict] || map["Geht in Ordnung"];
@@ -86,10 +87,134 @@ function BewertungForm({ album }) {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    if (!album?.id) return;
+
     setSending(true);
-  
+    const payload = {
+      album_id: album.id,
+      albumtitel: album.title,
+      name: form.name,
+      liebstes_lied: form.liebstes_lied,
+      beste_textzeile: form.beste_textzeile,
+      schlechtestes_lied: form.schlechtestes_lied,
+      bewertung: form.bewertung,
+    };
+    const { error } = await supabase.from("bewertungen").insert([payload]);
+    setSending(false);
+
+    if (error) {
+      console.error(error);
+      alert("Fehler beim Absenden 😢");
+    } else {
+      setOk(true);
+    }
+  };
+
+  if (!album) return null;
+
+  if (ok)
+    return (
+      <div className="text-center text-green-600 mt-4">
+        ✅ Danke für deine Bewertung!
+      </div>
+    );
+
+  return (
+    <form
+      onSubmit={onSubmit}
+      className="border-2 border-retro-border bg-retro-bg p-6 space-y-3 text-center"
+    >
+      <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">
+        ALBUM BEWERTEN
+      </h3>
+
+      <select
+        name="name"
+        value={form.name}
+        onChange={onChange}
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+        required
+      >
+        <option value="">Teilnehmer wählen</option>
+        {teilnehmer.map((t) => (
+          <option key={t} value={t}>
+            {t}
+          </option>
+        ))}
+      </select>
+
+      <input
+        name="liebstes_lied"
+        value={form.liebstes_lied}
+        onChange={onChange}
+        placeholder="Liebstes Lied"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+      />
+
+      <textarea
+        name="beste_textzeile"
+        value={form.beste_textzeile}
+        onChange={onChange}
+        placeholder="Beste Textzeile"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+      />
+
+      <input
+        name="schlechtestes_lied"
+        value={form.schlechtestes_lied}
+        onChange={onChange}
+        placeholder="Schlechtestes Lied"
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+      />
+
+      <select
+        name="bewertung"
+        value={form.bewertung}
+        onChange={onChange}
+        className="w-full border border-retro-border bg-transparent p-2 text-sm"
+        required
+      >
+        <option value="">Gesamtbewertung wählen</option>
+        <option value="Hit">Hit</option>
+        <option value="Geht in Ordnung">Geht in Ordnung</option>
+        <option value="Niete">Niete</option>
+      </select>
+
+      <button
+        type="submit"
+        disabled={sending}
+        className="w-full bg-retro-accent text-white font-display text-xl py-2 hover:bg-black transition"
+      >
+        {sending ? "WIRD GESENDET…" : "SUBMIT"}
+      </button>
+    </form>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   Vorschlag-Formular (mit Spotify-ID über API)
+   ────────────────────────────────────────────────────────── */
+function VorschlagForm() {
+  const [form, setForm] = useState({
+    name: "",
+    albumtitel: "",
+    interpret: "",
+    begruendung: "",
+    liebstes_lied: "",
+    liebste_textzeile: "",
+    schlechtestes_lied: "",
+  });
+  const [ok, setOk] = useState(false);
+  const [sending, setSending] = useState(false);
+  const teilnehmer = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    setSending(true);
+
     try {
-      // 1️⃣ Spotify API über eigene Serverroute aufrufen
+      // 🔹 Spotify API über eigene Serverroute aufrufen
       const res = await fetch("/api/fetch_spotify_id", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -98,21 +223,21 @@ function BewertungForm({ album }) {
           artist: form.interpret,
         }),
       });
-  
+
       const spotifyData = await res.json();
       if (!res.ok) throw new Error(spotifyData.error || "Spotify error");
-  
-      // 2️⃣ Ergebnis + restliche Formulardaten in Supabase speichern
+
+      // 🔹 Ergebnis + restliche Formulardaten in Supabase speichern
       const payload = {
         ...form,
         spotify_id: spotifyData.spotify_id,
         spotify_link: spotifyData.spotify_link,
         cover_url: spotifyData.cover_url,
       };
-  
+
       const { error } = await supabase.from("vorschlaege").insert([payload]);
       if (error) throw error;
-  
+
       setOk(true);
     } catch (err) {
       console.error(err);
@@ -121,7 +246,6 @@ function BewertungForm({ album }) {
       setSending(false);
     }
   };
-  
 
   if (ok)
     return (
@@ -139,7 +263,6 @@ function BewertungForm({ album }) {
         NEUES ALBUM VORSCHLAGEN
       </h3>
 
-      {/* Teilnehmerauswahl */}
       <select
         name="name"
         value={form.name}
@@ -155,7 +278,6 @@ function BewertungForm({ album }) {
         ))}
       </select>
 
-      {/* Albumtitel */}
       <input
         name="albumtitel"
         value={form.albumtitel}
@@ -165,7 +287,6 @@ function BewertungForm({ album }) {
         required
       />
 
-      {/* Interpret */}
       <input
         name="interpret"
         value={form.interpret}
@@ -175,7 +296,6 @@ function BewertungForm({ album }) {
         required
       />
 
-      {/* Begründung */}
       <textarea
         name="begruendung"
         value={form.begruendung}
@@ -184,7 +304,6 @@ function BewertungForm({ album }) {
         className="w-full border border-retro-border bg-transparent p-2 text-sm"
       />
 
-      {/* Liebstes Lied */}
       <input
         name="liebstes_lied"
         value={form.liebstes_lied}
@@ -193,7 +312,6 @@ function BewertungForm({ album }) {
         className="w-full border border-retro-border bg-transparent p-2 text-sm"
       />
 
-      {/* Liebste Textzeile */}
       <textarea
         name="liebste_textzeile"
         value={form.liebste_textzeile}
@@ -202,7 +320,6 @@ function BewertungForm({ album }) {
         className="w-full border border-retro-border bg-transparent p-2 text-sm"
       />
 
-      {/* Schlechtestes Lied */}
       <input
         name="schlechtestes_lied"
         value={form.schlechtestes_lied}
@@ -211,7 +328,6 @@ function BewertungForm({ album }) {
         className="w-full border border-retro-border bg-transparent p-2 text-sm"
       />
 
-      {/* Submit */}
       <button
         type="submit"
         disabled={sending}
@@ -223,7 +339,6 @@ function BewertungForm({ album }) {
   );
 }
 
-
 /* ──────────────────────────────────────────────────────────
    Hauptseite
    ────────────────────────────────────────────────────────── */
@@ -231,14 +346,10 @@ export default function Home() {
   const [currentAlbum, setCurrentAlbum] = useState(null);
   const [pastAlbums, setPastAlbums] = useState([]);
   const [idx, setIdx] = useState(0);
-
-  // Reviews des aktuell im "Bisherige Alben"-Karussell ausgewählten Albums
   const [reviews, setReviews] = useState([]);
 
-  /* Daten laden: aktuelles + vergangene Alben */
   useEffect(() => {
     (async () => {
-      // Aktuelles
       const { data: active, error: e1 } = await supabase
         .from("albums")
         .select("*")
@@ -249,7 +360,6 @@ export default function Home() {
       if (e1) console.error(e1);
       setCurrentAlbum(active ?? null);
 
-      // Vergangene
       const { data: past, error: e2 } = await supabase
         .from("albums")
         .select("*")
@@ -263,7 +373,6 @@ export default function Home() {
     })();
   }, []);
 
-  /* Reviews für das ausgewählte vergangene Album laden */
   useEffect(() => {
     (async () => {
       const album = pastAlbums[idx];
@@ -282,7 +391,6 @@ export default function Home() {
     })();
   }, [pastAlbums, idx]);
 
-  /* Mehrheitsvotum berechnen */
   const majority = useMemo(() => {
     if (!reviews?.length) return null;
     const counts = { Hit: 0, "Geht in Ordnung": 0, Niete: 0 };
@@ -301,13 +409,11 @@ export default function Home() {
           ALBUM DER WOCHE
         </h1>
 
-        {/* 🎧 Aktuelles Album */}
         {currentAlbum ? (
           <div className="border-2 border-retro-border p-6 mb-12 text-center">
             <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
             <p className="text-sm mb-4">{currentAlbum.artist}</p>
 
-            {/* Player / Suche */}
             {(() => {
               const { embedUrl, openUrl } = getSpotifyUrls({
                 spotify_id: currentAlbum.spotify_id,
@@ -353,14 +459,12 @@ export default function Home() {
           </p>
         )}
 
-        {/* 📚 Bisherige Alben */}
         {pastAlbums.length > 0 && (
           <div className="border-2 border-retro-border p-6 mb-12">
             <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
               BISHERIGE ALBEN
             </h3>
 
-            {/* Cover falls vorhanden */}
             {pastAlbums[idx]?.cover_url && (
               <img
                 src={pastAlbums[idx].cover_url}
@@ -401,7 +505,6 @@ export default function Home() {
               {pastAlbums[idx].artist}
             </p>
 
-            {/* Mehrheitsbewertung + GIF */}
             {majority && (
               <>
                 <p className="text-center font-medium">
@@ -412,7 +515,6 @@ export default function Home() {
               </>
             )}
 
-            {/* Navigation */}
             <div className="flex justify-between mt-6">
               <button
                 onClick={() => setIdx((i) => Math.max(i - 1, 0))}
@@ -434,7 +536,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Vorschlagen */}
         <VorschlagForm />
       </div>
       <div className="pattern-bottom" />
