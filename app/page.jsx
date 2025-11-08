@@ -21,25 +21,32 @@ import { useEffect, useMemo, useState } from "react";
    - sonst Such-Embed
    ────────────────────────────────────────────────────────── */
    function getSpotifyUrls({ spotify_id, spotify_link, title, artist }) {
-    // Normalisiere: falls spotify_id ein voller Link ist, extrahiere ID
-    const idFromId = spotify_id?.match?.(/([A-Za-z0-9]{10,})$/)?.[1];
-    const idFromLink = spotify_link?.match?.(/album\/([A-Za-z0-9]{10,})/)?.[1];
-    const id = idFromId || idFromLink;
+    // 1️⃣ Spotify-ID direkt aus Spalte verwenden
+    if (spotify_id && /^[A-Za-z0-9]{22}$/.test(spotify_id)) {
+      return {
+        embedUrl: `https://open.spotify.com/embed/album/${spotify_id}`,
+        openUrl: `https://open.spotify.com/album/${spotify_id}`,
+      };
+    }
   
-    if (id) {
+    // 2️⃣ Versuch, aus Link zu extrahieren
+    const match = spotify_link?.match?.(/album\/([A-Za-z0-9]{22})/);
+    if (match) {
+      const id = match[1];
       return {
         embedUrl: `https://open.spotify.com/embed/album/${id}`,
         openUrl: `https://open.spotify.com/album/${id}`,
       };
     }
   
-    // Fallback: Suche
+    // 3️⃣ Fallback: Spotify-Suche
     const q = encodeURIComponent(`${title ?? ""} ${artist ?? ""}`.trim());
     return {
       embedUrl: `https://open.spotify.com/embed/search/${q}`,
       openUrl: `https://open.spotify.com/search/${q}`,
     };
   }
+  
   
 /* ──────────────────────────────────────────────────────────
    Fun GIF je nach Mehrheitsbewertung von giphy
