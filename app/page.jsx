@@ -21,7 +21,7 @@ import { useEffect, useMemo, useState } from "react";
    - sonst Such-Embed
    ────────────────────────────────────────────────────────── */
    function getSpotifyUrls({ spotify_id, spotify_link, title, artist }) {
-    // 1️⃣ Spotify-ID direkt aus Spalte verwenden
+    // 1️⃣ Wenn ID vorhanden
     if (spotify_id && /^[A-Za-z0-9]{22}$/.test(spotify_id)) {
       return {
         embedUrl: `https://open.spotify.com/embed/album/${spotify_id}`,
@@ -29,17 +29,20 @@ import { useEffect, useMemo, useState } from "react";
       };
     }
   
-    // 2️⃣ Versuch, aus Link zu extrahieren
-    const match = spotify_link?.match?.(/album\/([A-Za-z0-9]{22})/);
-    if (match) {
-      const id = match[1];
-      return {
-        embedUrl: `https://open.spotify.com/embed/album/${id}`,
-        openUrl: `https://open.spotify.com/album/${id}`,
-      };
+    // 2️⃣ Wenn nur Link vorhanden → Sprachpfade rausfiltern (intl-de etc.)
+    if (spotify_link) {
+      const cleanLink = spotify_link.replace(/\/intl-[a-z]{2}\//, "/");
+      const match = cleanLink.match(/album\/([A-Za-z0-9]{22})/);
+      if (match) {
+        const id = match[1];
+        return {
+          embedUrl: `https://open.spotify.com/embed/album/${id}`,
+          openUrl: `https://open.spotify.com/album/${id}`,
+        };
+      }
     }
   
-    // 3️⃣ Fallback: Spotify-Suche
+    // 3️⃣ Fallback (Suche)
     const q = encodeURIComponent(`${title ?? ""} ${artist ?? ""}`.trim());
     return {
       embedUrl: `https://open.spotify.com/embed/search/${q}`,
