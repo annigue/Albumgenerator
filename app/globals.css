@@ -129,25 +129,30 @@ td {
 thead {
   @apply bg-retro-bg font-semibold;
 }
-
-/* Typo: nicht alles widest -> wirkt professioneller */
-h1,
-h3 {
-  @apply font-display tracking-widest;
-}
-
-h2,
-h4,
-h5 {
-  @apply font-display tracking-wide;
-}
+/* Typografie-Hierarchie */
 
 h1 {
-  @apply text-5xl text-retro-accent text-center mb-8;
+  @apply font-display text-5xl text-retro-accent text-center mb-10;
+  letter-spacing: 0.25em;     /* bewusst plakativ */
+  font-weight: 400;
+}
+
+h2 {
+  @apply font-display text-3xl mb-2;
+  letter-spacing: 0.08em;
+  font-weight: 600;           /* 👈 wirkt sofort professioneller */
 }
 
 h3 {
-  @apply text-2xl text-retro-accent text-center mb-4;
+  @apply font-display text-2xl text-retro-accent text-center mb-6;
+  letter-spacing: 0.12em;
+  font-weight: 500;
+}
+
+h4 {
+  @apply font-display text-xl mb-1;
+  letter-spacing: 0.04em;
+  font-weight: 600;
 }
 
 /* Spotify-Embed */
