@@ -241,10 +241,19 @@ export default function Home() {
               <p className="text-sm text-center mb-4">{pastAlbums[idx].artist}</p>
 
               {majority && (
-                <p className="text-center font-medium mb-6">
-                  🏆 Gesamtwertung: {majority.vote} ({majority.count} Stimmen)
-                </p>
-              )}
+  <>
+    <p className="text-center font-medium mb-4">
+      🏆 Gesamtwertung: {majority.vote} ({majority.count} Stimmen)
+    </p>
+
+    <div className="flex justify-center">
+      <div className="border-2 border-retro-border bg-white p-2">
+        <GiphyGif verdict={majority.vote} seed={pastAlbums[idx]?.id} />
+      </div>
+    </div>
+  </>
+)}
+
 
               <div className="flex justify-between mt-6">
                 <button
