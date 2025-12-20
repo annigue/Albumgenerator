@@ -199,11 +199,7 @@ export default function Home() {
         {pastAlbums.length > 0 && (
           // Wichtig: relative + min-height → damit “Mitte” auch sichtbar Mitte ist
           <div className="relative border-2 border-retro-border p-6 mb-12 min-h-[520px]">
-            {/* GIF als echtes Center-Overlay */}
-            {majority?.vote && (
-              <GiphyGif verdict={majority.vote} seed={pastAlbums[idx]?.id} />
-            )}
-
+            
             {/* Inhalt darüber, damit das GIF in der Mitte des Kastens liegen kann */}
             <div className="relative z-10">
               <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
