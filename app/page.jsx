@@ -144,67 +144,63 @@ export default function Home() {
   return (
     <main className="bg-retro-bg text-retro-text min-h-screen">
       <div className="pattern-top" />
+
+      {/* Foto-Hintergrund nur hinter dem Content */}
       <div className="content-bg">
         <div className="max-w-2xl mx-auto p-8 relative z-10">
+          <h1 className="text-5xl font-display text-retro-accent text-center tracking-widest mb-8">
+            ALBUM DER WOCHE
+          </h1>
 
-        <h1 className="text-5xl font-display text-retro-accent text-center tracking-widest mb-8">
-          ALBUM DER WOCHE
-        </h1>
+          {loading ? (
+            <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
+          ) : currentAlbum ? (
+            <div className="retro-card p-6 mb-12 text-center">
+              <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
+              <p className="text-sm mb-4">{currentAlbum.artist}</p>
 
-        {loading ? (
-          <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
-        ) : currentAlbum ? (
-          <div className="border-2 border-retro-border p-6 mb-12 text-center">
-            <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
-            <p className="text-sm mb-4">{currentAlbum.artist}</p>
+              {currentSpotify?.embedUrl && (
+                <div className="mx-auto max-w-2xl">
+                  <iframe
+                    src={currentSpotify.embedUrl}
+                    width="100%"
+                    height="480"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                    className="w-full rounded-xl overflow-hidden border-2 border-retro-border"
+                  />
+                </div>
+              )}
 
-            {currentSpotify?.embedUrl && (
-              <div className="mx-auto max-w-2xl">
-                <iframe
-                  src={currentSpotify.embedUrl}
-                  width="100%"
-                  height="480"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                  className="w-full rounded-xl overflow-hidden border-2 border-retro-border"
-                />
+              {currentSpotify?.openUrl && (
+                <a
+                  href={currentSpotify.openUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-retro-accent hover:underline mt-2"
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                    className="w-5 h-5"
+                    alt=""
+                    style={{ border: "none" }}
+                  />
+                  Auf Spotify ansehen
+                </a>
+              )}
+
+              <div className="mt-6">
+                <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
               </div>
-          
-            )}
-
-            {currentSpotify?.openUrl && (
-              <a
-                href={currentSpotify.openUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-retro-accent hover:underline mt-2"
-              >
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                  className="w-5 h-5"
-                  alt=""
-                  style={{ border: "none" }}
-                />
-                Auf Spotify ansehen
-              </a>
-            )}
-
-            <div className="mt-6">
-              <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
             </div>
-          </div>
-        ) : (
-          <p className="text-center text-gray-500 italic mb-8">
-            Noch kein aktuelles Album gesetzt.
-          </p>
-        )}
+          ) : (
+            <p className="text-center text-gray-500 italic mb-8">
+              Noch kein aktuelles Album gesetzt.
+            </p>
+          )}
 
-        {pastAlbums.length > 0 && (
-          // Wichtig: relative + min-height → damit “Mitte” auch sichtbar Mitte ist
-          <div className="relative border-2 border-retro-border p-6 mb-12 min-h-[520px]">
-            
-            {/* Inhalt darüber, damit das GIF in der Mitte des Kastens liegen kann */}
-            <div className="relative z-10">
+          {pastAlbums.length > 0 && (
+            <div className="retro-card p-6 mb-12">
               <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
                 BISHERIGE ALBEN
               </h3>
@@ -214,6 +210,7 @@ export default function Home() {
                   src={pastAlbums[idx].cover_url}
                   alt={`${pastAlbums[idx].title} Cover`}
                   className="mx-auto mb-4 border-2 border-retro-border"
+                  loading="lazy"
                 />
               )}
 
@@ -240,21 +237,20 @@ export default function Home() {
               <p className="text-sm text-center mb-4">{pastAlbums[idx].artist}</p>
 
               {majority && (
-  <>
-    <p className="text-center font-medium mb-4">
-      🏆 Gesamtwertung: {majority.vote} ({majority.count} Stimmen)
-    </p>
+                <>
+                  <p className="text-center font-medium mb-4">
+                    🏆 Gesamtwertung: {majority.vote} ({majority.count} Stimmen)
+                  </p>
 
-    <div className="flex justify-center">
-      <div className="border-2 border-retro-border bg-white p-2">
-        <GiphyGif verdict={majority.vote} seed={pastAlbums[idx]?.id} />
-      </div>
-    </div>
-  </>
-)}
+                  <div className="flex justify-center mb-6">
+                    <div className="border-2 border-retro-border bg-white p-2">
+                      <GiphyGif verdict={majority.vote} seed={pastAlbums[idx]?.id} />
+                    </div>
+                  </div>
+                </>
+              )}
 
-
-              <div className="flex justify-between mt-6">
+              <div className="flex justify-between mt-2">
                 <button
                   onClick={() => setIdx((i) => Math.max(i - 1, 0))}
                   disabled={idx === 0}
@@ -262,10 +258,9 @@ export default function Home() {
                 >
                   ◀ Vorheriges
                 </button>
+
                 <button
-                  onClick={() =>
-                    setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))
-                  }
+                  onClick={() => setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))}
                   disabled={idx === pastAlbums.length - 1}
                   className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
                 >
@@ -273,13 +268,13 @@ export default function Home() {
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <VorschlagForm />
+          <VorschlagForm />
+        </div>
       </div>
+
       <div className="pattern-bottom" />
-      </div>
     </main>
   );
 }

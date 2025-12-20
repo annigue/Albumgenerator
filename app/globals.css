@@ -45,50 +45,47 @@ body {
   background-repeat: no-repeat;
 }
 
-/* Overlay fürs Foto: ABER unter dem Content! */
+/* Overlay fürs Foto: unter dem Content */
 .content-bg::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255, 248, 235, 0.82);
+  background: rgba(255, 248, 235, 0.70); /* mehr Foto sichtbar */
   pointer-events: none;
   z-index: 0;
 }
 
-/* Der innere Content-Wrapper sollte z-10 haben (hast du in page.jsx) */
+/* Innerer Content liegt über Overlay */
 .content-bg > * {
   position: relative;
   z-index: 1;
 }
 
 /* =========================================
-   Box-/Kasten-Look: alles mit Retro-Border
-   bekommt automatisch Pastell-Füllung
+   Card / Kasten Look (rockig aber clean)
    ========================================= */
 
-/* WICHTIG: border-retro-border ist eine Farbe in Tailwind.
-   Du nutzt den Namen aber auch als "Randklasse".
-   Diese CSS-Regel greift nur, wenn du wirklich die Klasse
-   "border-retro-border" im HTML hast (hast du).
-*/
-.border-retro-border {
+.retro-card {
   background-color: #fff8eb;
+  border: 2px solid #1d1d1d;
+  box-shadow: 6px 6px 0 #1d1d1d;
+}
+
+.retro-card--soft {
+  box-shadow: 4px 4px 0 #1d1d1d;
 }
 
 /* =========================================
    FORMULAR DESIGN
    ========================================= */
 
-/* Empfehlung: nicht jedes <form> global vollstylen,
-   sonst sehen alle Boxen/Forms identisch aus.
-   Wir geben dem Form eine Standard-Basis, aber weniger „boxy“.
-*/
 form {
   @apply flex flex-col space-y-4 text-left;
 }
 
 .form-card {
-  @apply bg-retro-bg border-2 border-retro-border p-6 shadow-sm;
+  @apply border-2 border-retro-border p-6 shadow-sm;
+  background-color: #fff8eb; /* passt zu retro-card */
 }
 
 .form-group {
@@ -96,7 +93,7 @@ form {
 }
 
 label {
-  @apply uppercase tracking-widest font-display text-xs text-retro-text;
+  @apply uppercase tracking-wider font-display text-xs text-retro-text;
 }
 
 input,
@@ -111,6 +108,11 @@ button[type="submit"],
 button {
   @apply bg-retro-accent text-white font-display text-lg py-2 px-4 border-2 border-retro-border
   shadow-sm tracking-wide hover:bg-black transition disabled:opacity-50;
+  letter-spacing: 0.08em; /* wirkt sofort "geplanter" */
+}
+
+button:hover {
+  transform: translateY(-1px);
 }
 
 /* Tabellen */
@@ -127,13 +129,16 @@ thead {
   @apply bg-retro-bg font-semibold;
 }
 
-/* Titel */
+/* Typo: nicht alles widest -> wirkt professioneller */
 h1,
+h3 {
+  @apply font-display tracking-widest;
+}
+
 h2,
-h3,
 h4,
 h5 {
-  @apply font-display tracking-widest;
+  @apply font-display tracking-wide;
 }
 
 h1 {
@@ -148,17 +153,6 @@ h3 {
 iframe {
   border-radius: 0;
 }
-
-/* Bilder: NICHT global jeden img border geben,
-   sonst bekommt auch das GIF + Spotify Icon Borders.
-   Lieber gezielt in JSX mit className border-2 setzen.
-   -> Ich schalte das hier aus.
-*/
-/*
-img {
-  @apply border-2 border-retro-border;
-}
-*/
 
 /* Utility Fixes */
 .text-center {
