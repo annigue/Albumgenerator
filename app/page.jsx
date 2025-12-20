@@ -282,14 +282,25 @@ export default function Home() {
                 BISHERIGE ALBEN
               </h3>
 
-              {pastAlbums[idx]?.cover_url && (
-                <img
-                  src={pastAlbums[idx].cover_url}
-                  alt={`${pastAlbums[idx].title} Cover`}
-                  className="mx-auto mb-4 border-2 border-retro-border"
-                  loading="lazy"
-                />
-              )}
+              <div className="relative mx-auto mb-4 w-fit">
+  <img
+    src={pastAlbums[idx].cover_url}
+    alt={`${pastAlbums[idx].title} Cover`}
+    className="border-2 border-retro-border"
+    loading="lazy"
+  />
+
+  {majority && (
+    <div
+      className={`rating-stamp rating-${majority.vote
+        .toLowerCase()
+        .replace(/\s/g, "-")}`}
+    >
+      {majority.vote.toUpperCase()}
+    </div>
+  )}
+</div>
+
 
               <h4 className="text-xl text-center font-semibold mb-1">
                 {pastAlbums[idx].title}
@@ -315,8 +326,8 @@ export default function Home() {
 
               {majority && (
                 <>
-                  <p className="text-center font-medium mb-4">
-                    🏆 Gesamtwertung: {majority.vote} ({majority.count} Stimmen)
+                  <p className="ext-center text-xs uppercase tracking-wider opacity-70 mt-2">
+                    {majority.count} Stimme{majority.count > 1 ? "n" : ""}
                   </p>
 
                   {/* Charts */}
