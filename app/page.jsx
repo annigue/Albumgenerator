@@ -264,7 +264,7 @@ export default function Home() {
                     <WordCloud
                       favorites={insights.favorites}
                       worst={insights.worst}
-                      seed={pastAlbums[idx]?.id || 1}
+                      seed={Number(pastAlbums[idx]?.id) || 1}
                     />
                   </div>
                 </div>
