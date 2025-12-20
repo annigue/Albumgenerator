@@ -235,7 +235,7 @@ export default function Home() {
             {majority && (
               <>
                 <p className="text-center font-medium">
-                  🏆 Mehrheitlich bewertet als: {majority.vote} ({majority.count}{" "}
+                  Gesamtwertung: {majority.vote} ({majority.count}{" "}
                   Stimmen)
                 </p>
                 <GiphyGif verdict={majority.vote} seed={pastAlbums[idx]?.id} />
