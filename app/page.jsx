@@ -66,6 +66,41 @@ export default function Home() {
   }, [loadAlbums]);
 
   useEffect(() => {
+    if (!currentAlbum?.id) return;
+  
+    const missingSpotify =
+      !currentAlbum.spotify_id ||
+      !currentAlbum.spotify_link ||
+      !currentAlbum.cover_url;
+  
+    if (!missingSpotify) return;
+  
+    (async () => {
+      try {
+        console.log("Backfilling Spotify data for album", currentAlbum.id);
+  
+        await fetch("/api/backfill_album_spotify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ albumId: currentAlbum.id }),
+        });
+  
+        // Danach Alben neu laden → UI bekommt Cover + Player
+        await loadAlbums();
+      } catch (err) {
+        console.error("Spotify backfill failed:", err);
+      }
+    })();
+  }, [
+    currentAlbum?.id,
+    currentAlbum?.spotify_id,
+    currentAlbum?.spotify_link,
+    currentAlbum?.cover_url,
+    loadAlbums,
+  ]);
+  
+
+  useEffect(() => {
     const album = pastAlbums[idx];
     loadReviewsForAlbumId(album?.id);
   }, [pastAlbums, idx, loadReviewsForAlbumId]);
@@ -215,6 +250,8 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        
 
         <VorschlagForm />
       </div>
