@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { getSpotifyUrls } from "@/lib/spotifyUrls";
 
-import BewertungForm from "@/components/BewertungForm";
-import VorschlagForm from "@/components/VorschlagForm";
 
-import AlbumOfWeekCard from "./components/AlbumOfWeekCard";
+import { supabase } from "../lib/supabaseClient";
+import { getSpotifyUrls } from "../lib/spotifyUrls";
+
+import BewertungForm from "../components/BewertungForm";
+import VorschlagForm from "../components/VorschlagForm";
+import AlbumOfWeekCard from "../components/AlbumOfWeekCard";
 
 
 /* ──────────────────────────────────────────────────────────
