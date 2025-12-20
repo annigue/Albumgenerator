@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
+import type { Database } from "../../../src/types/supabase";
+
 
 type VotePayload = {
   album_week_id: string;
