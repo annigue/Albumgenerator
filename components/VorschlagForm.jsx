@@ -1,9 +1,9 @@
-// components/VorschlagForm.jsx
 "use client";
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { TEILNEHMER } from "@/lib/constants";
+
+const TEILNEHMER = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
 
 export default function VorschlagForm() {
   const [form, setForm] = useState({
@@ -15,6 +15,7 @@ export default function VorschlagForm() {
     liebste_textzeile: "",
     schlechtestes_lied: "",
   });
+
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
 
@@ -27,6 +28,7 @@ export default function VorschlagForm() {
     setOk(false);
 
     try {
+      // 1) Spotify Daten holen (ID + Cover + Link)
       const res = await fetch("/api/fetch_spotify_id", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,8 +39,11 @@ export default function VorschlagForm() {
       });
 
       const spotifyData = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(spotifyData.error || "Spotify error");
+      if (!res.ok) {
+        throw new Error(spotifyData.error || "Spotify error");
+      }
 
+      // 2) Vorschlag speichern
       const { error } = await supabase.from("vorschlaege").insert([
         {
           name: form.name,
@@ -76,91 +81,109 @@ export default function VorschlagForm() {
 
   if (ok) {
     return (
-      <div className="text-center text-green-600 mt-10">
-        ✅ Danke für deinen Vorschlag!
+      <div className="form-card text-center mt-10">
+        <p className="font-display text-xl tracking-wide text-retro-accent">
+          ✅ Danke für deinen Vorschlag!
+        </p>
       </div>
     );
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="border-2 border-retro-border bg-retro-bg p-6 mt-10 space-y-3 text-center"
-    >
-      <h3 className="text-retro-accent font-display text-2xl mb-2 tracking-wide">
+    <form onSubmit={onSubmit} className="form-card mt-10">
+      <h3 className="text-retro-accent font-display text-2xl mb-1 tracking-widest text-center">
         NEUES ALBUM VORSCHLAGEN
       </h3>
 
-      <select
-        name="name"
-        value={form.name}
-        onChange={onChange}
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-        required
-      >
-        <option value="">Teilnehmer wählen</option>
-        {TEILNEHMER.map((t) => (
-          <option key={t} value={t}>
-            {t}
-          </option>
-        ))}
-      </select>
+      <div className="form-group">
+        <label htmlFor="name">Teilnehmer</label>
+        <select
+          id="name"
+          name="name"
+          value={form.name}
+          onChange={onChange}
+          required
+        >
+          <option value="">Bitte wählen…</option>
+          {TEILNEHMER.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <input
-        name="albumtitel"
-        value={form.albumtitel}
-        onChange={onChange}
-        placeholder="Albumtitel"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-        required
-      />
+      <div className="form-group">
+        <label htmlFor="albumtitel">Albumtitel</label>
+        <input
+          id="albumtitel"
+          name="albumtitel"
+          value={form.albumtitel}
+          onChange={onChange}
+          placeholder="z.B. OK Computer"
+          required
+        />
+      </div>
 
-      <input
-        name="interpret"
-        value={form.interpret}
-        onChange={onChange}
-        placeholder="Interpret"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-        required
-      />
+      <div className="form-group">
+        <label htmlFor="interpret">Interpret</label>
+        <input
+          id="interpret"
+          name="interpret"
+          value={form.interpret}
+          onChange={onChange}
+          placeholder="z.B. Radiohead"
+          required
+        />
+      </div>
 
-      <textarea
-        name="begruendung"
-        value={form.begruendung}
-        onChange={onChange}
-        placeholder="Warum sollen wir dieses Album hören?"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-      />
+      <div className="form-group">
+        <label htmlFor="begruendung">Begründung</label>
+        <textarea
+          id="begruendung"
+          name="begruendung"
+          value={form.begruendung}
+          onChange={onChange}
+          placeholder="optional"
+          rows={3}
+        />
+      </div>
 
-      <input
-        name="liebstes_lied"
-        value={form.liebstes_lied}
-        onChange={onChange}
-        placeholder="Liebstes Lied"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-      />
+      <div className="form-group">
+        <label htmlFor="liebstes_lied">Liebstes Lied</label>
+        <input
+          id="liebstes_lied"
+          name="liebstes_lied"
+          value={form.liebstes_lied}
+          onChange={onChange}
+          placeholder="optional"
+        />
+      </div>
 
-      <textarea
-        name="liebste_textzeile"
-        value={form.liebste_textzeile}
-        onChange={onChange}
-        placeholder="Liebste Textzeile"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-      />
+      <div className="form-group">
+        <label htmlFor="liebste_textzeile">Liebste Textzeile</label>
+        <textarea
+          id="liebste_textzeile"
+          name="liebste_textzeile"
+          value={form.liebste_textzeile}
+          onChange={onChange}
+          placeholder="optional"
+          rows={3}
+        />
+      </div>
 
-      <input
-        name="schlechtestes_lied"
-        value={form.schlechtestes_lied}
-        onChange={onChange}
-        placeholder="Schlechtestes Lied"
-        className="w-full border border-retro-border bg-transparent p-2 text-sm"
-      />
+      <div className="form-group">
+        <label htmlFor="schlechtestes_lied">Schlechtestes Lied</label>
+        <input
+          id="schlechtestes_lied"
+          name="schlechtestes_lied"
+          value={form.schlechtestes_lied}
+          onChange={onChange}
+          placeholder="optional"
+        />
+      </div>
 
-      <button
-        type="submit"
-        disabled={sending}
-        className="w-full bg-retro-accent text-white font-display text-xl py-2 hover:bg-black transition disabled:opacity-50"
-      >
+      <button type="submit" disabled={sending}>
         {sending ? "WIRD GESENDET…" : "SUBMIT"}
       </button>
     </form>
