@@ -179,3 +179,40 @@ iframe {
 .text-left {
   text-align: left;
 }
+
+/* =========================================
+   Album-Bewertungs-Stempel
+   ========================================= */
+
+   .rating-stamp {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    transform: rotate(-8deg);
+  
+    padding: 6px 14px;
+    border: 2px solid #1d1d1d;
+  
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.12em;
+  
+    background: #fff8eb;
+    box-shadow: 3px 3px 0 #1d1d1d;
+  
+    pointer-events: none;
+  }
+  
+  /* Farbvarianten */
+  .rating-hit {
+    background: #c9f2c7;
+  }
+  
+  .rating-geht-in-ordnung {
+    background: #f4f0c9;
+  }
+  
+  .rating-niete {
+    background: #f2c7c7;
+  }
+  
