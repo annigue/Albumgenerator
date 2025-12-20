@@ -7,6 +7,20 @@ import { getSpotifyUrls } from "@/lib/spotifyUrls";
 import BewertungForm from "@/components/BewertungForm";
 import VorschlagForm from "@/components/VorschlagForm";
 
+import AlbumOfWeekCard from "./components/AlbumOfWeekCard";
+
+export default function Page() {
+  return (
+    <main style={{ padding: 24 }}>
+      <h1>Album der Woche</h1>
+
+      {/* HIER wird die View angezeigt */}
+      <AlbumOfWeekCard />
+    </main>
+  );
+}
+
+
 /* ──────────────────────────────────────────────────────────
    Helpers: zählen + normalisieren
    ────────────────────────────────────────────────────────── */

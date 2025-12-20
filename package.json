@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "album-des-tages",
   "version": "1.0.0",
   "private": true,
@@ -8,15 +9,17 @@
     "start": "next start"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.75.1",
+    "@supabase/supabase-js": "^2.89.0",
     "dotenv": "^17.2.3",
     "next": "^14.2.35",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
   "devDependencies": {
+    "@types/react": "19.2.7",
     "autoprefixer": "^10.4.15",
     "postcss": "^8.4.31",
-    "tailwindcss": "^3.4.0"
+    "tailwindcss": "^3.4.0",
+    "typescript": "5.9.3"
   }
 }
