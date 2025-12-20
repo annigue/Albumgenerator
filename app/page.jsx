@@ -238,7 +238,7 @@ export default function Home() {
                   🏆 Mehrheitlich bewertet als: {majority.vote} ({majority.count}{" "}
                   Stimmen)
                 </p>
-                <GiphyGif verdict={majority.vote} />
+                <GiphyGif verdict={majority.vote} seed={pastAlbums[idx]?.id} />
               </>
             )}
 
