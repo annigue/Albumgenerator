@@ -144,7 +144,9 @@ export default function Home() {
   return (
     <main className="bg-retro-bg text-retro-text min-h-screen">
       <div className="pattern-top" />
-      <div className="max-w-2xl mx-auto p-8">
+      <div className="content-bg">
+        <div className="max-w-2xl mx-auto p-8 relative z-10">
+
         <h1 className="text-5xl font-display text-retro-accent text-center tracking-widest mb-8">
           ALBUM DER WOCHE
         </h1>
@@ -167,6 +169,7 @@ export default function Home() {
                   className="w-full rounded-xl overflow-hidden border-2 border-retro-border"
                 />
               </div>
+          
             )}
 
             {currentSpotify?.openUrl && (
@@ -276,6 +279,7 @@ export default function Home() {
         <VorschlagForm />
       </div>
       <div className="pattern-bottom" />
+      </div>
     </main>
   );
 }

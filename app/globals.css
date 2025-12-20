@@ -31,6 +31,26 @@ body {
   @apply border-t-2 border-retro-border;
 }
 
+/* Hintergrund hinter den mittleren Kästen */
+.content-bg {
+  background-image: url("/background.jpg"); /* gleich ersetzen */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /* optional: leicht abdunkeln für bessere Lesbarkeit */
+  position: relative;
+}
+
+.content-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 248, 235, 0.85); /* Pastell-Overlay */
+  pointer-events: none;
+}
+
+
 /* === 🧾 FORMULAR DESIGN === */
 
 form {
