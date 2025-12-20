@@ -197,8 +197,7 @@ export default function Home() {
         )}
 
         {pastAlbums.length > 0 && (
-          <div className="w-64 h-48 object-cover border-2 border-retro-border rounded-md"
->
+          <div className="border-2 border-retro-border p-6 mb-12">
             <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
               BISHERIGE ALBEN
             </h3>
@@ -236,7 +235,7 @@ export default function Home() {
             {majority && (
               <>
                 <p className="text-center font-medium">
-                  Gesamtwertung: {majority.vote} ({majority.count}{" "}
+                  🏆 Gesamtwertung: {majority.vote} ({majority.count}{" "}
                   Stimmen)
                 </p>
                 <GiphyGif verdict={majority.vote} seed={pastAlbums[idx]?.id} />
