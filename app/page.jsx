@@ -80,11 +80,17 @@ export default function Home() {
       try {
         console.log("Backfilling Spotify data for album", currentAlbum.id);
 
-        await fetch("/api/backfill_album_spotify", {
+        const res = await fetch("/api/backfill_album_spotify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ albumId: currentAlbum.id }),
         });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          console.error("Backfill failed:", res.status, data);
+          return;
+        }
 
         // Danach Alben neu laden → UI bekommt Cover + Player
         await loadAlbums();
@@ -147,57 +153,48 @@ export default function Home() {
           <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
         ) : currentAlbum ? (
           <div className="border-2 border-retro-border p-6 mb-12 text-center">
-            {/* ── Smartphone-like Player Look ── */}
-            <div className="border-2 border-retro-border bg-retro-bg p-4 text-left">
-              {/* Großes Cover wie in der Spotify App */}
-              {currentAlbum.cover_url && (
-                <img
-                  src={currentAlbum.cover_url}
-                  alt={`${currentAlbum.title} Cover`}
-                  className="w-full aspect-square object-cover border-2 border-retro-border mb-4"
+            <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
+            <p className="text-sm mb-4">{currentAlbum.artist}</p>
+
+            {currentSpotify?.embedUrl && (
+              <div className="mx-auto max-w-2xl">
+                <iframe
+                  src={currentSpotify.embedUrl}
+                  width="100%"
+                  height="480"
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                   loading="lazy"
+                  className="w-full rounded-xl overflow-hidden border-2 border-retro-border"
                 />
-              )}
-
-              {/* Titel/Artist darunter */}
-              <div className="mb-3">
-                <h2 className="font-display text-3xl leading-tight">
-                  {currentAlbum.title}
-                </h2>
-                <p className="text-sm opacity-80">{currentAlbum.artist}</p>
               </div>
+            )}
 
-              {/* Aktion: in Spotify öffnen */}
-              {currentSpotify?.embedUrl && (
-  <div className="mx-auto max-w-2xl">
-    <iframe
-      src={currentSpotify.embedUrl}
-      width="100%"
-      height="480"
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-      loading="lazy"
-      className="w-full rounded-xl overflow-hidden border-2 border-retro-border"
-    />
-  </div>
-)}
+            {currentSpotify?.openUrl && (
+              <a
+                href={currentSpotify.openUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-retro-accent hover:underline mt-2"
+              >
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                  className="w-5 h-5"
+                  alt=""
+                  style={{ border: "none" }}
+                />
+                Auf Spotify ansehen
+              </a>
+            )}
 
-{currentSpotify?.openUrl && (
-  <a
-    href={currentSpotify.openUrl}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="inline-flex items-center gap-2 text-retro-accent hover:underline mt-2"
-  >
-    <img
-      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-      className="w-5 h-5"
-      alt=""
-      style={{ border: "none" }}
-    />
-    Auf Spotify ansehen
-  </a>
-)}
-
+            <div className="mt-6">
+              <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
+            </div>
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 italic mb-8">
+            Noch kein aktuelles Album gesetzt.
+          </p>
+        )}
 
         {pastAlbums.length > 0 && (
           <div className="border-2 border-retro-border p-6 mb-12">
@@ -238,8 +235,8 @@ export default function Home() {
             {majority && (
               <>
                 <p className="text-center font-medium">
-                  🏆 Mehrheitlich bewertet als: {majority.vote} (
-                  {majority.count} Stimmen)
+                  🏆 Mehrheitlich bewertet als: {majority.vote} ({majority.count}{" "}
+                  Stimmen)
                 </p>
                 <GiphyGif verdict={majority.vote} />
               </>
