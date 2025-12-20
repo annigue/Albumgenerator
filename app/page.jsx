@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { getSpotifyUrls } from "@/lib/spotifyUrls";
 
-import GiphyGif from "@/components/GiphyGif";
 import BewertungForm from "@/components/BewertungForm";
 import VorschlagForm from "@/components/VorschlagForm";
+import WordCloud from "@/components/WordCloud";
 
 /* ──────────────────────────────────────────────────────────
    Hauptseite
@@ -123,6 +123,24 @@ export default function Home() {
     return { vote: winner, count: counts[winner] };
   }, [reviews]);
 
+  // Inhalte für WordCloud (Lieblingslied/Schlechtestes Lied)
+  const insights = useMemo(() => {
+    if (!reviews?.length) return null;
+
+    const pick = (key) =>
+      reviews
+        .map((r) => r[key])
+        .filter(Boolean)
+        .map((v) => String(v).trim())
+        .filter(Boolean);
+
+    return {
+      favorites: pick("liebstes_lied"),
+      worst: pick("schlechtestes_lied"),
+      quotes: pick("beste_textzeile"),
+    };
+  }, [reviews]);
+
   const currentSpotify = currentAlbum
     ? getSpotifyUrls({
         spotify_id: currentAlbum.spotify_id,
@@ -148,16 +166,15 @@ export default function Home() {
       {/* Foto-Hintergrund nur hinter dem Content */}
       <div className="content-bg">
         <div className="max-w-2xl mx-auto p-8 relative z-10">
-        <h1>ALBUM DER WOCHE</h1>
-<div className="w-24 h-[3px] bg-retro-accent mx-auto mb-10" />
-
+          <h1>ALBUM DER WOCHE</h1>
+          <div className="w-24 h-[3px] bg-retro-accent mx-auto mb-10" />
 
           {loading ? (
             <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
           ) : currentAlbum ? (
             <div className="retro-card p-6 mb-12 text-center">
-              <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
-              <p className="meta text-center">{currentAlbum.artist}</p>
+              <h2 className="mb-2">{currentAlbum.title}</h2>
+              <p className="meta text-center mb-4">{currentAlbum.artist}</p>
 
               {currentSpotify?.embedUrl && (
                 <div className="mx-auto max-w-2xl">
@@ -201,9 +218,7 @@ export default function Home() {
 
           {pastAlbums.length > 0 && (
             <div className="retro-card p-6 mb-12">
-              <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
-                BISHERIGE ALBEN
-              </h3>
+              <h3 className="mb-6">BISHERIGE ALBEN</h3>
 
               {pastAlbums[idx]?.cover_url && (
                 <img
@@ -214,7 +229,7 @@ export default function Home() {
                 />
               )}
 
-              <h4 className="text-xl text-center font-semibold mb-1">
+              <h4 className="text-center mb-1">
                 {pastAlbums[idx].title}
                 {pastSpotify?.openUrl && (
                   <a
@@ -237,24 +252,29 @@ export default function Home() {
               <p className="meta text-center mb-4">{pastAlbums[idx].artist}</p>
 
               {majority && (
-                <>
-                  <p className="text-center font-medium mb-4">
-                    🏆 Gesamtwertung: {majority.vote} ({majority.count} Stimmen)
-                  </p>
+                <p className="text-center font-medium mb-4">
+                  🏆 Gesamtwertung: {majority.vote} ({majority.count} Stimmen)
+                </p>
+              )}
 
-                  <div className="flex justify-center mb-6">
-                    <div className="border-2 border-retro-border bg-white p-2">
-                      <GiphyGif verdict={majority.vote} seed={pastAlbums[idx]?.id} />
-                    </div>
+              {/* WordCloud statt GIF */}
+              {insights && (insights.favorites.length > 0 || insights.worst.length > 0) && (
+                <div className="flex justify-center mb-6">
+                  <div className="w-full max-w-xl">
+                    <WordCloud
+                      favorites={insights.favorites}
+                      worst={insights.worst}
+                      seed={pastAlbums[idx]?.id || 1}
+                    />
                   </div>
-                </>
+                </div>
               )}
 
               <div className="flex justify-between mt-2">
                 <button
                   onClick={() => setIdx((i) => Math.max(i - 1, 0))}
                   disabled={idx === 0}
-                  className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                  className="px-4 py-2"
                 >
                   ◀ Vorheriges
                 </button>
@@ -262,7 +282,7 @@ export default function Home() {
                 <button
                   onClick={() => setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))}
                   disabled={idx === pastAlbums.length - 1}
-                  className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                  className="px-4 py-2"
                 >
                   Nächstes ▶
                 </button>
