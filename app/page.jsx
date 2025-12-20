@@ -197,7 +197,8 @@ export default function Home() {
         )}
 
         {pastAlbums.length > 0 && (
-          <div className="border-2 border-retro-border p-6 mb-12">
+          <div className="w-64 h-48 object-cover border-2 border-retro-border rounded-md"
+>
             <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
               BISHERIGE ALBEN
             </h3>
@@ -242,8 +243,7 @@ export default function Home() {
               </>
             )}
 
-            <div className="border-2 border-retro-border p-6 mb-12">
-
+            <div className="flex justify-between mt-6">
               <button
                 onClick={() => setIdx((i) => Math.max(i - 1, 0))}
                 disabled={idx === 0}
