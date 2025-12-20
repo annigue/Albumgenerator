@@ -65,12 +65,11 @@ body {
    Card / Kasten Look (rockig aber clean)
    ========================================= */
 
-  .retro-card {
-  background-color: #fff8eb !important;
-    border: 2px solid #1d1d1d !important;
-    box-shadow: 6px 6px 0 #1d1d1d !important;
-  }
-  
+.retro-card {
+  background-color: #fff8eb;
+  border: 2px solid #1d1d1d;
+  box-shadow: 6px 6px 0 #1d1d1d;
+}
 
 .retro-card--soft {
   box-shadow: 4px 4px 0 #1d1d1d;
@@ -97,6 +96,10 @@ label {
   @apply uppercase tracking-wider font-display text-xs text-retro-text;
 }
 
+.meta {
+  @apply uppercase tracking-wider text-xs opacity-70;
+}
+
 input,
 select,
 textarea {
@@ -104,12 +107,15 @@ textarea {
   focus:outline-none focus:ring-2 focus:ring-retro-accent w-full;
 }
 
-/* Buttons */
+/* Buttons (nur einmal definieren – keine Doppel-Regeln) */
 button[type="submit"],
 button {
-  @apply bg-retro-accent text-white font-display text-lg py-2 px-4 border-2 border-retro-border
+  @apply bg-retro-accent text-white font-display py-2 px-4 border-2 border-retro-border
   shadow-sm tracking-wide hover:bg-black transition disabled:opacity-50;
-  letter-spacing: 0.08em; /* wirkt sofort "geplanter" */
+
+  text-transform: uppercase;
+  font-size: 0.95rem;       /* ruhiger als 0.9 + kein Konflikt mit text-lg */
+  letter-spacing: 0.08em;
 }
 
 button:hover {
@@ -129,18 +135,21 @@ td {
 thead {
   @apply bg-retro-bg font-semibold;
 }
-/* Typografie-Hierarchie */
+
+/* =========================================
+   Typografie-Hierarchie
+   ========================================= */
 
 h1 {
   @apply font-display text-5xl text-retro-accent text-center mb-10;
-  letter-spacing: 0.25em;     /* bewusst plakativ */
+  letter-spacing: 0.25em; /* bewusst plakativ */
   font-weight: 400;
 }
 
 h2 {
   @apply font-display text-3xl mb-2;
   letter-spacing: 0.08em;
-  font-weight: 600;           /* 👈 wirkt sofort professioneller */
+  font-weight: 600;
 }
 
 h3 {

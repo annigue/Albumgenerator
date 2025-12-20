@@ -157,7 +157,7 @@ export default function Home() {
           ) : currentAlbum ? (
             <div className="retro-card p-6 mb-12 text-center">
               <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
-              <p className="text-sm mb-4">{currentAlbum.artist}</p>
+              <p className="meta text-center">{currentAlbum.artist}</p>
 
               {currentSpotify?.embedUrl && (
                 <div className="mx-auto max-w-2xl">
