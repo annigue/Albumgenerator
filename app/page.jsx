@@ -123,22 +123,17 @@ export default function Home() {
     return { vote: winner, count: counts[winner] };
   }, [reviews]);
 
-  // Inhalte für WordCloud (Lieblingslied/Schlechtestes Lied)
-  const insights = useMemo(() => {
-    if (!reviews?.length) return null;
+  // WordCloud Inputs: Lieblingslied + Schlechtestes Lied aus Reviews
+  const favoriteWords = useMemo(() => {
+    return (reviews ?? [])
+      .map((r) => r?.liebstes_lied)
+      .filter((x) => typeof x === "string" && x.trim().length > 0);
+  }, [reviews]);
 
-    const pick = (key) =>
-      reviews
-        .map((r) => r[key])
-        .filter(Boolean)
-        .map((v) => String(v).trim())
-        .filter(Boolean);
-
-    return {
-      favorites: pick("liebstes_lied"),
-      worst: pick("schlechtestes_lied"),
-      quotes: pick("beste_textzeile"),
-    };
+  const worstWords = useMemo(() => {
+    return (reviews ?? [])
+      .map((r) => r?.schlechtestes_lied)
+      .filter((x) => typeof x === "string" && x.trim().length > 0);
   }, [reviews]);
 
   const currentSpotify = currentAlbum
@@ -173,8 +168,8 @@ export default function Home() {
             <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
           ) : currentAlbum ? (
             <div className="retro-card p-6 mb-12 text-center">
-              <h2 className="mb-2">{currentAlbum.title}</h2>
-              <p className="meta text-center mb-4">{currentAlbum.artist}</p>
+              <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
+              <p className="meta text-center">{currentAlbum.artist}</p>
 
               {currentSpotify?.embedUrl && (
                 <div className="mx-auto max-w-2xl">
@@ -218,7 +213,9 @@ export default function Home() {
 
           {pastAlbums.length > 0 && (
             <div className="retro-card p-6 mb-12">
-              <h3 className="mb-6">BISHERIGE ALBEN</h3>
+              <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
+                BISHERIGE ALBEN
+              </h3>
 
               {pastAlbums[idx]?.cover_url && (
                 <img
@@ -229,7 +226,7 @@ export default function Home() {
                 />
               )}
 
-              <h4 className="text-center mb-1">
+              <h4 className="text-xl text-center font-semibold mb-1">
                 {pastAlbums[idx].title}
                 {pastSpotify?.openUrl && (
                   <a
@@ -252,30 +249,28 @@ export default function Home() {
               <p className="meta text-center mb-4">{pastAlbums[idx].artist}</p>
 
               {majority && (
-                <p className="text-center font-medium mb-4">
-                  🏆 Gesamtwertung: {majority.vote} ({majority.count} Stimmen)
-                </p>
-              )}
+                <>
+                  <p className="text-center font-medium mb-4">
+                    🏆 Gesamtwertung: {majority.vote} ({majority.count} Stimmen)
+                  </p>
 
-            {/* WordCloud statt GIF */}
-              {insights && (insights.favorites.length > 0 || insights.worst.length > 0) && (
-                <div className="flex justify-center mb-6">
-                  <div className="w-full max-w-xl">
-                    <WordCloud
-                      favorites={insights.favorites}
-                      worst={insights.worst}
-                      seed={Number(pastAlbums[idx]?.id) || 1}
-                    />
+                  <div className="flex justify-center mb-6">
+                    <div className="w-full max-w-xl">
+                      <WordCloud
+                        favorites={favoriteWords}
+                        worst={worstWords}
+                        seed={Number(pastAlbums?.[idx]?.id) || 1}
+                      />
+                    </div>
                   </div>
-                </div>
+                </>
               )}
-              
 
               <div className="flex justify-between mt-2">
                 <button
                   onClick={() => setIdx((i) => Math.max(i - 1, 0))}
                   disabled={idx === 0}
-                  className="px-4 py-2"
+                  className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
                 >
                   ◀ Vorheriges
                 </button>
@@ -283,7 +278,7 @@ export default function Home() {
                 <button
                   onClick={() => setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))}
                   disabled={idx === pastAlbums.length - 1}
-                  className="px-4 py-2"
+                  className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
                 >
                   Nächstes ▶
                 </button>

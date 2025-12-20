@@ -141,11 +141,11 @@ thead {
    ========================================= */
 
 h1 {
-  @apply font-display text-5xl text-retro-accent text-center mb-10;
-  letter-spacing: 0.25em; /* bewusst plakativ */
-  font-weight: 400;
+    @apply font-display text-6xl text-retro-accent text-center mb-12;
+    letter-spacing: 0.18em;   /* weniger als vorher → ruhiger */
+    font-weight: 600;         /* 👈 das macht den Profi-Unterschied */
 }
-
+  
 h2 {
   @apply font-display text-3xl mb-2;
   letter-spacing: 0.08em;
