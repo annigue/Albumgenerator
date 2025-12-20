@@ -44,14 +44,15 @@ export default function GiphyGif({ verdict, seed }) {
   if (err || !gifUrl) return null;
 
   return (
-    <div className="flex justify-center items-center my-6">
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
       <img
         src={gifUrl}
         alt={`GIF: ${verdict}`}
-        className="w-64 h-48 object-cover border-2 border-retro-border"
+        className="w-64 h-48 object-cover border-2 border-retro-border bg-white"
         loading="lazy"
       />
     </div>
   );
+  
   
 }
