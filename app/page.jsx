@@ -168,58 +168,36 @@ export default function Home() {
               </div>
 
               {/* Aktion: in Spotify öffnen */}
-              {currentSpotify?.openUrl && (
-                <div className="flex items-center gap-3 mb-4">
-                  <a
-                    href={currentSpotify.openUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition"
-                  >
-                    In Spotify öffnen
-                  </a>
-
-                  <a
-                    href={currentSpotify.openUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-retro-accent hover:underline text-sm"
-                    style={{ border: "none" }}
-                  >
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                      className="w-4 h-4"
-                      alt=""
-                      style={{ border: "none" }}
-                    />
-                    Link
-                  </a>
-                </div>
-              )}
-
-              {/* Embed als Tracklist/Preview (wie “unten” in der App) */}
               {currentSpotify?.embedUrl && (
-                <iframe
-                  src={currentSpotify.embedUrl}
-                  width="100%"
-                  height="352"
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                  className="border-2 border-retro-border"
-                />
-              )}
+  <div className="mx-auto max-w-2xl">
+    <iframe
+      src={currentSpotify.embedUrl}
+      width="100%"
+      height="480"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      loading="lazy"
+      className="w-full rounded-xl overflow-hidden border-2 border-retro-border"
+    />
+  </div>
+)}
 
-              {/* Bewertung */}
-              <div className="mt-6">
-                <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <p className="text-center text-gray-500 italic mb-8">
-            Noch kein aktuelles Album gesetzt.
-          </p>
-        )}
+{currentSpotify?.openUrl && (
+  <a
+    href={currentSpotify.openUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="inline-flex items-center gap-2 text-retro-accent hover:underline mt-2"
+  >
+    <img
+      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+      className="w-5 h-5"
+      alt=""
+      style={{ border: "none" }}
+    />
+    Auf Spotify ansehen
+  </a>
+)}
+
 
         {pastAlbums.length > 0 && (
           <div className="border-2 border-retro-border p-6 mb-12">
