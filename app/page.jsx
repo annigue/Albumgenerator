@@ -65,26 +65,27 @@ export default function Home() {
     loadAlbums();
   }, [loadAlbums]);
 
+  // Auto-backfill Spotify Daten für das aktuelle Album (wenn etwas fehlt)
   useEffect(() => {
     if (!currentAlbum?.id) return;
-  
+
     const missingSpotify =
       !currentAlbum.spotify_id ||
       !currentAlbum.spotify_link ||
       !currentAlbum.cover_url;
-  
+
     if (!missingSpotify) return;
-  
+
     (async () => {
       try {
         console.log("Backfilling Spotify data for album", currentAlbum.id);
-  
+
         await fetch("/api/backfill_album_spotify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ albumId: currentAlbum.id }),
         });
-  
+
         // Danach Alben neu laden → UI bekommt Cover + Player
         await loadAlbums();
       } catch (err) {
@@ -98,7 +99,6 @@ export default function Home() {
     currentAlbum?.cover_url,
     loadAlbums,
   ]);
-  
 
   useEffect(() => {
     const album = pastAlbums[idx];
@@ -147,38 +147,72 @@ export default function Home() {
           <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
         ) : currentAlbum ? (
           <div className="border-2 border-retro-border p-6 mb-12 text-center">
-            <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
-            <p className="text-sm mb-4">{currentAlbum.artist}</p>
+            {/* ── Smartphone-like Player Look ── */}
+            <div className="border-2 border-retro-border bg-retro-bg p-4 text-left">
+              {/* Großes Cover wie in der Spotify App */}
+              {currentAlbum.cover_url && (
+                <img
+                  src={currentAlbum.cover_url}
+                  alt={`${currentAlbum.title} Cover`}
+                  className="w-full aspect-square object-cover border-2 border-retro-border mb-4"
+                  loading="lazy"
+                />
+              )}
 
-            {currentSpotify && (
-              <>
+              {/* Titel/Artist darunter */}
+              <div className="mb-3">
+                <h2 className="font-display text-3xl leading-tight">
+                  {currentAlbum.title}
+                </h2>
+                <p className="text-sm opacity-80">{currentAlbum.artist}</p>
+              </div>
+
+              {/* Aktion: in Spotify öffnen */}
+              {currentSpotify?.openUrl && (
+                <div className="flex items-center gap-3 mb-4">
+                  <a
+                    href={currentSpotify.openUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition"
+                  >
+                    In Spotify öffnen
+                  </a>
+
+                  <a
+                    href={currentSpotify.openUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-retro-accent hover:underline text-sm"
+                    style={{ border: "none" }}
+                  >
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                      className="w-4 h-4"
+                      alt=""
+                      style={{ border: "none" }}
+                    />
+                    Link
+                  </a>
+                </div>
+              )}
+
+              {/* Embed als Tracklist/Preview (wie “unten” in der App) */}
+              {currentSpotify?.embedUrl && (
                 <iframe
                   src={currentSpotify.embedUrl}
                   width="100%"
                   height="352"
                   allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                   loading="lazy"
-                  className="border-2 border-retro-border mb-2"
+                  className="border-2 border-retro-border"
                 />
-                <a
-                  href={currentSpotify.openUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-retro-accent hover:underline"
-                >
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                    className="w-5 h-5"
-                    alt=""
-                    style={{ border: "none" }}
-                  />
-                  Auf Spotify ansehen
-                </a>
-              </>
-            )}
+              )}
 
-            <div className="mt-6">
-              <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
+              {/* Bewertung */}
+              <div className="mt-6">
+                <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
+              </div>
             </div>
           </div>
         ) : (
@@ -226,7 +260,8 @@ export default function Home() {
             {majority && (
               <>
                 <p className="text-center font-medium">
-                  🏆 Mehrheitlich bewertet als: {majority.vote} ({majority.count} Stimmen)
+                  🏆 Mehrheitlich bewertet als: {majority.vote} (
+                  {majority.count} Stimmen)
                 </p>
                 <GiphyGif verdict={majority.vote} />
               </>
@@ -241,7 +276,9 @@ export default function Home() {
                 ◀ Vorheriges
               </button>
               <button
-                onClick={() => setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))}
+                onClick={() =>
+                  setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))
+                }
                 disabled={idx === pastAlbums.length - 1}
                 className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
               >
@@ -250,8 +287,6 @@ export default function Home() {
             </div>
           </div>
         )}
-
-        
 
         <VorschlagForm />
       </div>
