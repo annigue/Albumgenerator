@@ -257,7 +257,7 @@ export default function Home() {
                 </p>
               )}
 
-            {/* WordCloud statt GIF 
+            {/* WordCloud statt GIF */}
               {insights && (insights.favorites.length > 0 || insights.worst.length > 0) && (
                 <div className="flex justify-center mb-6">
                   <div className="w-full max-w-xl">
@@ -269,7 +269,7 @@ export default function Home() {
                   </div>
                 </div>
               )}
-              */}
+              
 
               <div className="flex justify-between mt-2">
                 <button
