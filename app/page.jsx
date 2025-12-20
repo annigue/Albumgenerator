@@ -242,7 +242,8 @@ export default function Home() {
               </>
             )}
 
-            <div className="flex justify-between mt-6">
+            <div className="border-2 border-retro-border p-6 mb-12">
+
               <button
                 onClick={() => setIdx((i) => Math.max(i - 1, 0))}
                 disabled={idx === 0}
