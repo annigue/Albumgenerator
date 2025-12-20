@@ -9,17 +9,6 @@ import VorschlagForm from "@/components/VorschlagForm";
 
 import AlbumOfWeekCard from "./components/AlbumOfWeekCard";
 
-export default function Page() {
-  return (
-    <main style={{ padding: 24 }}>
-      <h1>Album der Woche</h1>
-
-      {/* HIER wird die View angezeigt */}
-      <AlbumOfWeekCard />
-    </main>
-  );
-}
-
 
 /* ──────────────────────────────────────────────────────────
    Helpers: zählen + normalisieren
@@ -241,6 +230,9 @@ export default function Home() {
       <div className="content-bg">
         <div className="max-w-2xl mx-auto p-8 relative z-10">
           <h1>ALBUM DER WOCHE</h1>
+          <div className="mb-10">
+  <AlbumOfWeekCard />
+</div>
           <div className="w-24 h-[3px] bg-retro-accent mx-auto mb-10" />
 
           {loading ? (
