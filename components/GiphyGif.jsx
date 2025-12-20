@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 
 export default function GiphyGif({ verdict, seed }) {
   const [gifUrl, setGifUrl] = useState(null);
-  const [err, setErr] = useState(null);
 
   const key = useMemo(() => `${verdict || ""}|${seed || ""}`, [verdict, seed]);
 
@@ -13,24 +12,16 @@ export default function GiphyGif({ verdict, seed }) {
 
     let cancelled = false;
     setGifUrl(null);
-    setErr(null);
 
     (async () => {
-      try {
-        const qs = new URLSearchParams({
-          verdict,
-          seed: seed ?? "default",
-        });
-
-        const res = await fetch(`/api/giphy?${qs.toString()}`);
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) throw new Error(data?.error || "Failed to load gif");
-
-        if (!cancelled) setGifUrl(data.gifUrl || null);
-      } catch (e) {
-        if (!cancelled) setErr(e.message);
-      }
+      const qs = new URLSearchParams({
+        verdict,
+        seed: seed ?? "default",
+      });
+      const res = await fetch(`/api/giphy?${qs.toString()}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return;
+      if (!cancelled) setGifUrl(data.gifUrl || null);
     })();
 
     return () => {
@@ -38,13 +29,10 @@ export default function GiphyGif({ verdict, seed }) {
     };
   }, [key, verdict, seed]);
 
-  if (!verdict) return null;
-
-  // Optional: falls nix gefunden wird, einfach gar nichts anzeigen (statt Fehlertext)
-  if (err || !gifUrl) return null;
+  if (!gifUrl) return null;
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
       <img
         src={gifUrl}
         alt={`GIF: ${verdict}`}
@@ -53,6 +41,4 @@ export default function GiphyGif({ verdict, seed }) {
       />
     </div>
   );
-  
-  
 }
