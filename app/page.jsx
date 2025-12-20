@@ -6,7 +6,77 @@ import { getSpotifyUrls } from "@/lib/spotifyUrls";
 
 import BewertungForm from "@/components/BewertungForm";
 import VorschlagForm from "@/components/VorschlagForm";
-import WordCloud from "@/components/WordCloud";
+
+/* ──────────────────────────────────────────────────────────
+   Helpers: zählen + normalisieren
+   ────────────────────────────────────────────────────────── */
+function normalizeSongName(s) {
+  if (!s) return "";
+  return String(s)
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/["“”]/g, '"');
+}
+
+function topCounts(items, topN = 5) {
+  const map = new Map();
+  for (const raw of items) {
+    const key = normalizeSongName(raw);
+    if (!key) continue;
+    map.set(key, (map.get(key) || 0) + 1);
+  }
+  const arr = Array.from(map.entries())
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, topN);
+  return arr;
+}
+
+/* ──────────────────────────────────────────────────────────
+   Mini-“Chart” Komponente (CSS Bars)
+   ────────────────────────────────────────────────────────── */
+function SongBars({ title, items }) {
+  if (!items?.length) {
+    return (
+      <div className="border-2 border-retro-border bg-white/60 p-4">
+        <p className="meta text-center">{title}</p>
+        <p className="text-center text-sm opacity-70 mt-2">Keine Einträge</p>
+      </div>
+    );
+  }
+
+  const max = Math.max(...items.map((x) => x.count), 1);
+
+  return (
+    <div className="border-2 border-retro-border bg-white/60 p-4">
+      <p className="meta text-center mb-3">{title}</p>
+
+      <div className="space-y-2">
+        {items.map((x) => {
+          const w = Math.round((x.count / max) * 100);
+          return (
+            <div key={x.label} className="flex items-center gap-3">
+              <div className="w-40 text-sm truncate" title={x.label}>
+                {x.label}
+              </div>
+
+              <div className="flex-1 h-3 border-2 border-retro-border bg-transparent">
+                <div
+                  className="h-full bg-retro-accent"
+                  style={{ width: `${w}%` }}
+                />
+              </div>
+
+              <div className="w-10 text-right text-sm font-semibold tabular-nums">
+                {x.count}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 /* ──────────────────────────────────────────────────────────
    Hauptseite
@@ -92,7 +162,6 @@ export default function Home() {
           return;
         }
 
-        // Danach Alben neu laden → UI bekommt Cover + Player
         await loadAlbums();
       } catch (err) {
         console.error("Spotify backfill failed:", err);
@@ -123,17 +192,14 @@ export default function Home() {
     return { vote: winner, count: counts[winner] };
   }, [reviews]);
 
-  // WordCloud Inputs: Lieblingslied + Schlechtestes Lied aus Reviews
-  const favoriteWords = useMemo(() => {
-    return (reviews ?? [])
-      .map((r) => r?.liebstes_lied)
-      .filter((x) => typeof x === "string" && x.trim().length > 0);
+  const favoritesTop = useMemo(() => {
+    const list = (reviews ?? []).map((r) => r?.liebstes_lied);
+    return topCounts(list, 5);
   }, [reviews]);
 
-  const worstWords = useMemo(() => {
-    return (reviews ?? [])
-      .map((r) => r?.schlechtestes_lied)
-      .filter((x) => typeof x === "string" && x.trim().length > 0);
+  const worstTop = useMemo(() => {
+    const list = (reviews ?? []).map((r) => r?.schlechtestes_lied);
+    return topCounts(list, 5);
   }, [reviews]);
 
   const currentSpotify = currentAlbum
@@ -158,7 +224,6 @@ export default function Home() {
     <main className="bg-retro-bg text-retro-text min-h-screen">
       <div className="pattern-top" />
 
-      {/* Foto-Hintergrund nur hinter dem Content */}
       <div className="content-bg">
         <div className="max-w-2xl mx-auto p-8 relative z-10">
           <h1>ALBUM DER WOCHE</h1>
@@ -254,14 +319,10 @@ export default function Home() {
                     🏆 Gesamtwertung: {majority.vote} ({majority.count} Stimmen)
                   </p>
 
-                  <div className="flex justify-center mb-6">
-                    <div className="w-full max-w-xl">
-                      <WordCloud
-                        favorites={favoriteWords}
-                        worst={worstWords}
-                        seed={Number(pastAlbums?.[idx]?.id) || 1}
-                      />
-                    </div>
+                  {/* Charts */}
+                  <div className="grid gap-4 md:grid-cols-2 mb-6">
+                    <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
+                    <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
                   </div>
                 </>
               )}
