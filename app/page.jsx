@@ -197,68 +197,73 @@ export default function Home() {
         )}
 
         {pastAlbums.length > 0 && (
-          <div className=" relative border-2 border-retro-border p-6 mb-12">
-            <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
-              BISHERIGE ALBEN
-            </h3>
-
-            {pastAlbums[idx]?.cover_url && (
-              <img
-                src={pastAlbums[idx].cover_url}
-                alt={`${pastAlbums[idx].title} Cover`}
-                className="mx-auto mb-4 border-2 border-retro-border"
-              />
+          // Wichtig: relative + min-height → damit “Mitte” auch sichtbar Mitte ist
+          <div className="relative border-2 border-retro-border p-6 mb-12 min-h-[520px]">
+            {/* GIF als echtes Center-Overlay */}
+            {majority?.vote && (
+              <GiphyGif verdict={majority.vote} seed={pastAlbums[idx]?.id} />
             )}
 
-            <h4 className="text-xl text-center font-semibold mb-1">
-              {pastAlbums[idx].title}
-              {pastSpotify?.openUrl && (
-                <a
-                  href={pastSpotify.openUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block ml-2 align-middle"
-                  style={{ border: "none" }}
-                >
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                    alt="Spotify"
-                    className="w-5 h-5 inline-block"
-                    style={{ border: "none" }}
-                  />
-                </a>
+            {/* Inhalt darüber, damit das GIF in der Mitte des Kastens liegen kann */}
+            <div className="relative z-10">
+              <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
+                BISHERIGE ALBEN
+              </h3>
+
+              {pastAlbums[idx]?.cover_url && (
+                <img
+                  src={pastAlbums[idx].cover_url}
+                  alt={`${pastAlbums[idx].title} Cover`}
+                  className="mx-auto mb-4 border-2 border-retro-border"
+                />
               )}
-            </h4>
 
-            <p className="text-sm text-center mb-4">{pastAlbums[idx].artist}</p>
+              <h4 className="text-xl text-center font-semibold mb-1">
+                {pastAlbums[idx].title}
+                {pastSpotify?.openUrl && (
+                  <a
+                    href={pastSpotify.openUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block ml-2 align-middle"
+                    style={{ border: "none" }}
+                  >
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                      alt="Spotify"
+                      className="w-5 h-5 inline-block"
+                      style={{ border: "none" }}
+                    />
+                  </a>
+                )}
+              </h4>
 
-            {majority && (
-              <>
-                <p className="text-center font-medium">
-                  🏆 Gesamtwertung: {majority.vote} ({majority.count}{" "}
-                  Stimmen)
+              <p className="text-sm text-center mb-4">{pastAlbums[idx].artist}</p>
+
+              {majority && (
+                <p className="text-center font-medium mb-6">
+                  🏆 Gesamtwertung: {majority.vote} ({majority.count} Stimmen)
                 </p>
-                <GiphyGif verdict={majority.vote} seed={pastAlbums[idx]?.id} />
-              </>
-            )}
+              )}
 
-            <div className="flex justify-between mt-6">
-              <button
-                onClick={() => setIdx((i) => Math.max(i - 1, 0))}
-                disabled={idx === 0}
-                className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
-              >
-                ◀ Vorheriges
-              </button>
-              <button
-                onClick={() =>
-                  setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))
-                }
-                disabled={idx === pastAlbums.length - 1}
-                className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
-              >
-                Nächstes ▶
-              </button>
+              <div className="flex justify-between mt-6">
+                <button
+                  onClick={() => setIdx((i) => Math.max(i - 1, 0))}
+                  disabled={idx === 0}
+                  className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                >
+                  ◀ Vorheriges
+                </button>
+                <button
+                  onClick={() =>
+                    setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))
+                  }
+                  disabled={idx === pastAlbums.length - 1}
+                  className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                >
+                  Nächstes ▶
+                </button>
+              </div>
             </div>
           </div>
         )}

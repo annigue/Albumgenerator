@@ -18,9 +18,11 @@ export default function GiphyGif({ verdict, seed }) {
         verdict,
         seed: seed ?? "default",
       });
+
       const res = await fetch(`/api/giphy?${qs.toString()}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return;
+
       if (!cancelled) setGifUrl(data.gifUrl || null);
     })();
 
@@ -32,11 +34,12 @@ export default function GiphyGif({ verdict, seed }) {
   if (!gifUrl) return null;
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+    <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
       <img
         src={gifUrl}
         alt={`GIF: ${verdict}`}
-        className="w-64 h-48 object-cover border-2 border-retro-border bg-white"
+        style={{ width: 260, height: 200 }}   // <- extra eindeutig
+        className="object-cover border-2 border-retro-border bg-white"
         loading="lazy"
       />
     </div>
