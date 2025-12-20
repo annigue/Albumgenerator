@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* Fonts laden */
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap");
 
 /* === 🪩 GLOBAL STYLES === */
 
@@ -24,6 +24,7 @@ body {
   height: 40px;
   width: 100%;
 }
+
 .pattern-top {
   @apply border-b-2 border-retro-border;
 }
@@ -31,30 +32,63 @@ body {
   @apply border-t-2 border-retro-border;
 }
 
-/* Hintergrund hinter den mittleren Kästen */
+/* =========================================
+   Hintergrundfoto NUR hinter dem Content
+   (Karos oben/unten bleiben unverändert)
+   ========================================= */
+
 .content-bg {
-  background-image: url("/background.jpg"); /* gleich ersetzen */
+  position: relative;
+  background-image: url("/background.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-
-  /* optional: leicht abdunkeln für bessere Lesbarkeit */
-  position: relative;
 }
 
+/* Overlay fürs Foto: ABER unter dem Content! */
 .content-bg::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255, 248, 235, 0.85); /* Pastell-Overlay */
+  background: rgba(255, 248, 235, 0.82);
   pointer-events: none;
+  z-index: 0;
 }
 
+/* Der innere Content-Wrapper sollte z-10 haben (hast du in page.jsx) */
+.content-bg > * {
+  position: relative;
+  z-index: 1;
+}
 
-/* === 🧾 FORMULAR DESIGN === */
+/* =========================================
+   Box-/Kasten-Look: alles mit Retro-Border
+   bekommt automatisch Pastell-Füllung
+   ========================================= */
 
+/* WICHTIG: border-retro-border ist eine Farbe in Tailwind.
+   Du nutzt den Namen aber auch als "Randklasse".
+   Diese CSS-Regel greift nur, wenn du wirklich die Klasse
+   "border-retro-border" im HTML hast (hast du).
+*/
+.border-retro-border {
+  background-color: #fff8eb;
+}
+
+/* =========================================
+   FORMULAR DESIGN
+   ========================================= */
+
+/* Empfehlung: nicht jedes <form> global vollstylen,
+   sonst sehen alle Boxen/Forms identisch aus.
+   Wir geben dem Form eine Standard-Basis, aber weniger „boxy“.
+*/
 form {
-  @apply flex flex-col space-y-4 text-left bg-retro-bg border-2 border-retro-border p-6 shadow-sm;
+  @apply flex flex-col space-y-4 text-left;
+}
+
+.form-card {
+  @apply bg-retro-bg border-2 border-retro-border p-6 shadow-sm;
 }
 
 .form-group {
@@ -68,14 +102,14 @@ label {
 input,
 select,
 textarea {
-  @apply border-2 border-retro-border bg-transparent text-retro-text p-2 text-sm tracking-wider 
+  @apply border-2 border-retro-border bg-transparent text-retro-text p-2 text-sm tracking-wider
   focus:outline-none focus:ring-2 focus:ring-retro-accent w-full;
 }
 
 /* Buttons */
 button[type="submit"],
 button {
-  @apply bg-retro-accent text-white font-display text-lg py-2 px-4 border-2 border-retro-border 
+  @apply bg-retro-accent text-white font-display text-lg py-2 px-4 border-2 border-retro-border
   shadow-sm tracking-wide hover:bg-black transition disabled:opacity-50;
 }
 
@@ -84,7 +118,8 @@ table {
   @apply w-full border-collapse mt-4;
 }
 
-th, td {
+th,
+td {
   @apply border-t border-retro-border py-2 px-2 text-sm;
 }
 
@@ -93,7 +128,11 @@ thead {
 }
 
 /* Titel */
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
   @apply font-display tracking-widest;
 }
 
@@ -110,12 +149,24 @@ iframe {
   border-radius: 0;
 }
 
-/* Bilder */
+/* Bilder: NICHT global jeden img border geben,
+   sonst bekommt auch das GIF + Spotify Icon Borders.
+   Lieber gezielt in JSX mit className border-2 setzen.
+   -> Ich schalte das hier aus.
+*/
+/*
 img {
   @apply border-2 border-retro-border;
 }
+*/
 
 /* Utility Fixes */
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-.text-left { text-align: left; }
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}
+.text-left {
+  text-align: left;
+}
