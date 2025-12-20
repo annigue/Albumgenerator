@@ -44,7 +44,7 @@ export default function GiphyGif({ verdict, seed }) {
   if (err || !gifUrl) return null;
 
   return (
-    <div className="flex justify-center mt-4">
+    <div className="flex justify-center items-center my-6">
       <img
         src={gifUrl}
         alt={`GIF: ${verdict}`}
@@ -53,4 +53,5 @@ export default function GiphyGif({ verdict, seed }) {
       />
     </div>
   );
+  
 }
