@@ -148,9 +148,9 @@ export default function Home() {
       {/* Foto-Hintergrund nur hinter dem Content */}
       <div className="content-bg">
         <div className="max-w-2xl mx-auto p-8 relative z-10">
-          <h1 className="text-5xl font-display text-retro-accent text-center tracking-widest mb-8">
-            ALBUM DER WOCHE
-          </h1>
+        <h1>ALBUM DER WOCHE</h1>
+<div className="w-24 h-[3px] bg-retro-accent mx-auto mb-10" />
+
 
           {loading ? (
             <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
@@ -234,7 +234,7 @@ export default function Home() {
                 )}
               </h4>
 
-              <p className="text-sm text-center mb-4">{pastAlbums[idx].artist}</p>
+              <p className="meta text-center mb-4">{pastAlbums[idx].artist}</p>
 
               {majority && (
                 <>
