@@ -324,17 +324,17 @@ export default function Home() {
 
               <p className="meta text-center mb-4">{pastAlbums[idx].artist}</p>
 
+              {/* Charts */}
+              <div className="grid gap-4 md:grid-cols-2 mb-6">
+                    <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
+                    <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
+                  </div>
+              
               {majority && (
                 <>
                   <p className="ext-center text-xs uppercase tracking-wider opacity-70 mt-2">
                     {majority.count} Stimme{majority.count > 1 ? "n" : ""}
                   </p>
-
-                  {/* Charts */}
-                  <div className="grid gap-4 md:grid-cols-2 mb-6">
-                    <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
-                    <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
-                  </div>
                 </>
               )}
 
