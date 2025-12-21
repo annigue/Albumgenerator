@@ -5,13 +5,13 @@ import { supabase } from "../lib/supabaseClient";
 
 function Stamp({ rating }) {
   const label =
-    rating === "hit"
-      ? "HIT"
-      : rating === "ok"
-      ? "GEHT IN ORDNUNG"
-      : rating === "niete"
-      ? "NIETE"
-      : "NO VOTES";
+    rating === "Hit"
+      ? "Hit"
+      : rating === "Geht in Ordnung"
+      ? "Geht in Ordnung"
+      : rating === "Niete"
+      ? "Niete"
+      : "Keine Stimmen";
 
   return (
     <div
@@ -22,13 +22,14 @@ function Stamp({ rating }) {
         borderRadius: 14,
         transform: "rotate(-6deg)",
         fontWeight: 800,
-        letterSpacing: 1,
+        letterSpacing: 0.5,
       }}
     >
       {label}
     </div>
   );
 }
+
 
 export default function AlbumOfWeekCard() {
   const [row, setRow] = useState(null);
@@ -37,7 +38,7 @@ export default function AlbumOfWeekCard() {
   useEffect(() => {
     async function load() {
       const { data, error } = await supabase
-      .from("albums_of_week_with_score")
+      .from("album_of_week_with_score")
       .select("*")
       .order("week_start_date", { ascending: false })
       .limit(1)
@@ -62,7 +63,7 @@ export default function AlbumOfWeekCard() {
       <Stamp rating={row.final_rating} />
 
       <p>
-        Votes: {row.votes_total} – Hit {row.hits} / Ok {row.okays} / Niete{" "}
+        Votes: {row.votes_total} – Hit {row.hits} / "Geht in Ordnung"{row.okays} / Niete{" "}
         {row.flops}
       </p>
     </div>
