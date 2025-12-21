@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 
-
 import { supabase } from "../lib/supabaseClient";
 import { getSpotifyUrls } from "../lib/spotifyUrls";
 
@@ -10,16 +9,12 @@ import BewertungForm from "../components/BewertungForm";
 import VorschlagForm from "../components/VorschlagForm";
 import AlbumOfWeekCard from "../components/AlbumOfWeekCard";
 
-
 /* ──────────────────────────────────────────────────────────
    Helpers: zählen + normalisieren
    ────────────────────────────────────────────────────────── */
 function normalizeSongName(s) {
   if (!s) return "";
-  return String(s)
-    .trim()
-    .replace(/\s+/g, " ")
-    .replace(/["“”]/g, '"');
+  return String(s).trim().replace(/\s+/g, " ").replace(/["“”]/g, '"');
 }
 
 function topCounts(items, topN = 5) {
@@ -29,11 +24,10 @@ function topCounts(items, topN = 5) {
     if (!key) continue;
     map.set(key, (map.get(key) || 0) + 1);
   }
-  const arr = Array.from(map.entries())
+  return Array.from(map.entries())
     .map(([label, count]) => ({ label, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, topN);
-  return arr;
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -65,10 +59,7 @@ function SongBars({ title, items }) {
               </div>
 
               <div className="flex-1 h-3 border-2 border-retro-border bg-transparent">
-                <div
-                  className="h-full bg-retro-accent"
-                  style={{ width: `${w}%` }}
-                />
+                <div className="h-full bg-retro-accent" style={{ width: `${w}%` }} />
               </div>
 
               <div className="w-10 text-right text-sm font-semibold tabular-nums">
@@ -95,6 +86,7 @@ export default function Home() {
   const loadAlbums = useCallback(async () => {
     setLoading(true);
 
+    // Aktuelles Album
     const { data: active, error: e1 } = await supabase
       .from("albums")
       .select("*")
@@ -105,6 +97,7 @@ export default function Home() {
     if (e1) console.error(e1);
     setCurrentAlbum(active ?? null);
 
+    // Vergangene Alben
     const { data: past, error: e2 } = await supabase
       .from("albums")
       .select("*")
@@ -113,7 +106,9 @@ export default function Home() {
       .order("date", { ascending: false });
 
     if (e2) console.error(e2);
-    setPastAlbums(past ?? []);
+
+    const safePast = past ?? [];
+    setPastAlbums(safePast);
     setIdx(0);
 
     setLoading(false);
@@ -144,9 +139,7 @@ export default function Home() {
     if (!currentAlbum?.id) return;
 
     const missingSpotify =
-      !currentAlbum.spotify_id ||
-      !currentAlbum.spotify_link ||
-      !currentAlbum.cover_url;
+      !currentAlbum.spotify_id || !currentAlbum.spotify_link || !currentAlbum.cover_url;
 
     if (!missingSpotify) return;
 
@@ -179,6 +172,7 @@ export default function Home() {
     loadAlbums,
   ]);
 
+  // Reviews für aktuell gewähltes vergangenes Album laden
   useEffect(() => {
     const album = pastAlbums[idx];
     loadReviewsForAlbumId(album?.id);
@@ -192,7 +186,10 @@ export default function Home() {
       if (counts[r.bewertung] !== undefined) counts[r.bewertung]++;
     }
 
-    const [winner] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const winner = sorted?.[0]?.[0] ?? null;
+    if (!winner) return null;
+
     return { vote: winner, count: counts[winner] };
   }, [reviews]);
 
@@ -215,12 +212,14 @@ export default function Home() {
       })
     : null;
 
-  const pastSpotify = pastAlbums[idx]
+  const selectedPast = pastAlbums[idx] ?? null;
+
+  const pastSpotify = selectedPast
     ? getSpotifyUrls({
-        spotify_id: pastAlbums[idx].spotify_id,
-        spotify_link: pastAlbums[idx].spotify_link,
-        title: pastAlbums[idx].title,
-        artist: pastAlbums[idx].artist,
+        spotify_id: selectedPast.spotify_id,
+        spotify_link: selectedPast.spotify_link,
+        title: selectedPast.title,
+        artist: selectedPast.artist,
       })
     : null;
 
@@ -231,11 +230,17 @@ export default function Home() {
       <div className="content-bg">
         <div className="max-w-2xl mx-auto p-8 relative z-10">
           <h1>ALBUM DER WOCHE</h1>
+
+          {/* ✅ HIER gehört das Album-der-Woche-View-Widget hin */}
           <div className="mb-10">
-  <AlbumOfWeekCard />
-</div>
+            <AlbumOfWeekCard />
+          </div>
+
           <div className="w-24 h-[3px] bg-retro-accent mx-auto mb-10" />
 
+          {/* ──────────────────────────────────────────
+              AKTUELLES ALBUM (aus "albums" Tabelle)
+              ────────────────────────────────────────── */}
           {loading ? (
             <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
           ) : currentAlbum ? (
@@ -279,37 +284,48 @@ export default function Home() {
             </div>
           ) : (
             <p className="text-center text-gray-500 italic mb-8">
+              Noch kein aktuelles Album gesetzt.
             </p>
           )}
 
-          {pastAlbums.length > 0 && (
+          {/* ──────────────────────────────────────────
+              BISHERIGE ALBEN (aus "albums" Tabelle)
+              ────────────────────────────────────────── */}
+          {pastAlbums.length > 0 ? (
             <div className="retro-card p-6 mb-12">
               <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
                 BISHERIGE ALBEN
               </h3>
 
+              {/* Null-safe: selectedPast existiert garantiert hier */}
               <div className="relative mx-auto mb-4 w-fit">
-  <img
-    src={pastAlbums[idx].cover_url}
-    alt={`${pastAlbums[idx].title} Cover`}
-    className="border-2 border-retro-border"
-    loading="lazy"
-  />
+                {selectedPast?.cover_url ? (
+                  <img
+                    src={selectedPast.cover_url}
+                    alt={`${selectedPast.title} Cover`}
+                    className="border-2 border-retro-border"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="border-2 border-retro-border bg-white/60 p-8 text-center">
+                    Kein Cover vorhanden
+                  </div>
+                )}
 
-  {majority && (
-    <div
-      className={`rating-stamp rating-${majority.vote
-        .toLowerCase()
-        .replace(/\s/g, "-")}`}
-    >
-      {majority.vote.toUpperCase()}
-    </div>
-  )}
-</div>
-
+                {/* Stempel auf dem Cover */}
+                {majority && (
+                  <div
+                    className={`rating-stamp rating-${majority.vote
+                      .toLowerCase()
+                      .replace(/\s/g, "-")}`}
+                  >
+                    {majority.vote.toUpperCase()}
+                  </div>
+                )}
+              </div>
 
               <h4 className="text-xl text-center font-semibold mb-1">
-                {pastAlbums[idx].title}
+                {selectedPast.title}
                 {pastSpotify?.openUrl && (
                   <a
                     href={pastSpotify.openUrl}
@@ -328,20 +344,18 @@ export default function Home() {
                 )}
               </h4>
 
-              <p className="meta text-center mb-4">{pastAlbums[idx].artist}</p>
+              <p className="meta text-center mb-4">{selectedPast.artist}</p>
 
               {/* Charts */}
               <div className="grid gap-4 md:grid-cols-2 mb-6">
-                    <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
-                    <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
-                  </div>
-              
+                <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
+                <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
+              </div>
+
               {majority && (
-                <>
-                  <p className="ext-center text-xs uppercase tracking-wider opacity-70 mt-2">
-                    {majority.count} Stimme{majority.count > 1 ? "n" : ""}
-                  </p>
-                </>
+                <p className="text-center text-xs uppercase tracking-wider opacity-70 mt-2">
+                  {majority.count} Stimme{majority.count > 1 ? "n" : ""}
+                </p>
               )}
 
               <div className="flex justify-between mt-2">
@@ -362,6 +376,10 @@ export default function Home() {
                 </button>
               </div>
             </div>
+          ) : (
+            <p className="text-center text-gray-500 italic mb-8">
+              Noch keine bisherigen Alben vorhanden.
+            </p>
           )}
 
           <VorschlagForm />
