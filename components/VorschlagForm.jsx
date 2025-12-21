@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "../lib/supabaseClient";
 
 const TEILNEHMER = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
 
@@ -18,6 +17,7 @@ export default function VorschlagForm() {
 
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -26,10 +26,11 @@ export default function VorschlagForm() {
     e.preventDefault();
     setSending(true);
     setOk(false);
+    setErrorMsg("");
 
     try {
       // 1) Spotify Daten holen (ID + Cover + Link)
-      const res = await fetch("/api/fetch_spotify_id", {
+      const spotifyRes = await fetch("/api/fetch_spotify_id", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -38,28 +39,34 @@ export default function VorschlagForm() {
         }),
       });
 
-      const spotifyData = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(spotifyData.error || "Spotify error");
+      const spotifyJson = await spotifyRes.json().catch(() => ({}));
+      if (!spotifyRes.ok) {
+        throw new Error(spotifyJson?.error || "Spotify Lookup fehlgeschlagen");
       }
 
-      // 2) Vorschlag speichern
-      const { error } = await supabase.from("vorschlaege").insert([
-        {
-          name: form.name,
-          albumtitel: form.albumtitel,
-          interpret: form.interpret,
-          begruendung: form.begruendung || null,
+      // 2) Vorschlag server-side speichern (robust gegen RLS)
+      const saveRes = await fetch("/api/suggestions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          spotify_id: spotifyJson.spotify_id ?? null,
+          spotify_url: spotifyJson.spotify_link ?? null, // je nach DB-Spalte
+          cover_url: spotifyJson.cover_url ?? null,
+          title: form.albumtitel,
+          artist: form.interpret,
+          suggested_by: form.name,
+          note: form.begruendung || null,
+          // Falls du diese Felder auch speichern willst, muss /api/suggestions das unterstützen:
           liebstes_lied: form.liebstes_lied || null,
           liebste_textzeile: form.liebste_textzeile || null,
           schlechtestes_lied: form.schlechtestes_lied || null,
-          spotify_id: spotifyData.spotify_id ?? null,
-          spotify_link: spotifyData.spotify_link ?? null,
-          cover_url: spotifyData.cover_url ?? null,
-        },
-      ]);
+        }),
+      });
 
-      if (error) throw error;
+      const saveJson = await saveRes.json().catch(() => ({}));
+      if (!saveRes.ok) {
+        throw new Error(saveJson?.error || "Speichern fehlgeschlagen");
+      }
 
       setOk(true);
       setForm({
@@ -73,7 +80,8 @@ export default function VorschlagForm() {
       });
     } catch (err) {
       console.error(err);
-      alert("Fehler beim Vorschlagen 😢");
+      setErrorMsg(err?.message || "Fehler beim Vorschlagen 😢");
+      alert(err?.message || "Fehler beim Vorschlagen 😢");
     } finally {
       setSending(false);
     }
@@ -94,6 +102,10 @@ export default function VorschlagForm() {
       <h3 className="text-retro-accent font-display text-2xl mb-1 tracking-widest text-center">
         NEUES ALBUM VORSCHLAGEN
       </h3>
+
+      {errorMsg && (
+        <p className="text-sm text-red-700 text-center mt-2">{errorMsg}</p>
+      )}
 
       <div className="form-group">
         <label htmlFor="name">Teilnehmer</label>
