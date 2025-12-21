@@ -35,7 +35,7 @@ export async function POST(req: Request) {
           rating: body.rating,
           comment: body.comment ?? null,
         },
-        { onConflict: "album_week_id,voter" }
+        { onConflict: "albums_week_id,voter" }
       )
       .select("*")
       .single();
