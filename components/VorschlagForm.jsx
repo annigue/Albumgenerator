@@ -6,18 +6,17 @@ const TEILNEHMER = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
 
 export default function VorschlagForm() {
   const [form, setForm] = useState({
-    name: "",
-    albumtitel: "",
-    interpret: "",
-    begruendung: "",
-    liebstes_lied: "",
-    liebste_textzeile: "",
-    schlechtestes_lied: "",
+    suggested_by: "",
+    title: "",
+    artist: "",
+    reason: "",
+    favorite_song: "",
+    favorite_lyric: "",
+    worst_song: "",
   });
 
-  const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [ok, setOk] = useState(false);
 
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -26,62 +25,38 @@ export default function VorschlagForm() {
     e.preventDefault();
     setSending(true);
     setOk(false);
-    setErrorMsg("");
 
     try {
-      // 1) Spotify Daten holen (ID + Cover + Link)
-      const spotifyRes = await fetch("/api/fetch_spotify_id", {
+      const res = await fetch("/api/suggestions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: form.albumtitel,
-          artist: form.interpret,
-        }),
+        body: JSON.stringify(form),
       });
 
-      const spotifyJson = await spotifyRes.json().catch(() => ({}));
-      if (!spotifyRes.ok) {
-        throw new Error(spotifyJson?.error || "Spotify Lookup fehlgeschlagen");
-      }
+      const data = await res.json();
 
-      // 2) Vorschlag server-side speichern (robust gegen RLS)
-      const saveRes = await fetch("/api/suggestions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          spotify_id: spotifyJson.spotify_id ?? null,
-          spotify_url: spotifyJson.spotify_link ?? null, // je nach DB-Spalte
-          cover_url: spotifyJson.cover_url ?? null,
-          title: form.albumtitel,
-          artist: form.interpret,
-          suggested_by: form.name,
-          note: form.begruendung || null,
-          // Falls du diese Felder auch speichern willst, muss /api/suggestions das unterstützen:
-          liebstes_lied: form.liebstes_lied || null,
-          liebste_textzeile: form.liebste_textzeile || null,
-          schlechtestes_lied: form.schlechtestes_lied || null,
-        }),
-      });
-
-      const saveJson = await saveRes.json().catch(() => ({}));
-      if (!saveRes.ok) {
-        throw new Error(saveJson?.error || "Speichern fehlgeschlagen");
+      if (!res.ok) {
+        // Duplicate case (409)
+        if (res.status === 409) {
+          alert("Dieses Album wurde bereits vorgeschlagen 🙂");
+          return;
+        }
+        throw new Error(data?.error || "Unbekannter Fehler");
       }
 
       setOk(true);
       setForm({
-        name: "",
-        albumtitel: "",
-        interpret: "",
-        begruendung: "",
-        liebstes_lied: "",
-        liebste_textzeile: "",
-        schlechtestes_lied: "",
+        suggested_by: "",
+        title: "",
+        artist: "",
+        reason: "",
+        favorite_song: "",
+        favorite_lyric: "",
+        worst_song: "",
       });
     } catch (err) {
       console.error(err);
-      setErrorMsg(err?.message || "Fehler beim Vorschlagen 😢");
-      alert(err?.message || "Fehler beim Vorschlagen 😢");
+      alert("Fehler beim Vorschlagen 😢");
     } finally {
       setSending(false);
     }
@@ -99,20 +74,16 @@ export default function VorschlagForm() {
 
   return (
     <form onSubmit={onSubmit} className="form-card mt-10">
-      <h3 className="text-retro-accent font-display text-2xl mb-1 tracking-widest text-center">
+      <h3 className="text-retro-accent font-display text-2xl mb-4 tracking-widest text-center">
         NEUES ALBUM VORSCHLAGEN
       </h3>
 
-      {errorMsg && (
-        <p className="text-sm text-red-700 text-center mt-2">{errorMsg}</p>
-      )}
-
+      {/* Teilnehmer */}
       <div className="form-group">
-        <label htmlFor="name">Teilnehmer</label>
+        <label>Teilnehmer</label>
         <select
-          id="name"
-          name="name"
-          value={form.name}
+          name="suggested_by"
+          value={form.suggested_by}
           onChange={onChange}
           required
         >
@@ -125,71 +96,71 @@ export default function VorschlagForm() {
         </select>
       </div>
 
+      {/* Albumtitel */}
       <div className="form-group">
-        <label htmlFor="albumtitel">Albumtitel</label>
+        <label>Albumtitel</label>
         <input
-          id="albumtitel"
-          name="albumtitel"
-          value={form.albumtitel}
+          name="title"
+          value={form.title}
           onChange={onChange}
           placeholder="z.B. OK Computer"
           required
         />
       </div>
 
+      {/* Artist */}
       <div className="form-group">
-        <label htmlFor="interpret">Interpret</label>
+        <label>Interpret</label>
         <input
-          id="interpret"
-          name="interpret"
-          value={form.interpret}
+          name="artist"
+          value={form.artist}
           onChange={onChange}
           placeholder="z.B. Radiohead"
           required
         />
       </div>
 
+      {/* Begründung */}
       <div className="form-group">
-        <label htmlFor="begruendung">Begründung</label>
+        <label>Warum dieses Album?</label>
         <textarea
-          id="begruendung"
-          name="begruendung"
-          value={form.begruendung}
+          name="reason"
+          value={form.reason}
           onChange={onChange}
-          placeholder="optional"
           rows={3}
+          placeholder="Warum sollten wir dieses Album hören?"
         />
       </div>
 
+      {/* Lieblingslied */}
       <div className="form-group">
-        <label htmlFor="liebstes_lied">Liebstes Lied</label>
+        <label>Lieblingslied</label>
         <input
-          id="liebstes_lied"
-          name="liebstes_lied"
-          value={form.liebstes_lied}
+          name="favorite_song"
+          value={form.favorite_song}
           onChange={onChange}
           placeholder="optional"
         />
       </div>
 
+      {/* Lieblingszeile */}
       <div className="form-group">
-        <label htmlFor="liebste_textzeile">Liebste Textzeile</label>
+        <label>Liebste Textzeile</label>
         <textarea
-          id="liebste_textzeile"
-          name="liebste_textzeile"
-          value={form.liebste_textzeile}
+          name="favorite_lyric"
+          value={form.favorite_lyric}
           onChange={onChange}
+          rows={2}
           placeholder="optional"
-          rows={3}
         />
       </div>
 
+      {/* Schlechtestes Lied */}
       <div className="form-group">
-        <label htmlFor="schlechtestes_lied">Schlechtestes Lied</label>
+        <label>Schlechtestes Lied</label>
         <input
-          id="schlechtestes_lied"
-          name="schlechtestes_lied"
-          value={form.schlechtestes_lied}
+          name="worst_song"
+          value={form.worst_song}
           onChange={onChange}
           placeholder="optional"
         />

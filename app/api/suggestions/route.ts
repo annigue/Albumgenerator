@@ -1,6 +1,6 @@
+// app/api/suggestions/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import type { Database } from "../../../src/types/supabase";
 
 export async function POST(req: Request) {
   try {
@@ -9,47 +9,65 @@ export async function POST(req: Request) {
     // Minimal-Validation
     if (!body?.spotify_id || !body?.title) {
       return NextResponse.json(
-        { error: "Missing required fields: spotify_id, title" },
+        { error: "spotify_id und title sind Pflichtfelder." },
         { status: 400 }
       );
     }
 
-    const supabase = createClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY! // server only
-    );
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json(
+        { error: "Server-Konfiguration fehlt (SUPABASE URL / SERVICE ROLE KEY)." },
+        { status: 500 }
+      );
+    }
+
+    // Service Role => RLS umgehen (nur im Server nutzen!)
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
+
+    const payload = {
+      spotify_id: String(body.spotify_id).trim(),
+      spotify_url: body.spotify_url ?? body.spotify_link ?? null,
+      cover_url: body.cover_url ?? null,
+      title: String(body.title).trim(),
+      artist: body.artist ?? null,
+      suggested_by: body.suggested_by ?? null,
+      note: body.note ?? null,
+
+      // ✅ neue Felder:
+      reason: body.reason ?? null,
+      favorite_song: body.favorite_song ?? null,
+      favorite_lyric: body.favorite_lyric ?? null,
+      worst_song: body.worst_song ?? null,
+    };
 
     const { data, error } = await supabase
       .from("suggestions")
-      .insert({
-        spotify_id: body.spotify_id,
-        spotify_url: body.spotify_url ?? null,
-        cover_url: body.cover_url ?? null,
-        title: body.title,
-        artist: body.artist ?? null,
-        suggested_by: body.suggested_by ?? null,
-        note: body.note ?? null,
-      })
+      .insert(payload)
       .select("*")
       .single();
 
     if (error) {
-      // Postgres unique violation
-      if (error.code === "23505") {
-        // optional: bestehenden Datensatz holen (damit UI anzeigen kann "ist schon drin")
-        const { data: existing } = await supabase
+      // Duplicate spotify_id -> 409 + existing row zurückgeben
+      if (
+        typeof error.message === "string" &&
+        (error.message.includes("duplicate key value") ||
+          error.message.includes("suggestions_spotify_id_uq"))
+      ) {
+        const { data: existing, error: fetchErr } = await supabase
           .from("suggestions")
           .select("*")
-          .eq("spotify_id", body.spotify_id)
+          .eq("spotify_id", payload.spotify_id)
           .maybeSingle();
 
         return NextResponse.json(
           {
-            status: "exists",
-            message: "Dieses Album wurde bereits vorgeschlagen.",
-            data: existing ?? null,
+            error: "Dieses Album wurde bereits vorgeschlagen.",
+            existing: fetchErr ? null : existing,
           },
-          { status: 200 }
+          { status: 409 }
         );
       }
 
@@ -59,7 +77,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: "inserted", data }, { status: 200 });
   } catch (err: any) {
     return NextResponse.json(
-      { error: err?.message ?? "Unknown server error" },
+      { error: err?.message ?? "Unbekannter Serverfehler" },
       { status: 500 }
     );
   }
