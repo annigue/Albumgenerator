@@ -36,12 +36,13 @@ export default function AlbumOfWeekCard() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase
-        .from("albums_of_week_with_score")
-        .select("*")
-        .order("week_start_date", { ascending: false })
-        .limit(1)
-        .single();
+      const { data, error } = await supabase
+      .from("albums_of_week_with_score")
+      .select("*")
+      .order("week_start_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
 
       setRow(data);
       setLoading(false);

@@ -279,7 +279,6 @@ export default function Home() {
             </div>
           ) : (
             <p className="text-center text-gray-500 italic mb-8">
-              Noch kein aktuelles Album gesetzt.
             </p>
           )}
 
