@@ -4,17 +4,18 @@ import { useState } from "react";
 
 const TEILNEHMER = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
 
-export default function VorschlagForm() {
-  const [form, setForm] = useState({
-    suggested_by: "",
-    title: "",
-    artist: "",
-    reason: "",
-    favorite_song: "",
-    favorite_lyric: "",
-    worst_song: "",
-  });
+const initialForm = {
+  suggested_by: "",
+  title: "",
+  artist: "",
+  reason: "",
+  favorite_song: "",
+  favorite_lyric: "",
+  worst_song: "",
+};
 
+export default function VorschlagForm() {
+  const [form, setForm] = useState(initialForm);
   const [sending, setSending] = useState(false);
   const [ok, setOk] = useState(false);
 
@@ -26,37 +27,45 @@ export default function VorschlagForm() {
     setSending(true);
     setOk(false);
 
+    // kleine Hygiene: trim + optionals -> null/"" lassen wir serverseitig entscheiden
+    const payload = {
+      suggested_by: form.suggested_by.trim(),
+      title: form.title.trim(),
+      artist: form.artist.trim(),
+      reason: form.reason.trim(),
+      favorite_song: form.favorite_song.trim(),
+      favorite_lyric: form.favorite_lyric.trim(),
+      worst_song: form.worst_song.trim(),
+    };
+
     try {
       const res = await fetch("/api/suggestions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        // Duplicate case (409)
+        // Duplicate case (409), falls du das im Backend so setzt
         if (res.status === 409) {
           alert("Dieses Album wurde bereits vorgeschlagen 🙂");
           return;
         }
-        throw new Error(data?.error || "Unbekannter Fehler");
+
+        // Backend-Fehlertext anzeigen, wenn vorhanden
+        const msg =
+          data?.error ||
+          `Fehler beim Vorschlagen (HTTP ${res.status})`;
+        throw new Error(msg);
       }
 
       setOk(true);
-      setForm({
-        suggested_by: "",
-        title: "",
-        artist: "",
-        reason: "",
-        favorite_song: "",
-        favorite_lyric: "",
-        worst_song: "",
-      });
+      setForm(initialForm);
     } catch (err) {
       console.error(err);
-      alert("Fehler beim Vorschlagen 😢");
+      alert(`Fehler beim Vorschlagen 😢\n${err?.message ?? ""}`);
     } finally {
       setSending(false);
     }
