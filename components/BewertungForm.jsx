@@ -2,14 +2,9 @@
 
 import { useState } from "react";
 
-const TEILNEHMER = ["Anne", "Moritz", "Max", "Kathi", "Lena"] as const;
+const TEILNEHMER = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
 
-type Props = {
-  album: { id: string; title?: string } | null;
-  onSubmitted?: () => void;
-};
-
-export default function BewertungForm({ album, onSubmitted }: Props) {
+export default function BewertungForm({ album, onSubmitted }) {
   const [form, setForm] = useState({
     name: "",
     liebstes_lied: "",
@@ -21,17 +16,16 @@ export default function BewertungForm({ album, onSubmitted }: Props) {
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const onChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-  ) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const onChange = (e) =>
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const ratingToInt = (label: string): -1 | 0 | 1 => {
+  const ratingToInt = (label) => {
     if (label === "Hit") return 1;
     if (label === "Geht in Ordnung") return 0;
     return -1; // "Niete"
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
 
     if (!album?.id) {
@@ -47,18 +41,15 @@ export default function BewertungForm({ album, onSubmitted }: Props) {
     setSending(true);
     setOk(false);
 
-    // Wir schicken an den Server (service_role) → RLS bleibt sicher
     const payload = {
       album_week_id: album.id,
       voter: form.name,
       rating: ratingToInt(form.bewertung),
 
-      // optionale Textfelder
       favorite_song: form.liebstes_lied?.trim() || null,
       favorite_lyric: form.beste_textzeile?.trim() || null,
       worst_song: form.schlechtestes_lied?.trim() || null,
 
-      // optional, falls du später Kommentar willst:
       comment: null,
     };
 
@@ -86,7 +77,7 @@ export default function BewertungForm({ album, onSubmitted }: Props) {
       });
 
       onSubmitted?.();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       alert(`Fehler beim Absenden 😢\n${err?.message ?? ""}`);
     } finally {
