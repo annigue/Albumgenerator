@@ -52,6 +52,9 @@ export default function BewertungForm({ album, onSubmitted }) {
 
       comment: null,
     };
+    console.log("ALBUM OBJ:", album);
+    console.log("album.id:", album?.id, "type:", typeof album?.id);
+    
 
     try {
       const res = await fetch("/api/votes", {
