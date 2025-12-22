@@ -9,6 +9,10 @@ import BewertungForm from "../components/BewertungForm";
 import VorschlagForm from "../components/VorschlagForm";
 import AlbumOfWeekCard from "../components/AlbumOfWeekCard";
 
+console.log("SUPA URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
+console.log("SUPA KEY?", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
+
 /* ──────────────────────────────────────────────────────────
    Helpers: zählen + normalisieren
    ────────────────────────────────────────────────────────── */
