@@ -111,7 +111,6 @@ export default function AlbumOfWeekCard() {
       }
 
       setRow(data ?? null);
-      onLoaded?.(data ?? null);
     }
 
     load();
