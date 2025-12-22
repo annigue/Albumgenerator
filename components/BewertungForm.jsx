@@ -1,11 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "../lib/supabaseClient";
 
-const TEILNEHMER = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
+const TEILNEHMER = ["Anne", "Moritz", "Max", "Kathi", "Lena"] as const;
 
-export default function BewertungForm({ album, onSubmitted }) {
+type Props = {
+  album: { id: string; title?: string } | null;
+  onSubmitted?: () => void;
+};
+
+export default function BewertungForm({ album, onSubmitted }: Props) {
   const [form, setForm] = useState({
     name: "",
     liebstes_lied: "",
@@ -17,49 +21,77 @@ export default function BewertungForm({ album, onSubmitted }) {
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const onChange = (e) =>
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const onChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const onSubmit = async (e) => {
+  const ratingToInt = (label: string): -1 | 0 | 1 => {
+    if (label === "Hit") return 1;
+    if (label === "Geht in Ordnung") return 0;
+    return -1; // "Niete"
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!album?.id) {
       alert("Kein Album ausgewählt. Bitte versuche es erneut.");
+      return;
+    }
+
+    if (!form.name || !form.bewertung) {
+      alert("Bitte Teilnehmer und Gesamtbewertung auswählen.");
       return;
     }
 
     setSending(true);
     setOk(false);
 
+    // Wir schicken an den Server (service_role) → RLS bleibt sicher
     const payload = {
-      album_id: album.id,
-      albumtitel: album.title,
-      name: form.name,
-      liebstes_lied: form.liebstes_lied || null,
-      beste_textzeile: form.beste_textzeile || null,
-      schlechtestes_lied: form.schlechtestes_lied || null,
-      bewertung: form.bewertung,
+      album_week_id: album.id,
+      voter: form.name,
+      rating: ratingToInt(form.bewertung),
+
+      // optionale Textfelder
+      favorite_song: form.liebstes_lied?.trim() || null,
+      favorite_lyric: form.beste_textzeile?.trim() || null,
+      worst_song: form.schlechtestes_lied?.trim() || null,
+
+      // optional, falls du später Kommentar willst:
+      comment: null,
     };
 
-    const { error } = await supabase.from("bewertungen").insert([payload]);
+    try {
+      const res = await fetch("/api/votes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    setSending(false);
+      const data = await res.json().catch(() => ({}));
 
-    if (error) {
-      console.error(error);
-      alert("Fehler beim Absenden 😢");
-      return;
+      if (!res.ok) {
+        const msg = data?.error || `Fehler beim Absenden (HTTP ${res.status})`;
+        throw new Error(msg);
+      }
+
+      setOk(true);
+      setForm({
+        name: "",
+        liebstes_lied: "",
+        beste_textzeile: "",
+        schlechtestes_lied: "",
+        bewertung: "",
+      });
+
+      onSubmitted?.();
+    } catch (err: any) {
+      console.error(err);
+      alert(`Fehler beim Absenden 😢\n${err?.message ?? ""}`);
+    } finally {
+      setSending(false);
     }
-
-    setOk(true);
-    setForm({
-      name: "",
-      liebstes_lied: "",
-      beste_textzeile: "",
-      schlechtestes_lied: "",
-      bewertung: "",
-    });
-
-    onSubmitted?.();
   };
 
   if (!album) return null;
