@@ -122,6 +122,9 @@ export default function Home() {
       .eq("album_week_id", albumWeekId)
       .order("created_at", { ascending: true });
 
+    console.log("Votes rows:", data, "Error:", error);
+
+
     if (error) console.error("loadVotes error:", error);
     setVotes(data ?? []);
   }, []);
