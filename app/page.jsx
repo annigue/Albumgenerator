@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
-
 import { supabase } from "../lib/supabaseClient";
 import { getSpotifyUrls } from "../lib/spotifyUrls";
 
@@ -11,7 +10,6 @@ import AlbumOfWeekCard from "../components/AlbumOfWeekCard";
 
 console.log("SUPA URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
 console.log("SUPA KEY?", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-
 
 /* ──────────────────────────────────────────────────────────
    Helpers: zählen + normalisieren
@@ -78,116 +76,77 @@ function SongBars({ title, items }) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Hauptseite
+   Hauptseite (NEUE WELT: albums_of_week + votes)
    ────────────────────────────────────────────────────────── */
 export default function Home() {
-  const [currentAlbum, setCurrentAlbum] = useState(null);
-  const [pastAlbums, setPastAlbums] = useState([]);
+  const [currentAlbum, setCurrentAlbum] = useState(null); // album_of_week_with_score (uuid id)
+  const [pastAlbums, setPastAlbums] = useState([]);       // album_of_week_with_score
   const [idx, setIdx] = useState(0);
-  const [reviews, setReviews] = useState([]);
+  const [votes, setVotes] = useState([]);                 // votes rows
   const [loading, setLoading] = useState(true);
 
   const loadAlbums = useCallback(async () => {
     setLoading(true);
 
-    // Aktuelles Album
-    const { data: active, error: e1 } = await supabase
-      .from("albums")
+    // Alle Alben der Woche (neueste zuerst)
+    const { data, error } = await supabase
+      .from("album_of_week_with_score")
       .select("*")
-      .eq("is_active", true)
-      .limit(1)
-      .maybeSingle();
+      .order("week_start_date", { ascending: false });
 
-    if (e1) console.error(e1);
-    setCurrentAlbum(active ?? null);
+    if (error) {
+      console.error("loadAlbums error:", error);
+      setCurrentAlbum(null);
+      setPastAlbums([]);
+      setIdx(0);
+      setLoading(false);
+      return;
+    }
 
-    // Vergangene Alben
-    const { data: past, error: e2 } = await supabase
-      .from("albums")
-      .select("*")
-      .eq("is_active", false)
-      .not("date", "is", null)
-      .order("date", { ascending: false });
-
-    if (e2) console.error(e2);
-
-    const safePast = past ?? [];
-    setPastAlbums(safePast);
+    const rows = data ?? [];
+    setCurrentAlbum(rows[0] ?? null);
+    setPastAlbums(rows.slice(1)); // alles außer aktuelles als "bisherige"
     setIdx(0);
-
     setLoading(false);
   }, []);
 
-  const loadReviewsForAlbumId = useCallback(async (albumId) => {
-    if (!albumId) {
-      setReviews([]);
+  const loadVotesForAlbumWeekId = useCallback(async (albumWeekId) => {
+    if (!albumWeekId) {
+      setVotes([]);
       return;
     }
 
     const { data, error } = await supabase
-      .from("bewertungen")
+      .from("votes")
       .select("*")
-      .eq("album_id", albumId)
+      .eq("album_week_id", albumWeekId)
       .order("created_at", { ascending: true });
 
-    if (error) console.error(error);
-    setReviews(data ?? []);
+    if (error) console.error("loadVotes error:", error);
+    setVotes(data ?? []);
   }, []);
 
   useEffect(() => {
     loadAlbums();
   }, [loadAlbums]);
 
-  // Auto-backfill Spotify Daten für das aktuelle Album (wenn etwas fehlt)
-  useEffect(() => {
-    if (!currentAlbum?.id) return;
-
-    const missingSpotify =
-      !currentAlbum.spotify_id || !currentAlbum.spotify_link || !currentAlbum.cover_url;
-
-    if (!missingSpotify) return;
-
-    (async () => {
-      try {
-        console.log("Backfilling Spotify data for album", currentAlbum.id);
-
-        const res = await fetch("/api/backfill_album_spotify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ albumId: currentAlbum.id }),
-        });
-
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          console.error("Backfill failed:", res.status, data);
-          return;
-        }
-
-        await loadAlbums();
-      } catch (err) {
-        console.error("Spotify backfill failed:", err);
-      }
-    })();
-  }, [
-    currentAlbum?.id,
-    currentAlbum?.spotify_id,
-    currentAlbum?.spotify_link,
-    currentAlbum?.cover_url,
-    loadAlbums,
-  ]);
-
-  // Reviews für aktuell gewähltes vergangenes Album laden
+  // Votes für aktuell ausgewähltes vergangenes Album laden
   useEffect(() => {
     const album = pastAlbums[idx];
-    loadReviewsForAlbumId(album?.id);
-  }, [pastAlbums, idx, loadReviewsForAlbumId]);
+    loadVotesForAlbumWeekId(album?.id);
+  }, [pastAlbums, idx, loadVotesForAlbumWeekId]);
+
+  const selectedPast = pastAlbums[idx] ?? null;
 
   const majority = useMemo(() => {
-    if (!reviews?.length) return null;
+    if (!votes?.length) return null;
 
+    // rating: 1 = Hit, 0 = OK, -1 = Niete
     const counts = { Hit: 0, "Geht in Ordnung": 0, Niete: 0 };
-    for (const r of reviews) {
-      if (counts[r.bewertung] !== undefined) counts[r.bewertung]++;
+    for (const v of votes) {
+      if (v.rating === 1) counts["Hit"]++;
+      else if (v.rating === 0) counts["Geht in Ordnung"]++;
+      else if (v.rating === -1) counts["Niete"]++;
     }
 
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
@@ -195,33 +154,31 @@ export default function Home() {
     if (!winner) return null;
 
     return { vote: winner, count: counts[winner] };
-  }, [reviews]);
+  }, [votes]);
 
   const favoritesTop = useMemo(() => {
-    const list = (reviews ?? []).map((r) => r?.liebstes_lied);
+    const list = (votes ?? []).map((v) => v?.favorite_song);
     return topCounts(list, 5);
-  }, [reviews]);
+  }, [votes]);
 
   const worstTop = useMemo(() => {
-    const list = (reviews ?? []).map((r) => r?.schlechtestes_lied);
+    const list = (votes ?? []).map((v) => v?.worst_song);
     return topCounts(list, 5);
-  }, [reviews]);
+  }, [votes]);
 
   const currentSpotify = currentAlbum
     ? getSpotifyUrls({
         spotify_id: currentAlbum.spotify_id,
-        spotify_link: currentAlbum.spotify_link,
+        spotify_link: currentAlbum.spotify_url, // falls deine View spotify_url liefert
         title: currentAlbum.title,
         artist: currentAlbum.artist,
       })
     : null;
 
-  const selectedPast = pastAlbums[idx] ?? null;
-
   const pastSpotify = selectedPast
     ? getSpotifyUrls({
         spotify_id: selectedPast.spotify_id,
-        spotify_link: selectedPast.spotify_link,
+        spotify_link: selectedPast.spotify_url,
         title: selectedPast.title,
         artist: selectedPast.artist,
       })
@@ -235,7 +192,7 @@ export default function Home() {
         <div className="max-w-2xl mx-auto p-8 relative z-10">
           <h1>ALBUM DER WOCHE</h1>
 
-          {/* ✅ HIER gehört das Album-der-Woche-View-Widget hin */}
+          {/* Album der Woche (View-Widget) */}
           <div className="mb-10">
             <AlbumOfWeekCard />
           </div>
@@ -243,7 +200,7 @@ export default function Home() {
           <div className="w-24 h-[3px] bg-retro-accent mx-auto mb-10" />
 
           {/* ──────────────────────────────────────────
-              AKTUELLES ALBUM (aus "albums" Tabelle)
+              AKTUELLES ALBUM DER WOCHE (uuid + votes)
               ────────────────────────────────────────── */}
           {loading ? (
             <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
@@ -283,6 +240,7 @@ export default function Home() {
               )}
 
               <div className="mt-6">
+                {/* ✅ WICHTIG: currentAlbum.id ist jetzt UUID */}
                 <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
               </div>
             </div>
@@ -293,7 +251,7 @@ export default function Home() {
           )}
 
           {/* ──────────────────────────────────────────
-              BISHERIGE ALBEN (aus "albums" Tabelle)
+              BISHERIGE ALBEN (aus album_of_week_with_score)
               ────────────────────────────────────────── */}
           {pastAlbums.length > 0 ? (
             <div className="retro-card p-6 mb-12">
@@ -301,7 +259,6 @@ export default function Home() {
                 BISHERIGE ALBEN
               </h3>
 
-              {/* Null-safe: selectedPast existiert garantiert hier */}
               <div className="relative mx-auto mb-4 w-fit">
                 {selectedPast?.cover_url ? (
                   <img
@@ -316,7 +273,6 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Stempel auf dem Cover */}
                 {majority && (
                   <div
                     className={`rating-stamp rating-${majority.vote
@@ -350,7 +306,6 @@ export default function Home() {
 
               <p className="meta text-center mb-4">{selectedPast.artist}</p>
 
-              {/* Charts */}
               <div className="grid gap-4 md:grid-cols-2 mb-6">
                 <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
                 <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
