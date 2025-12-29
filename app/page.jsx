@@ -32,29 +32,65 @@ function topCounts(items, topN = 5) {
     .slice(0, topN);
 }
 
-/**
- * Cover URL normalisieren:
- * - entfernt ggf. url("...") wrapper
- * - wandelt i.scdn.co/image/<id> -> image-cdn-ak.spotifycdn.com/image/<id>
- * - fügt https: bei //domain/... hinzu
- */
-function normalizeCoverUrl(url) {
-  if (!url) return null;
+/* ──────────────────────────────────────────────────────────
+   Spotify Cover URL Fallbacks
+   ────────────────────────────────────────────────────────── */
+function coverCandidates(raw) {
+  const url = (raw ?? "").toString().trim();
+  if (!url) return [];
 
-  const u = String(url).trim();
+  // Already a "spotify image hash"
+  const m = url.match(/ab[0-9a-f]{20,}/i);
+  const hash = m?.[0];
 
-  // Falls versehentlich url("...") gespeichert wurde
-  const m = u.match(/url\(["']?(.*?)["']?\)/i);
-  const raw = m?.[1] ? m[1] : u;
+  const list = [];
+  // 1) Original
+  list.push(url);
 
-  // protocol-relative
-  if (raw.startsWith("//")) return `https:${raw}`;
+  // 2) If i.scdn..., try image-cdn-ak... (often more reliable in apps)
+  if (hash) {
+    list.push(`https://image-cdn-ak.spotifycdn.com/image/${hash}`);
+    // sometimes also works:
+    list.push(`https://i.scdn.co/image/${hash}`);
+  }
 
-  // i.scdn.co/image/<id> -> image-cdn-ak.spotifycdn.com/image/<id>
-  const scdn = raw.match(/^https?:\/\/i\.scdn\.co\/image\/([a-z0-9]+)$/i);
-  if (scdn?.[1]) return `https://image-cdn-ak.spotifycdn.com/image/${scdn[1]}`;
+  // remove duplicates
+  return Array.from(new Set(list));
+}
 
-  return raw;
+/* Robust cover component that retries on error */
+function CoverImage({ src, alt }) {
+  const candidates = useMemo(() => coverCandidates(src), [src]);
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    setIdx(0); // reset when album changes
+  }, [src]);
+
+  const current = candidates[idx] ?? "";
+
+  if (!current) {
+    return (
+      <div className="w-full h-full border-2 border-retro-border bg-white/60 flex items-center justify-center text-sm opacity-70">
+        Kein Cover vorhanden
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={current}
+      alt={alt}
+      className="w-full h-full object-cover border-2 border-retro-border"
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      crossOrigin="anonymous"
+      onError={() => {
+        // try next candidate
+        if (idx < candidates.length - 1) setIdx((i) => i + 1);
+      }}
+    />
+  );
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -113,7 +149,6 @@ export default function Home() {
   const loadAlbums = useCallback(async () => {
     setLoading(true);
 
-    // Alle Alben der Woche (neueste zuerst)
     const { data, error } = await supabase
       .from("album_of_week_with_score")
       .select("*")
@@ -130,7 +165,7 @@ export default function Home() {
 
     const rows = data ?? [];
     setCurrentAlbum(rows[0] ?? null);
-    setPastAlbums(rows.slice(1)); // alles außer aktuelles als "bisherige"
+    setPastAlbums(rows.slice(1));
     setIdx(0);
     setLoading(false);
   }, []);
@@ -147,8 +182,6 @@ export default function Home() {
       .eq("album_week_id", albumWeekId)
       .order("created_at", { ascending: true });
 
-    console.log("Votes rows:", data, "Error:", error);
-
     if (error) console.error("loadVotes error:", error);
     setVotes(data ?? []);
   }, []);
@@ -157,7 +190,6 @@ export default function Home() {
     loadAlbums();
   }, [loadAlbums]);
 
-  // Votes für aktuell ausgewähltes vergangenes Album laden
   useEffect(() => {
     const album = pastAlbums[idx];
     loadVotesForAlbumWeekId(album?.id);
@@ -168,7 +200,6 @@ export default function Home() {
   const majority = useMemo(() => {
     if (!votes?.length) return null;
 
-    // rating: 1 = Hit, 0 = OK, -1 = Niete
     const counts = { Hit: 0, "Geht in Ordnung": 0, Niete: 0 };
     for (const v of votes) {
       if (v.rating === 1) counts["Hit"]++;
@@ -196,7 +227,7 @@ export default function Home() {
   const currentSpotify = currentAlbum
     ? getSpotifyUrls({
         spotify_id: currentAlbum.spotify_id,
-        spotify_link: currentAlbum.spotify_url, // falls deine View spotify_url liefert
+        spotify_link: currentAlbum.spotify_url,
         title: currentAlbum.title,
         artist: currentAlbum.artist,
       })
@@ -211,10 +242,6 @@ export default function Home() {
       })
     : null;
 
-  // Normalisierte Cover-URLs (wichtig: i.scdn -> spotifycdn)
-  const selectedPastCover = normalizeCoverUrl(selectedPast?.cover_url);
-  const currentCover = normalizeCoverUrl(currentAlbum?.cover_url);
-
   return (
     <main className="bg-retro-bg text-retro-text min-h-screen">
       <div className="pattern-top" />
@@ -223,7 +250,6 @@ export default function Home() {
         <div className="max-w-2xl mx-auto p-8 relative z-10">
           <h1>ALBUM DER WOCHE</h1>
 
-          {/* Album der Woche (View-Widget) */}
           <div className="mb-10">
             <AlbumOfWeekCard />
           </div>
@@ -231,7 +257,8 @@ export default function Home() {
           <div className="w-24 h-[3px] bg-retro-accent mx-auto mb-10" />
 
           {/* ──────────────────────────────────────────
-              AKTUELLES ALBUM DER WOCHE (uuid + votes)
+              AKTUELLES ALBUM DER WOCHE
+              (kein extra Cover – Player reicht)
               ────────────────────────────────────────── */}
           {loading ? (
             <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
@@ -239,19 +266,6 @@ export default function Home() {
             <div className="retro-card p-6 mb-12 text-center">
               <h2 className="font-display text-3xl mb-2">{currentAlbum.title}</h2>
               <p className="meta text-center">{currentAlbum.artist}</p>
-
-              {/* optional: Cover anzeigen, falls du willst */}
-              {currentCover && (
-                <div className="mx-auto my-4 w-[240px] h-[240px]">
-                  <img
-                    src={currentCover}
-                    alt={`${currentAlbum.title} Cover`}
-                    className="w-full h-full object-cover border-2 border-retro-border"
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-              )}
 
               {currentSpotify?.embedUrl && (
                 <div className="mx-auto max-w-2xl">
@@ -284,7 +298,6 @@ export default function Home() {
               )}
 
               <div className="mt-6">
-                {/* ✅ WICHTIG: currentAlbum.id ist jetzt UUID */}
                 <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
               </div>
             </div>
@@ -295,98 +308,81 @@ export default function Home() {
           )}
 
           {/* ──────────────────────────────────────────
-              BISHERIGE ALBEN (aus album_of_week_with_score)
+              BISHERIGE ALBEN
               ────────────────────────────────────────── */}
-          {pastAlbums.length > 0 ? (
+          {pastAlbums.length > 0 && selectedPast ? (
             <div className="retro-card p-6 mb-12">
               <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
                 BISHERIGE ALBEN
               </h3>
 
-              {selectedPast ? (
-                <>
-                  <div className="relative mx-auto mb-4 w-[240px] h-[240px]">
-                    {selectedPastCover ? (
-                      <img
-                        src={selectedPastCover}
-                        alt={`${selectedPast.title} Cover`}
-                        className="w-full h-full object-cover border-2 border-retro-border"
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <div className="w-full h-full border-2 border-retro-border bg-white/60 flex items-center justify-center text-sm opacity-70">
-                        Kein Cover
-                      </div>
-                    )}
+              <div className="relative mx-auto mb-4 w-[240px] h-[240px]">
+                <CoverImage
+                  src={selectedPast.cover_url}
+                  alt={`${selectedPast.title} Cover`}
+                />
 
-                    {majority && (
-                      <div
-                        className={`rating-stamp rating-${majority.vote
-                          .toLowerCase()
-                          .replace(/\s/g, "-")}`}
-                      >
-                        {majority.vote.toUpperCase()}
-                      </div>
-                    )}
+                {majority && (
+                  <div
+                    className={`rating-stamp rating-${majority.vote
+                      .toLowerCase()
+                      .replace(/\s/g, "-")}`}
+                  >
+                    {majority.vote.toUpperCase()}
                   </div>
+                )}
+              </div>
 
-                  <h4 className="text-xl text-center font-semibold mb-1">
-                    {selectedPast.title}
-                    {pastSpotify?.openUrl && (
-                      <a
-                        href={pastSpotify.openUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block ml-2 align-middle"
-                        style={{ border: "none" }}
-                      >
-                        <img
-                          src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                          alt="Spotify"
-                          className="w-5 h-5 inline-block"
-                          style={{ border: "none" }}
-                        />
-                      </a>
-                    )}
-                  </h4>
+              <h4 className="text-xl text-center font-semibold mb-1">
+                {selectedPast.title}
+                {pastSpotify?.openUrl && (
+                  <a
+                    href={pastSpotify.openUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block ml-2 align-middle"
+                    style={{ border: "none" }}
+                  >
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                      alt="Spotify"
+                      className="w-5 h-5 inline-block"
+                      style={{ border: "none" }}
+                    />
+                  </a>
+                )}
+              </h4>
 
-                  <p className="meta text-center mb-4">{selectedPast.artist}</p>
+              <p className="meta text-center mb-4">{selectedPast.artist}</p>
 
-                  <div className="grid gap-4 md:grid-cols-2 mb-6">
-                    <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
-                    <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
-                  </div>
+              <div className="grid gap-4 md:grid-cols-2 mb-6">
+                <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
+                <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
+              </div>
 
-                  {majority && (
-                    <p className="text-center text-xs uppercase tracking-wider opacity-70 mt-2">
-                      {majority.count} Stimme{majority.count > 1 ? "n" : ""}
-                    </p>
-                  )}
-
-                  <div className="flex justify-between mt-2">
-                    <button
-                      onClick={() => setIdx((i) => Math.max(i - 1, 0))}
-                      disabled={idx === 0}
-                      className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
-                    >
-                      ◀ Vorheriges
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))
-                      }
-                      disabled={idx === pastAlbums.length - 1}
-                      className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
-                    >
-                      Nächstes ▶
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <p className="text-center text-gray-500 italic">Kein Album ausgewählt.</p>
+              {majority && (
+                <p className="text-center text-xs uppercase tracking-wider opacity-70 mt-2">
+                  {majority.count} Stimme{majority.count > 1 ? "n" : ""}
+                </p>
               )}
+
+              <div className="flex justify-between mt-2">
+                <button
+                  onClick={() => setIdx((i) => Math.max(i - 1, 0))}
+                  disabled={idx === 0}
+                  className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                >
+                  ◀ Vorheriges
+                </button>
+
+                <button
+                  onClick={() => setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))}
+                  disabled={idx === pastAlbums.length - 1}
+                  className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                >
+                  Nächstes ▶
+                </button>
+              </div>
             </div>
           ) : (
             <p className="text-center text-gray-500 italic mb-8">
