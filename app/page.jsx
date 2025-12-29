@@ -265,11 +265,13 @@ export default function Home() {
               <div className="relative mx-auto mb-4 w-fit">
                 {selectedPast?.cover_url ? (
                   <img
-                    src={selectedPast.cover_url}
-                    alt={`${selectedPast.title} Cover`}
-                    className="border-2 border-retro-border"
-                    loading="lazy"
-                  />
+                  src={selectedPast.cover_url}
+                  alt={`${selectedPast.title} Cover`}
+                  className="border-2 border-retro-border"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
+                
                 ) : (
                   <div className="border-2 border-retro-border bg-white/60 p-8 text-center">
                     Kein Cover vorhanden
