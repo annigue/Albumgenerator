@@ -262,32 +262,26 @@ export default function Home() {
                 BISHERIGE ALBEN
               </h3>
 
-              <div className="relative mx-auto mb-4 w-fit">
-                {selectedPast?.cover_url ? (
-                  <img
-                  src={selectedPast.cover_url}
-                  alt={`${selectedPast.title} Cover`}
-                  className="border-2 border-retro-border"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                />
-                
-                ) : (
-                  <div className="border-2 border-retro-border bg-white/60 p-8 text-center">
-                    Kein Cover vorhanden
-                  </div>
-                )}
+              <div className="relative mx-auto mb-4 w-[240px] h-[240px]">
+  <img
+    src={selectedPast.cover_url}
+    alt={`${selectedPast.title} Cover`}
+    className="w-full h-full object-cover border-2 border-retro-border"
+    loading="lazy"
+    referrerPolicy="no-referrer"
+  />
 
-                {majority && (
-                  <div
-                    className={`rating-stamp rating-${majority.vote
-                      .toLowerCase()
-                      .replace(/\s/g, "-")}`}
-                  >
-                    {majority.vote.toUpperCase()}
-                  </div>
-                )}
-              </div>
+  {majority && (
+    <div
+      className={`rating-stamp rating-${majority.vote
+        .toLowerCase()
+        .replace(/\s/g, "-")}`}
+    >
+      {majority.vote.toUpperCase()}
+    </div>
+  )}
+</div>
+
 
               <h4 className="text-xl text-center font-semibold mb-1">
                 {selectedPast.title}
