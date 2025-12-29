@@ -6,10 +6,7 @@ type VotePayload = {
   album_week_id: string;
   voter: string;
   rating: -1 | 0 | 1;
-
   comment?: string | null;
-
-  // optionale Textfelder (kommen aus dem BewertungForm)
   favorite_song?: string | null;
   favorite_lyric?: string | null;
   worst_song?: string | null;
@@ -27,8 +24,8 @@ export async function POST(req: Request) {
     }
 
     const supabase = createClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY! // server-only
+      process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
     const { data, error } = await supabase
@@ -39,15 +36,11 @@ export async function POST(req: Request) {
           voter: body.voter,
           rating: body.rating,
           comment: body.comment ?? null,
-
           favorite_song: body.favorite_song ?? null,
           favorite_lyric: body.favorite_lyric ?? null,
           worst_song: body.worst_song ?? null,
         },
-        {
-          // WICHTIG: exakt Spaltennamen, kommagetrennt
-          onConflict: "album_week_id,voter",
-        }
+        { onConflict: "album_week_id,voter" } // ✅ richtig
       )
       .select("*")
       .single();

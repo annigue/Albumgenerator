@@ -10,7 +10,7 @@ export default function BewertungForm({ album, onSubmitted }) {
     liebstes_lied: "",
     beste_textzeile: "",
     schlechtestes_lied: "",
-    bewertung: "",
+    bewertung: "", // "Hit" | "Geht in Ordnung" | "Niete"
   });
 
   const [ok, setOk] = useState(false);
@@ -19,22 +19,24 @@ export default function BewertungForm({ album, onSubmitted }) {
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const ratingToInt = (label) => {
+  const mapRating = (label) => {
     if (label === "Hit") return 1;
     if (label === "Geht in Ordnung") return 0;
-    return -1; // "Niete"
+    if (label === "Niete") return -1;
+    return null;
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
 
     if (!album?.id) {
-      alert("Kein Album ausgewählt. Bitte versuche es erneut.");
+      alert("Kein Album ausgewählt. Bitte Seite neu laden.");
       return;
     }
 
-    if (!form.name || !form.bewertung) {
-      alert("Bitte Teilnehmer und Gesamtbewertung auswählen.");
+    const rating = mapRating(form.bewertung);
+    if (rating === null) {
+      alert("Bitte eine Gesamtbewertung auswählen.");
       return;
     }
 
@@ -42,19 +44,15 @@ export default function BewertungForm({ album, onSubmitted }) {
     setOk(false);
 
     const payload = {
-      album_week_id: album.id,
+      album_week_id: album.id, // ✅ UUID
       voter: form.name,
-      rating: ratingToInt(form.bewertung),
+      rating, // ✅ -1/0/1
 
-      favorite_song: form.liebstes_lied?.trim() || null,
-      favorite_lyric: form.beste_textzeile?.trim() || null,
-      worst_song: form.schlechtestes_lied?.trim() || null,
-
-      comment: null,
+      // ✅ Songs/Zeilen mitschicken (optional -> null)
+      favorite_song: form.liebstes_lied?.trim() ? form.liebstes_lied.trim() : null,
+      favorite_lyric: form.beste_textzeile?.trim() ? form.beste_textzeile.trim() : null,
+      worst_song: form.schlechtestes_lied?.trim() ? form.schlechtestes_lied.trim() : null,
     };
-    console.log("ALBUM OBJ:", album);
-    console.log("album.id:", album?.id, "type:", typeof album?.id);
-    
 
     try {
       const res = await fetch("/api/votes", {
@@ -66,8 +64,7 @@ export default function BewertungForm({ album, onSubmitted }) {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        const msg = data?.error || `Fehler beim Absenden (HTTP ${res.status})`;
-        throw new Error(msg);
+        throw new Error(data?.error || `Fehler beim Absenden (HTTP ${res.status})`);
       }
 
       setOk(true);
