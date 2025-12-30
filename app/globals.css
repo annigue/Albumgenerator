@@ -11,6 +11,14 @@ body {
   @apply bg-retro-bg text-retro-text font-sans;
 }
 
+/* ✅ List-Bullets global aus (verhindert " - + " Artefakte) */
+ul,
+ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
 /* 🟧🖤 Schachbrett-Dekor oben & unten */
 .pattern-top,
 .pattern-bottom {
@@ -24,8 +32,7 @@ body {
   /* stabile Kachelung (keine fractional offsets) */
   background-position: 0 0, 0 10px, 10px 10px, 10px 0;
 
-  background-image:
-    linear-gradient(45deg, #000 25%, transparent 25%),
+  background-image: linear-gradient(45deg, #000 25%, transparent 25%),
     linear-gradient(-45deg, #000 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #000 75%),
     linear-gradient(-45deg, transparent 75%, #000 75%);
@@ -33,7 +40,6 @@ body {
   /* hilft gegen „weiche“ Kanten bei manchen Renderern */
   image-rendering: pixelated;
 }
-
 
 .pattern-top {
   @apply border-b-2 border-retro-border;
@@ -60,7 +66,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(255, 248, 235, 0.70); /* mehr Foto sichtbar */
+  background: rgba(255, 248, 235, 0.7); /* mehr Foto sichtbar */
   pointer-events: none;
   z-index: 0;
 }
@@ -75,14 +81,21 @@ body {
    Card / Kasten Look (rockig aber clean)
    ========================================= */
 
+/* ✅ Einheitliche, minimale Rundung für professionelleren Look */
+.retro-card,
+.form-card {
+  border-radius: 4px;
+}
+
+/* ✅ Karten-Design vereinheitlicht (gleiche DNA) */
 .retro-card {
   background-color: #fff8eb;
   border: 2px solid #969595;
-  box-shadow: 6px 6px 0 #363636;
+  box-shadow: 6px 6px 0 #616060;
 }
 
 .retro-card--soft {
-  box-shadow: 4px 4px 0 #363636;
+  box-shadow: 4px 4px 0 #616060;
 }
 
 /* =========================================
@@ -93,9 +106,12 @@ form {
   @apply flex flex-col space-y-4 text-left;
 }
 
+/* ✅ Form-Karte an retro-card angeglichen (vorher zu flach/anders) */
 .form-card {
-  @apply border-2 border-retro-border p-6 shadow-sm;
-  background-color: #fff8eb; /* passt zu retro-card */
+  background-color: #fff8eb;
+  border: 2px solid #969595;
+  box-shadow: 4px 4px 0 #616060; /* etwas ruhiger als retro-card */
+  padding: 1.5rem;
 }
 
 .form-group {
@@ -124,8 +140,9 @@ button {
   shadow-sm tracking-wide hover:bg-black transition disabled:opacity-50;
 
   text-transform: uppercase;
-  font-size: 0.95rem;       /* ruhiger als 0.9 + kein Konflikt mit text-lg */
+  font-size: 0.95rem; /* ruhiger als 0.9 + kein Konflikt mit text-lg */
   letter-spacing: 0.08em;
+  border-radius: 4px; /* ✅ subtil abrunden wie Cards */
 }
 
 button:hover {
@@ -151,11 +168,14 @@ thead {
    ========================================= */
 
 h1 {
-    @apply font-display text-6xl text-retro-accent text-center mb-12;
-    letter-spacing: 0.18em;   /* weniger als vorher → ruhiger */
-    font-weight: 600;         /* 👈 das macht den Profi-Unterschied */
+  @apply font-display text-retro-accent mb-16;
+  text-align: right; /* ✅ rechtsbündig */
+  font-size: 5.5rem; /* ✅ deutlich größer */
+  letter-spacing: 0.22em; /* edel, nicht zu eng */
+  font-weight: 600;
+  line-height: 1.05; /* kompakter, professioneller */
 }
-  
+
 h2 {
   @apply font-display text-3xl mb-2;
   letter-spacing: 0.08em;
@@ -194,39 +214,38 @@ iframe {
    Album-Bewertungs-Stempel (verfeinert)
    ========================================= */
 
-   .rating-stamp {
-    position: absolute;
-    top: -18px;          /* 👈 weiter nach außen */
-    right: -22px;
-  
-    padding: 6px 12px;   /* 👈 kleiner & eleganter */
-    border: 2px solid #1d1d1d;
-  
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 0.65rem;  /* 👈 deutlich kleiner */
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  
-    background: #fff8eb;
-    color: #1d1d1d;
-  
-    transform: rotate(6deg);
-    box-shadow: 2px 2px 0 #1d1d1d;
-  
-    pointer-events: none;
-  }
-  
-  /* Farbvarianten – bewusst entsättigt */
-  .rating-hit {
-    background: #e7f3df;
-  }
-  
-  .rating-geht-in-ordnung {
-    background: #f4f1e8;
-  }
-  
-  .rating-niete {
-    background: #f6e4e4;
-  }
-  
+.rating-stamp {
+  position: absolute;
+  top: -18px; /* 👈 weiter nach außen */
+  right: -22px;
 
+  padding: 6px 12px; /* 👈 kleiner & eleganter */
+  border: 2px solid #1d1d1d;
+
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.65rem; /* 👈 deutlich kleiner */
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+
+  background: #fff8eb;
+  color: #1d1d1d;
+
+  transform: rotate(6deg);
+  box-shadow: 2px 2px 0 #1d1d1d;
+
+  pointer-events: none;
+  border-radius: 4px; /* ✅ passt zur neuen Karten-Rundung */
+}
+
+/* Farbvarianten – bewusst entsättigt */
+.rating-hit {
+  background: #e7f3df;
+}
+
+.rating-geht-in-ordnung {
+  background: #f4f1e8;
+}
+
+.rating-niete {
+  background: #f6e4e4;
+}
