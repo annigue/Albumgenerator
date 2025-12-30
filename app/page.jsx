@@ -238,23 +238,32 @@ export default function Home() {
 
   const selectedPast = pastAlbums[idx] ?? null;
 
-  const majority = useMemo(() => {
-    if (!votes?.length) return null;
-
-    const counts = { Hit: 0, "Geht in Ordnung": 0, Niete: 0 };
+  const voteStats = useMemo(() => {
+    const stats = {
+      votes_total: votes.length,
+      hits: 0,
+      okays: 0,
+      flops: 0,
+    };
+  
     for (const v of votes) {
-      if (v.rating === 1) counts["Hit"]++;
-      else if (v.rating === 0) counts["Geht in Ordnung"]++;
-      else if (v.rating === -1) counts["Niete"]++;
+      if (v.rating === 1) stats.hits++;
+      else if (v.rating === 0) stats.okays++;
+      else if (v.rating === -1) stats.flops++;
     }
-
-    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-    const winner = sorted?.[0]?.[0] ?? null;
-    if (!winner) return null;
-
-    return { vote: winner, count: counts[winner] };
+  
+    // Gewinner für den Stempel
+    const max = Math.max(stats.hits, stats.okays, stats.flops);
+    let winner = null;
+    if (max > 0) {
+      if (stats.hits === max) winner = "Hit";
+      else if (stats.okays === max) winner = "Geht in Ordnung";
+      else if (stats.flops === max) winner = "Niete";
+    }
+  
+    return { ...stats, winner };
   }, [votes]);
-
+  
   const favoritesTop = useMemo(() => {
     const list = (votes ?? []).map((v) => v?.favorite_song);
     return topCounts(list, 5);
