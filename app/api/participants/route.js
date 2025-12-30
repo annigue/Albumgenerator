@@ -1,61 +1,92 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { supabase } from "../../../lib/supabaseClient"; // ✅ nutzt anon key + RLS
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+export const runtime = "nodejs"; // wichtig für Resend
 
-export async function POST(req) {
+type Payload = {
+  event?: string;
+  record?: {
+    id?: string;
+    user_id?: string;
+    display_name?: string;
+    email?: string | null;
+    created_at?: string;
+  };
+};
+
+export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const name = (body?.name ?? "").trim();
-    const email = (body?.email ?? "").trim() || null;
-
-    if (!name) {
-      return NextResponse.json({ error: "Name ist Pflicht." }, { status: 400 });
+    // 1) Webhook-Secret prüfen
+    const secret = req.headers.get("x-webhook-secret");
+    if (!secret || secret !== process.env.WEBHOOK_SECRET) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     }
 
-    // Teilnehmer speichern
-    const { data, error } = await supabase
-      .from("participants")
-      .insert([{ name, email }])
-      .select("*")
-      .single();
+    // 2) Body lesen
+    const body = (await req.json()) as Payload;
+    const r = body?.record;
 
-    // Duplicate name -> freundliche Meldung
+    const displayName = (r?.display_name ?? "").toString().trim();
+    const email = (r?.email ?? "").toString().trim();
+
+    if (!displayName) {
+      return NextResponse.json({ error: "missing display_name" }, { status: 400 });
+    }
+
+    const resendKey = process.env.RESEND_API_KEY;
+    if (!resendKey) {
+      return NextResponse.json({ error: "RESEND_API_KEY missing" }, { status: 500 });
+    }
+
+    const resend = new Resend(resendKey);
+
+    const to = process.env.NOTIFY_TO_EMAIL || ""; // deine Mailadresse
+    if (!to) {
+      return NextResponse.json(
+        { error: "NOTIFY_TO_EMAIL missing" },
+        { status: 500 }
+      );
+    }
+
+    const from = process.env.RESEND_FROM || "Album der Woche <onboarding@resend.dev>";
+
+    // 3) Mail senden
+    const subject = `Neuer Teilnehmer: ${displayName}`;
+    const html = `
+      <div style="font-family: Inter, Arial, sans-serif; line-height: 1.5">
+        <h2>Neuer Teilnehmer angemeldet</h2>
+        <p><strong>Name:</strong> ${escapeHtml(displayName)}</p>
+        <p><strong>Email:</strong> ${email ? escapeHtml(email) : "<em>(keine)</em>"}</p>
+        <p><strong>User ID:</strong> ${escapeHtml(r?.user_id ?? "")}</p>
+        <p><strong>Created:</strong> ${escapeHtml(r?.created_at ?? "")}</p>
+      </div>
+    `;
+
+    const { error } = await resend.emails.send({
+      from,
+      to,
+      subject,
+      html,
+    });
+
     if (error) {
-      const msg = error.message || "";
-      if (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique")) {
-        return NextResponse.json({ error: "Diesen Namen gibt es schon 🙂" }, { status: 409 });
-      }
-      return NextResponse.json({ error: msg }, { status: 400 });
+      console.error("Resend error:", error);
+      return NextResponse.json({ error: "email_failed", details: error }, { status: 500 });
     }
 
-    // Mail an dich
-    const notifyTo = process.env.NOTIFY_EMAIL;
-    if (process.env.RESEND_API_KEY && notifyTo) {
-      await resend.emails.send({
-        from: "Albumgenerator <onboarding@resend.dev>",
-        to: [notifyTo],
-        subject: "Neuer Teilnehmer im Albumgenerator",
-        html: `
-          <div style="font-family:Inter,Arial,sans-serif">
-            <h2>Neuer Teilnehmer</h2>
-            <p><b>Name:</b> ${escapeHtml(name)}</p>
-            <p><b>Email:</b> ${escapeHtml(email ?? "(keine)")}</p>
-            <p><b>Zeit:</b> ${new Date().toISOString()}</p>
-          </div>
-        `,
-      });
-    }
-
-    return NextResponse.json({ data }, { status: 200 });
-  } catch (e) {
-    return NextResponse.json({ error: e?.message ?? "Unbekannter Fehler" }, { status: 500 });
+    return NextResponse.json({ ok: true }, { status: 200 });
+  } catch (e: any) {
+    console.error("notify-participant error:", e);
+    return NextResponse.json(
+      { error: e?.message ?? "unknown_error" },
+      { status: 500 }
+    );
   }
 }
 
-function escapeHtml(s) {
-  return String(s)
+// minimales Escaping
+function escapeHtml(s: string) {
+  return s
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
