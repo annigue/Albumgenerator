@@ -163,29 +163,26 @@ export default function BewertungForm({ album, onSubmitted }) {
       </h3>
 
       <div className="form-group">
-        <label htmlFor="display_name">Teilnehmer</label>
-        <select
-          id="display_name"
-          name="display_name"
-          value={form.display_name}
-          onChange={onChange}
-          required
-          disabled={loadingParticipants || sending}
-        >
-          <option value="">
-            {loadingParticipants ? "Lade Teilnehmer…" : "Bitte wählen…"}
-          </option>
-          {participants.map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </select>
+  <label htmlFor="display_name">Teilnehmer</label>
+  <select
+    id="display_name"
+    name="name"
+    value={form.name}
+    onChange={onChange}
+    required
+    disabled={loadingParticipants || sending}
+  >
+    <option value="">
+      {loadingParticipants ? "Lade Teilnehmer…" : "Bitte wählen…"}
+    </option>
+    {participants.map((n) => (
+      <option key={n} value={n}>
+        {n}
+      </option>
+    ))}
+  </select>
+</div>
 
-        <p className="text-xs opacity-70 mt-1">
-          Fehlt dein Name? Dann melde dich unten an.
-        </p>
-      </div>
 
       <div className="form-group">
         <label htmlFor="liebstes_lied">Liebstes Lied</label>
