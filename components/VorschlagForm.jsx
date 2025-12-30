@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-
-const TEILNEHMER = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 const initialForm = {
   suggested_by: "",
@@ -15,26 +14,59 @@ const initialForm = {
 };
 
 export default function VorschlagForm() {
+  const [participants, setParticipants] = useState([]);
+  const [loadingParticipants, setLoadingParticipants] = useState(true);
+
   const [form, setForm] = useState(initialForm);
   const [sending, setSending] = useState(false);
   const [ok, setOk] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      setLoadingParticipants(true);
+
+      const { data, error } = await supabase
+        .from("participants")
+        .select("name")
+        .order("name", { ascending: true });
+
+      if (error) console.error("participants load error:", error);
+      setParticipants((data ?? []).map((x) => x.name));
+      setLoadingParticipants(false);
+    })();
+  }, []);
 
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
+
     setSending(true);
     setOk(false);
 
-    // kleine Hygiene: trim + optionals -> null/"" lassen wir serverseitig entscheiden
+    // Pflichtfelder: alles außer favorite_lyric
+    if (
+      !form.suggested_by ||
+      !form.title ||
+      !form.artist ||
+      !form.reason ||
+      !form.favorite_song ||
+      !form.worst_song
+    ) {
+      alert("Bitte alle Felder ausfüllen (außer Liebste Textzeile).");
+      setSending(false);
+      return;
+    }
+
     const payload = {
       suggested_by: form.suggested_by.trim(),
       title: form.title.trim(),
       artist: form.artist.trim(),
       reason: form.reason.trim(),
       favorite_song: form.favorite_song.trim(),
-      favorite_lyric: form.favorite_lyric.trim(),
+      favorite_lyric: form.favorite_lyric?.trim() || null, // optional
       worst_song: form.worst_song.trim(),
     };
 
@@ -48,16 +80,12 @@ export default function VorschlagForm() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        // Duplicate case (409), falls du das im Backend so setzt
         if (res.status === 409) {
           alert("Dieses Album wurde bereits vorgeschlagen 🙂");
           return;
         }
 
-        // Backend-Fehlertext anzeigen, wenn vorhanden
-        const msg =
-          data?.error ||
-          `Fehler beim Vorschlagen (HTTP ${res.status})`;
+        const msg = data?.error || `Fehler beim Vorschlagen (HTTP ${res.status})`;
         throw new Error(msg);
       }
 
@@ -82,33 +110,42 @@ export default function VorschlagForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="form-card mt-10">
+    <form onSubmit={onSubmit} className="form-card mt-10" noValidate>
       <h3 className="text-retro-accent font-display text-2xl mb-4 tracking-widest text-center">
         NEUES ALBUM VORSCHLAGEN
       </h3>
 
       {/* Teilnehmer */}
       <div className="form-group">
-        <label>Teilnehmer</label>
+        <label htmlFor="suggested_by">Teilnehmer</label>
         <select
+          id="suggested_by"
           name="suggested_by"
           value={form.suggested_by}
           onChange={onChange}
           required
+          disabled={loadingParticipants}
         >
-          <option value="">Bitte wählen…</option>
-          {TEILNEHMER.map((t) => (
+          <option value="">
+            {loadingParticipants ? "Lade Teilnehmer…" : "Bitte wählen…"}
+          </option>
+          {participants.map((t) => (
             <option key={t} value={t}>
               {t}
             </option>
           ))}
         </select>
+
+        <p className="text-xs opacity-70 mt-1">
+          Fehlt dein Name? Dann melde dich unten an.
+        </p>
       </div>
 
       {/* Albumtitel */}
       <div className="form-group">
-        <label>Albumtitel</label>
+        <label htmlFor="title">Albumtitel</label>
         <input
+          id="title"
           name="title"
           value={form.title}
           onChange={onChange}
@@ -119,8 +156,9 @@ export default function VorschlagForm() {
 
       {/* Artist */}
       <div className="form-group">
-        <label>Interpret</label>
+        <label htmlFor="artist">Interpret</label>
         <input
+          id="artist"
           name="artist"
           value={form.artist}
           onChange={onChange}
@@ -131,8 +169,9 @@ export default function VorschlagForm() {
 
       {/* Begründung */}
       <div className="form-group">
-        <label>Warum dieses Album?</label>
+        <label htmlFor="reason">Warum dieses Album?</label>
         <textarea
+          id="reason"
           name="reason"
           value={form.reason}
           onChange={onChange}
@@ -144,8 +183,9 @@ export default function VorschlagForm() {
 
       {/* Lieblingslied */}
       <div className="form-group">
-        <label>Lieblingslied</label>
+        <label htmlFor="favorite_song">Lieblingslied</label>
         <input
+          id="favorite_song"
           name="favorite_song"
           value={form.favorite_song}
           onChange={onChange}
@@ -155,8 +195,9 @@ export default function VorschlagForm() {
 
       {/* Lieblingszeile */}
       <div className="form-group">
-        <label>Liebste Textzeile</label>
+        <label htmlFor="favorite_lyric">Liebste Textzeile (optional)</label>
         <textarea
+          id="favorite_lyric"
           name="favorite_lyric"
           value={form.favorite_lyric}
           onChange={onChange}
@@ -167,8 +208,9 @@ export default function VorschlagForm() {
 
       {/* Schlechtestes Lied */}
       <div className="form-group">
-        <label>Schlechtestes Lied</label>
+        <label htmlFor="worst_song">Schlechtestes Lied</label>
         <input
+          id="worst_song"
           name="worst_song"
           value={form.worst_song}
           onChange={onChange}
