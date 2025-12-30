@@ -116,7 +116,7 @@ export default function AlbumOfWeekCard() {
     load();
   }, []);
 
-  if (loading) return <div>Lade Album der Woche …</div>;
+  /*if (loading) return <div>Lade Album der Woche …</div>;*/
 
   if (errMsg) {
     return (
