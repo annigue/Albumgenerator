@@ -191,38 +191,41 @@ iframe {
 }
 
 /* =========================================
-   Album-Bewertungs-Stempel
+   Album-Bewertungs-Stempel (verfeinert)
    ========================================= */
 
    .rating-stamp {
     position: absolute;
-    top: 14px;
-    right: 14px;
-    transform: rotate(-8deg);
+    top: -18px;          /* 👈 weiter nach außen */
+    right: -22px;
   
-    padding: 10px 20px;          /* 👈 größerer „Stempel-Körper“ */
+    padding: 6px 12px;   /* 👈 kleiner & eleganter */
     border: 2px solid #1d1d1d;
   
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.35rem;          /* 👈 klar größer */
-    letter-spacing: 0.18em;      /* 👈 plakativ, hochwertig */
+    font-size: 0.65rem;  /* 👈 deutlich kleiner */
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   
     background: #fff8eb;
-    box-shadow: 4px 4px 0 #1d1d1d;
+    color: #1d1d1d;
+  
+    transform: rotate(6deg);
+    box-shadow: 2px 2px 0 #1d1d1d;
   
     pointer-events: none;
   }
   
-  /* Farbvarianten */
+  /* Farbvarianten – bewusst entsättigt */
   .rating-hit {
-    background: #c9f2c7;
+    background: #e7f3df;
   }
   
   .rating-geht-in-ordnung {
-    background: #f4f0c9;
+    background: #f4f1e8;
   }
   
   .rating-niete {
-    background: #f2c7c7;
+    background: #f6e4e4;
   }
   
