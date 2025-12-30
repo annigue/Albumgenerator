@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 export default function ParticipantSignupForm({ onDone }) {
-  const [name, setName] = useState("");
+  const [display_name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [ok, setOk] = useState(false);
