@@ -33,9 +33,7 @@ function topCounts(items, topN = 5) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Spotify Cover URL Fallbacks (WICHTIG)
-   - image-cdn-ak.spotifycdn.com liefert oft 404 außerhalb des Spotify-Embeds
-   - i.scdn.co ist der verlässliche Hotlink-Host
+   Spotify Cover URL Kandidaten + oEmbed Fallback
    ────────────────────────────────────────────────────────── */
 function extractSpotifyImageHash(input) {
   const s = (input ?? "").toString();
@@ -49,40 +47,45 @@ function coverCandidates(raw) {
 
   const hash = extractSpotifyImageHash(url);
 
-  // Wenn es ein Spotify-Hash ist, ist i.scdn unser Goldstandard:
-  const isSpotifyCdn =
-    /spotifycdn\.com\/image\//i.test(url) || /image-cdn/i.test(url);
-
-  // 1) Wenn URL schon i.scdn ist -> verwenden
-  if (/^https?:\/\/i\.scdn\.co\/image\//i.test(url)) {
-    return [url];
-  }
-
-  // 2) Wenn es Spotify-CDN (image-cdn-ak etc.) ist -> NICHT nutzen, sondern i.scdn bauen
-  if (hash && isSpotifyCdn) {
-    return [`https://i.scdn.co/image/${hash}`];
-  }
-
-  // 3) Sonst: Original (wenn http) + i.scdn (wenn Hash vorhanden)
+  // 1) Original URL, falls es eine normale Bild-URL ist
   const list = [];
   if (/^https?:\/\//i.test(url)) list.push(url);
+
+  // 2) i.scdn Variante (kann bei dir leider auch 404 sein -> trotzdem als Candidate)
   if (hash) list.push(`https://i.scdn.co/image/${hash}`);
+
+  // 3) image-cdn-ak NICHT priorisieren, aber als letzten Versuch drin lassen
+  // (bei dir oft 404 außerhalb des embeds, aber falls es doch mal geht)
+  if (hash) list.push(`https://image-cdn-ak.spotifycdn.com/image/${hash}`);
 
   return Array.from(new Set(list));
 }
 
-/* Robust cover component that retries on error */
-function CoverImage({ src, alt }) {
+/**
+ * CoverImage:
+ * - probiert Candidates der Reihe nach
+ * - wenn alle scheitern: holt thumbnail_url über Spotify oEmbed (kein Key nötig)
+ */
+function CoverImage({ src, alt, spotifyUrl }) {
   const candidates = useMemo(() => coverCandidates(src), [src]);
-  const [idx, setIdx] = useState(0);
+  const [i, setI] = useState(0);
+
+  const [oembedUrl, setOembedUrl] = useState("");
+  const [triedOembed, setTriedOembed] = useState(false);
 
   useEffect(() => {
-    setIdx(0); // reset when album changes
-  }, [src]);
+    setI(0);
+    setOembedUrl("");
+    setTriedOembed(false);
+  }, [src, spotifyUrl]);
 
-  const current = candidates[idx] ?? "";
+  const currentCandidate = candidates[i] ?? "";
 
-  if (!current) {
+  // Wenn wir schon oEmbed-URL haben, zeigen wir die (und probieren nichts anderes mehr)
+  const finalSrc = oembedUrl || currentCandidate;
+
+  // Nichts vorhanden
+  if (!finalSrc) {
     return (
       <div className="w-full h-full border-2 border-retro-border bg-white/60 flex items-center justify-center text-sm opacity-70">
         Kein Cover vorhanden
@@ -90,15 +93,42 @@ function CoverImage({ src, alt }) {
     );
   }
 
+  async function fetchOembed() {
+    if (!spotifyUrl || triedOembed) return;
+    setTriedOembed(true);
+
+    try {
+      const res = await fetch(
+        `https://open.spotify.com/oembed?url=${encodeURIComponent(spotifyUrl)}`
+      );
+      if (!res.ok) return;
+
+      const data = await res.json().catch(() => null);
+      const thumb = data?.thumbnail_url;
+      if (thumb) setOembedUrl(thumb);
+    } catch {
+      // ignore
+    }
+  }
+
   return (
     <img
-      src={current}
+      src={finalSrc}
       alt={alt}
       className="w-full h-full object-cover border-2 border-retro-border"
       loading="lazy"
-      // KEIN referrerPolicy="no-referrer" hier erzwingen – unnötig und kann Host-Checks triggern
       onError={() => {
-        if (idx < candidates.length - 1) setIdx((i) => i + 1);
+        // Wenn wir gerade oEmbed anzeigen und das auch fehlschlägt -> gib auf
+        if (oembedUrl) return;
+
+        // Next candidate?
+        if (i < candidates.length - 1) {
+          setI((prev) => prev + 1);
+          return;
+        }
+
+        // Alle candidates durch -> oEmbed versuchen
+        fetchOembed();
       }}
     />
   );
@@ -331,6 +361,8 @@ export default function Home() {
                 <CoverImage
                   src={selectedPast.cover_url}
                   alt={`${selectedPast.title} Cover`}
+                  // entscheidend: oEmbed braucht einen spotify URL
+                  spotifyUrl={selectedPast.spotify_url || pastSpotify?.openUrl || ""}
                 />
 
                 {majority && (
