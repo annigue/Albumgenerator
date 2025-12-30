@@ -229,3 +229,9 @@ iframe {
     background: #f6e4e4;
   }
   
+  ul,
+ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
