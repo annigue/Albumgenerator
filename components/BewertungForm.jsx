@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 const TEILNEHMER = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
 
@@ -9,6 +10,13 @@ function mapBewertungToRating(bewertung) {
   if (bewertung === "Geht in Ordnung") return 0;
   if (bewertung === "Niete") return -1;
   return null;
+}
+
+function mapRatingToBewertung(rating) {
+  if (rating === 1) return "Hit";
+  if (rating === 0) return "Geht in Ordnung";
+  if (rating === -1) return "Niete";
+  return "";
 }
 
 export default function BewertungForm({ album, onSubmitted }) {
@@ -20,23 +28,62 @@ export default function BewertungForm({ album, onSubmitted }) {
     bewertung: "",
   });
 
-  const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
+  const [ok, setOk] = useState(false);
+  const [existingVote, setExistingVote] = useState(null);
+  const [checking, setChecking] = useState(false);
 
-  const onChange = (e) =>
+  const onChange = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setOk(false);
+  };
+
+  /* ──────────────────────────────────────────
+     Prüfen: hat Teilnehmer schon bewertet?
+     ────────────────────────────────────────── */
+  useEffect(() => {
+    if (!album?.id || !form.name) {
+      setExistingVote(null);
+      return;
+    }
+
+    setChecking(true);
+
+    supabase
+      .from("votes")
+      .select("*")
+      .eq("album_week_id", album.id)
+      .eq("voter", form.name)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        if (data) {
+          setExistingVote(data);
+          setForm((f) => ({
+            ...f,
+            liebstes_lied: data.favorite_song ?? "",
+            beste_textzeile: data.favorite_lyric ?? "",
+            schlechtestes_lied: data.worst_song ?? "",
+            bewertung: mapRatingToBewertung(data.rating),
+          }));
+        } else {
+          setExistingVote(null);
+        }
+      })
+      .finally(() => setChecking(false));
+  }, [album?.id, form.name]);
+
+  /* ────────────────────────────────────────── */
 
   const onSubmit = async (e) => {
-    // WICHTIG: verhindert echtes Page-Reload Submit
     e.preventDefault();
     e.stopPropagation();
 
-    setOk(false);
-
-    if (!album?.id) {
-      alert("Kein aktuelles Album gefunden (album.id fehlt).");
-      return;
-    }
+    if (!album?.id) return;
 
     const rating = mapBewertungToRating(form.bewertung);
     if (rating === null) {
@@ -47,45 +94,28 @@ export default function BewertungForm({ album, onSubmitted }) {
     setSending(true);
 
     try {
-      const payload = {
-        album_week_id: album.id, // UUID!
-        voter: form.name,
-        rating, // -1/0/1
-        favorite_song: form.liebstes_lied?.trim() || null,
-        favorite_lyric: form.beste_textzeile?.trim() || null,
-        worst_song: form.schlechtestes_lied?.trim() || null,
-        comment: null,
-      };
-
       const res = await fetch("/api/votes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          album_week_id: album.id,
+          voter: form.name,
+          rating,
+          favorite_song: form.liebstes_lied || null,
+          favorite_lyric: form.beste_textzeile || null,
+          worst_song: form.schlechtestes_lied || null,
+        }),
       });
-
-      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        console.error("Vote POST failed:", res.status, data);
-        alert(data?.error || `Fehler beim Absenden (HTTP ${res.status})`);
-        return;
+        const err = await res.json();
+        throw new Error(err?.error || "Fehler beim Speichern");
       }
 
-      // Erfolg
       setOk(true);
-      setForm({
-        name: "",
-        liebstes_lied: "",
-        beste_textzeile: "",
-        schlechtestes_lied: "",
-        bewertung: "",
-      });
-
-      // Parent kann danach votes neu laden / UI updaten
       onSubmitted?.();
     } catch (err) {
-      console.error(err);
-      alert(`Fehler beim Absenden 😢\n${err?.message ?? ""}`);
+      alert(err.message);
     } finally {
       setSending(false);
     }
@@ -96,8 +126,8 @@ export default function BewertungForm({ album, onSubmitted }) {
   if (ok) {
     return (
       <div className="form-card text-center">
-        <p className="font-display text-xl tracking-wide text-retro-accent">
-          ✅ Danke für deine Bewertung!
+        <p className="font-display text-xl text-retro-accent">
+          ✅ Bewertung gespeichert
         </p>
       </div>
     );
@@ -105,19 +135,20 @@ export default function BewertungForm({ album, onSubmitted }) {
 
   return (
     <form onSubmit={onSubmit} className="form-card" noValidate>
-      <h3 className="text-retro-accent font-display text-2xl mb-1 tracking-widest text-center">
+      <h3 className="text-retro-accent font-display text-2xl mb-2 text-center">
         ALBUM BEWERTEN
       </h3>
 
+      {existingVote && (
+        <p className="text-sm text-center mb-3 opacity-80">
+          ✏️ Du hast dieses Album bereits bewertet – du kannst deine Bewertung
+          ändern.
+        </p>
+      )}
+
       <div className="form-group">
-        <label htmlFor="name">Teilnehmer</label>
-        <select
-          id="name"
-          name="name"
-          value={form.name}
-          onChange={onChange}
-          required
-        >
+        <label>Teilnehmer</label>
+        <select name="name" value={form.name} onChange={onChange} required>
           <option value="">Bitte wählen…</option>
           {TEILNEHMER.map((t) => (
             <option key={t} value={t}>
@@ -128,9 +159,8 @@ export default function BewertungForm({ album, onSubmitted }) {
       </div>
 
       <div className="form-group">
-        <label htmlFor="liebstes_lied">Liebstes Lied</label>
+        <label>Liebstes Lied</label>
         <input
-          id="liebstes_lied"
           name="liebstes_lied"
           value={form.liebstes_lied}
           onChange={onChange}
@@ -139,21 +169,19 @@ export default function BewertungForm({ album, onSubmitted }) {
       </div>
 
       <div className="form-group">
-        <label htmlFor="beste_textzeile">Beste Textzeile</label>
+        <label>Beste Textzeile</label>
         <textarea
-          id="beste_textzeile"
           name="beste_textzeile"
           value={form.beste_textzeile}
           onChange={onChange}
-          placeholder="optional"
           rows={3}
+          placeholder="optional"
         />
       </div>
 
       <div className="form-group">
-        <label htmlFor="schlechtestes_lied">Schlechtestes Lied</label>
+        <label>Schlechtestes Lied</label>
         <input
-          id="schlechtestes_lied"
           name="schlechtestes_lied"
           value={form.schlechtestes_lied}
           onChange={onChange}
@@ -162,9 +190,8 @@ export default function BewertungForm({ album, onSubmitted }) {
       </div>
 
       <div className="form-group">
-        <label htmlFor="bewertung">Gesamtbewertung</label>
+        <label>Gesamtbewertung</label>
         <select
-          id="bewertung"
           name="bewertung"
           value={form.bewertung}
           onChange={onChange}
@@ -177,8 +204,12 @@ export default function BewertungForm({ album, onSubmitted }) {
         </select>
       </div>
 
-      <button type="submit" disabled={sending}>
-        {sending ? "WIRD GESENDET…" : "SUBMIT"}
+      <button type="submit" disabled={sending || checking}>
+        {sending
+          ? "WIRD GESPEICHERT…"
+          : existingVote
+          ? "BEWERTUNG AKTUALISIEREN"
+          : "SUBMIT"}
       </button>
     </form>
   );
