@@ -30,11 +30,11 @@ export default function BewertungForm({ album, onSubmitted }) {
       setLoadingParticipants(true);
       const { data, error } = await supabase
         .from("participants")
-        .select("name")
-        .order("name", { ascending: true });
+        .select("display_name")
+        .order("display_name", { ascending: true });
 
       if (error) console.error("participants load error:", error);
-      setParticipants((data ?? []).map((x) => x.name).filter(Boolean));
+      setParticipants((data ?? []).map((x) => x.display_name).filter(Boolean));
       setLoadingParticipants(false);
     })();
   }, []);

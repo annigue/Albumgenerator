@@ -27,11 +27,12 @@ export default function VorschlagForm() {
 
       const { data, error } = await supabase
         .from("participants")
-        .select("name")
-        .order("name", { ascending: true });
+        .select("display_name")
+        .order("display_name", { ascending: true });
 
       if (error) console.error("participants load error:", error);
-      setParticipants((data ?? []).map((x) => x.name));
+
+      setParticipants((data ?? []).map((x) => x.display_name));
       setLoadingParticipants(false);
     })();
   }, []);
@@ -84,9 +85,7 @@ export default function VorschlagForm() {
           alert("Dieses Album wurde bereits vorgeschlagen 🙂");
           return;
         }
-
-        const msg = data?.error || `Fehler beim Vorschlagen (HTTP ${res.status})`;
-        throw new Error(msg);
+        throw new Error(data?.error || `Fehler beim Vorschlagen (HTTP ${res.status})`);
       }
 
       setOk(true);
@@ -115,11 +114,9 @@ export default function VorschlagForm() {
         NEUES ALBUM VORSCHLAGEN
       </h3>
 
-      {/* Teilnehmer */}
       <div className="form-group">
-        <label htmlFor="suggested_by">Teilnehmer</label>
+        <label>Teilnehmer</label>
         <select
-          id="suggested_by"
           name="suggested_by"
           value={form.suggested_by}
           onChange={onChange}
@@ -129,63 +126,50 @@ export default function VorschlagForm() {
           <option value="">
             {loadingParticipants ? "Lade Teilnehmer…" : "Bitte wählen…"}
           </option>
-          {participants.map((t) => (
-            <option key={t} value={t}>
-              {t}
+          {participants.map((p) => (
+            <option key={p} value={p}>
+              {p}
             </option>
           ))}
         </select>
-
-        <p className="text-xs opacity-70 mt-1">
-          Fehlt dein Name? Dann melde dich unten an.
-        </p>
       </div>
 
-      {/* Albumtitel */}
       <div className="form-group">
-        <label htmlFor="title">Albumtitel</label>
+        <label>Albumtitel</label>
         <input
-          id="title"
           name="title"
           value={form.title}
           onChange={onChange}
-          placeholder="z.B. OK Computer"
           required
+          placeholder="z.B. OK Computer"
         />
       </div>
 
-      {/* Artist */}
       <div className="form-group">
-        <label htmlFor="artist">Interpret</label>
+        <label>Interpret</label>
         <input
-          id="artist"
           name="artist"
           value={form.artist}
           onChange={onChange}
-          placeholder="z.B. Radiohead"
           required
+          placeholder="z.B. Radiohead"
         />
       </div>
 
-      {/* Begründung */}
       <div className="form-group">
-        <label htmlFor="reason">Warum dieses Album?</label>
+        <label>Warum dieses Album?</label>
         <textarea
-          id="reason"
           name="reason"
           value={form.reason}
           onChange={onChange}
           rows={3}
-          placeholder="Warum sollten wir dieses Album hören?"
           required
         />
       </div>
 
-      {/* Lieblingslied */}
       <div className="form-group">
-        <label htmlFor="favorite_song">Lieblingslied</label>
+        <label>Lieblingslied</label>
         <input
-          id="favorite_song"
           name="favorite_song"
           value={form.favorite_song}
           onChange={onChange}
@@ -193,11 +177,9 @@ export default function VorschlagForm() {
         />
       </div>
 
-      {/* Lieblingszeile */}
       <div className="form-group">
-        <label htmlFor="favorite_lyric">Liebste Textzeile (optional)</label>
+        <label>Liebste Textzeile (optional)</label>
         <textarea
-          id="favorite_lyric"
           name="favorite_lyric"
           value={form.favorite_lyric}
           onChange={onChange}
@@ -206,11 +188,9 @@ export default function VorschlagForm() {
         />
       </div>
 
-      {/* Schlechtestes Lied */}
       <div className="form-group">
-        <label htmlFor="worst_song">Schlechtestes Lied</label>
+        <label>Schlechtestes Lied</label>
         <input
-          id="worst_song"
           name="worst_song"
           value={form.worst_song}
           onChange={onChange}
