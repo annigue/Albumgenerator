@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
 
 type VotePayload = {
   album_week_id: string; // UUID
@@ -12,14 +11,18 @@ type VotePayload = {
 };
 
 function getBearerToken(req: Request) {
-  const auth = req.headers.get("authorization") || req.headers.get("Authorization");
-  if (!auth) return null;
-  const m = auth.match(/^Bearer\s+(.+)$/i);
-  return m?.[1] ?? null;
+  const h = req.headers.get("authorization") || req.headers.get("Authorization") || "";
+  const m = h.match(/^Bearer\s+(.+)$/i);
+  return m?.[1] ?? "";
 }
 
 export async function POST(req: Request) {
   try {
+    const token = getBearerToken(req);
+    if (!token) {
+      return NextResponse.json({ error: "Nicht eingeloggt (Bearer Token fehlt)." }, { status: 401 });
+    }
+
     const body = (await req.json()) as VotePayload;
 
     if (!body.album_week_id || ![-1, 0, 1].includes(body.rating)) {
@@ -29,13 +32,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const token = getBearerToken(req);
-    if (!token) {
-      return NextResponse.json({ error: "Not authenticated (missing token)." }, { status: 401 });
-    }
-
-    // Supabase-Client "as user" (RLS greift!)
-    const supabase = createClient<Database>(
+    // ✅ Supabase Client "as user" (wichtig: KEIN service role key)
+    const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
@@ -44,42 +42,36 @@ export async function POST(req: Request) {
             Authorization: `Bearer ${token}`,
           },
         },
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          detectSessionInUrl: false,
-        },
       }
     );
 
-    // User aus Token validieren
-    const { data: userData, error: userErr } = await supabase.auth.getUser();
-    if (userErr || !userData?.user) {
-      return NextResponse.json({ error: "Invalid or expired token." }, { status: 401 });
+    // ✅ User serverseitig bestimmen
+    const { data: authData, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !authData?.user) {
+      return NextResponse.json({ error: "Ungültiger Login/Token." }, { status: 401 });
     }
 
-    const user = userData.user;
+    const userId = authData.user.id;
 
-    // user_id wird SERVERSEITIG gesetzt -> niemand kann spoof-en
-    const row = {
-      album_week_id: body.album_week_id,
-      user_id: user.id,
-      rating: body.rating,
-      favorite_song: body.favorite_song ?? null,
-      favorite_lyric: body.favorite_lyric ?? null,
-      worst_song: body.worst_song ?? null,
-      comment: body.comment ?? null,
-    };
-
-    // Upsert: pro user nur 1 vote pro album_week
+    // ✅ Upsert Vote — user_id wird serverseitig gesetzt, nicht aus dem Body
     const { data, error } = await supabase
       .from("votes")
-      .upsert(row, { onConflict: "album_week_id,user_id" })
+      .upsert(
+        {
+          album_week_id: body.album_week_id,
+          user_id: userId,
+          rating: body.rating,
+          favorite_song: body.favorite_song ?? null,
+          favorite_lyric: body.favorite_lyric ?? null,
+          worst_song: body.worst_song ?? null,
+          comment: body.comment ?? null,
+        },
+        { onConflict: "album_week_id,user_id" }
+      )
       .select("*")
       .single();
 
     if (error) {
-      // RLS Fehler kommen hier zuverlässig an
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
