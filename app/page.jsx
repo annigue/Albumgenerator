@@ -402,7 +402,7 @@ export default function Home() {
                   disabled={idx === 0}
                   className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
                 >
-                  ◀ Vorheriges
+                  ◀ 
                 </button>
 
                 <button
@@ -410,7 +410,7 @@ export default function Home() {
                   disabled={idx === pastAlbums.length - 1}
                   className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
                 >
-                  Nächstes ▶
+                  ▶
                 </button>
               </div>
             </div>

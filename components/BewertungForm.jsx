@@ -164,7 +164,7 @@ export default function BewertungForm({ album, onSubmitted }) {
           name="liebstes_lied"
           value={form.liebstes_lied}
           onChange={onChange}
-          placeholder="optional"
+          required
         />
       </div>
 
@@ -185,7 +185,7 @@ export default function BewertungForm({ album, onSubmitted }) {
           name="schlechtestes_lied"
           value={form.schlechtestes_lied}
           onChange={onChange}
-          placeholder="optional"
+          required
         />
       </div>
 

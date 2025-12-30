@@ -138,6 +138,7 @@ export default function VorschlagForm() {
           onChange={onChange}
           rows={3}
           placeholder="Warum sollten wir dieses Album hören?"
+          required
         />
       </div>
 
@@ -148,7 +149,7 @@ export default function VorschlagForm() {
           name="favorite_song"
           value={form.favorite_song}
           onChange={onChange}
-          placeholder="optional"
+          required
         />
       </div>
 
@@ -171,7 +172,7 @@ export default function VorschlagForm() {
           name="worst_song"
           value={form.worst_song}
           onChange={onChange}
-          placeholder="optional"
+          required
         />
       </div>
 
