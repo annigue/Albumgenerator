@@ -8,8 +8,6 @@ import BewertungForm from "../components/BewertungForm";
 import VorschlagForm from "../components/VorschlagForm";
 import ParticipantSignupForm from "../components/ParticipantSignupForm";
 
-/* import AlbumOfWeekCard from "../components/AlbumOfWeekCard";*/
-
 console.log("SUPA URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
 console.log("SUPA KEY?", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
@@ -57,11 +55,6 @@ function coverCandidates(raw) {
   return Array.from(new Set(list));
 }
 
-/**
- * CoverImage:
- * - probiert Candidates der Reihe nach
- * - wenn alle scheitern: holt thumbnail_url über Spotify oEmbed (kein Key nötig)
- */
 function CoverImage({ src, alt, spotifyUrl }) {
   const candidates = useMemo(() => coverCandidates(src), [src]);
   const [i, setI] = useState(0);
@@ -289,9 +282,6 @@ export default function Home() {
         <div className="max-w-2xl mx-auto p-8 relative z-10">
           <h1>ALBUM DER WOCHE</h1>
 
-                
-         {/* AlbumOfWeekCard entfernt – aktuelles Album wird unten gerendert */}
-
           {/* Aktuelles Album */}
           {loading ? (
             <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
@@ -392,7 +382,6 @@ export default function Home() {
                 <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
               </div>
 
-              {/* ✅ Vollständige Auswertung */}
               <p className="text-center text-xs uppercase tracking-wider opacity-70 mt-3">
                 Votes: {voteStats.votes_total} – Hit {voteStats.hits} / Geht in Ordnung{" "}
                 {voteStats.okays} / Niete {voteStats.flops}
@@ -403,14 +392,16 @@ export default function Home() {
                   onClick={() => setIdx((i) => Math.max(i - 1, 0))}
                   disabled={idx === 0}
                   className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                  aria-label="Vorheriges Album"
                 >
-                  ◀ 
+                  ◀
                 </button>
 
                 <button
                   onClick={() => setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))}
                   disabled={idx === pastAlbums.length - 1}
                   className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                  aria-label="Nächstes Album"
                 >
                   ▶
                 </button>
@@ -422,12 +413,16 @@ export default function Home() {
             </p>
           )}
 
+          {/* Vorschlag + Signup innerhalb des Content-Containers */}
           <VorschlagForm />
+
+          <div className="mt-10">
+            <ParticipantSignupForm onDone={loadAlbums} />
+          </div>
         </div>
       </div>
 
       <div className="pattern-bottom" />
-      <ParticipantSignupForm onDone={() => window.location.reload()} />
     </main>
   );
 }
