@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabaseClient"; // ✅ korrekt relativ von /app/auth/callback
+import { supabase } from "../../../lib/supabaseClient.js";
 
 export default function AuthCallbackPage() {
   const [msg, setMsg] = useState("Anmeldung wird abgeschlossen…");
@@ -19,23 +19,15 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        const dn =
-          (typeof window !== "undefined" &&
-            localStorage.getItem("pending_display_name")) ||
-          "";
+        const dn = localStorage.getItem("pending_display_name") || "";
         const em =
-          (typeof window !== "undefined" && localStorage.getItem("pending_email")) ||
-          user.email ||
-          "";
+          localStorage.getItem("pending_email") || user.email || "";
 
         if (!dn || !em) {
-          setMsg(
-            "Name oder E-Mail fehlt. Bitte gehe zurück und melde dich erneut an."
-          );
+          setMsg("Name oder E-Mail fehlt. Bitte nochmal anmelden.");
           return;
         }
 
-        // Teilnehmer anlegen/aktualisieren (RLS muss Insert/Update für auth.uid erlauben)
         const { error: upsertErr } = await supabase
           .from("participants")
           .upsert(
@@ -45,10 +37,8 @@ export default function AuthCallbackPage() {
 
         if (upsertErr) throw upsertErr;
 
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("pending_display_name");
-          localStorage.removeItem("pending_email");
-        }
+        localStorage.removeItem("pending_display_name");
+        localStorage.removeItem("pending_email");
 
         setMsg("✅ Fertig! Du wirst gleich weitergeleitet…");
         setTimeout(() => {
