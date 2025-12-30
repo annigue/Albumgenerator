@@ -6,7 +6,7 @@ import { getSpotifyUrls } from "../lib/spotifyUrls";
 
 import BewertungForm from "../components/BewertungForm";
 import VorschlagForm from "../components/VorschlagForm";
-import AlbumOfWeekCard from "../components/AlbumOfWeekCard";
+/* import AlbumOfWeekCard from "../components/AlbumOfWeekCard";*/
 
 console.log("SUPA URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
 console.log("SUPA KEY?", !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
@@ -287,11 +287,12 @@ export default function Home() {
         <div className="max-w-2xl mx-auto p-8 relative z-10">
           <h1>ALBUM DER WOCHE</h1>
 
-          <div className="mb-10">
-            <AlbumOfWeekCard />
-          </div>
-
-          <div className="w-24 h-[3px] bg-retro-accent mx-auto mb-10" />
+          -          <div className="mb-10">
+-            <AlbumOfWeekCard />
+-          </div>
+-
+-          <div className="w-24 h-[3px] bg-retro-accent mx-auto mb-10" />
++          {/* AlbumOfWeekCard entfernt – aktuelles Album wird unten gerendert */}
 
           {/* Aktuelles Album */}
           {loading ? (
