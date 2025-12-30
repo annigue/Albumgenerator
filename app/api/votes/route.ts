@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import type { Database } from "../../../src/types/supabase";
-
-// Wichtig: Service-Role Key => Node Runtime (nicht Edge)
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+import type { Database } from "@/types/supabase";
 
 type VotePayload = {
   album_week_id: string; // UUID
-  voter: string;
   rating: -1 | 0 | 1;
   favorite_song?: string | null;
   favorite_lyric?: string | null;
@@ -16,72 +11,75 @@ type VotePayload = {
   comment?: string | null;
 };
 
-function isUuid(v: string) {
-  // solide UUID v4/v1… Prüfung (Postgres akzeptiert alle UUIDs im Standardformat)
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-    v
-  );
+function getBearerToken(req: Request) {
+  const auth = req.headers.get("authorization") || req.headers.get("Authorization");
+  if (!auth) return null;
+  const m = auth.match(/^Bearer\s+(.+)$/i);
+  return m?.[1] ?? null;
 }
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as Partial<VotePayload>;
+    const body = (await req.json()) as VotePayload;
 
-    const album_week_id = String(body.album_week_id ?? "").trim();
-    const voter = String(body.voter ?? "").trim();
-    const rating = body.rating as VotePayload["rating"];
-
-    if (!album_week_id || !voter || ![-1, 0, 1].includes(rating)) {
+    if (!body.album_week_id || ![-1, 0, 1].includes(body.rating)) {
       return NextResponse.json(
-        { error: "album_week_id, voter und rating (-1/0/1) sind Pflichtfelder." },
+        { error: "album_week_id und rating (-1/0/1) sind Pflichtfelder." },
         { status: 400 }
       );
     }
 
-    if (!isUuid(album_week_id)) {
-      return NextResponse.json(
-        { error: `album_week_id ist keine gültige UUID: "${album_week_id}"` },
-        { status: 400 }
-      );
+    const token = getBearerToken(req);
+    if (!token) {
+      return NextResponse.json({ error: "Not authenticated (missing token)." }, { status: 401 });
     }
 
-    // Nutze bevorzugt serverseitige Env Vars, fallback auf NEXT_PUBLIC_* wenn du sie so gesetzt hast
-    const supabaseUrl =
-      process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json(
-        {
-          error:
-            "Server-Konfiguration fehlt: SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL oder SUPABASE_SERVICE_ROLE_KEY.",
+    // Supabase-Client "as user" (RLS greift!)
+    const supabase = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-        { status: 500 }
-      );
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false,
+        },
+      }
+    );
+
+    // User aus Token validieren
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !userData?.user) {
+      return NextResponse.json({ error: "Invalid or expired token." }, { status: 401 });
     }
 
-    const supabase = createClient<Database>(supabaseUrl, serviceRoleKey);
+    const user = userData.user;
 
+    // user_id wird SERVERSEITIG gesetzt -> niemand kann spoof-en
+    const row = {
+      album_week_id: body.album_week_id,
+      user_id: user.id,
+      rating: body.rating,
+      favorite_song: body.favorite_song ?? null,
+      favorite_lyric: body.favorite_lyric ?? null,
+      worst_song: body.worst_song ?? null,
+      comment: body.comment ?? null,
+    };
+
+    // Upsert: pro user nur 1 vote pro album_week
     const { data, error } = await supabase
       .from("votes")
-      .upsert(
-        {
-          album_week_id,
-          voter,
-          rating,
-          favorite_song: body.favorite_song?.trim?.() || null,
-          favorite_lyric: body.favorite_lyric?.trim?.() || null,
-          worst_song: body.worst_song?.trim?.() || null,
-          comment: body.comment?.trim?.() || null,
-        },
-        {
-          onConflict: "album_week_id,voter", // ✅ korrekt (muss UNIQUE/PK entsprechen)
-        }
-      )
+      .upsert(row, { onConflict: "album_week_id,user_id" })
       .select("*")
       .single();
 
     if (error) {
+      // RLS Fehler kommen hier zuverlässig an
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 

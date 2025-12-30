@@ -34,13 +34,15 @@ export default function BewertungForm({ album, onSubmitted }) {
         .order("name", { ascending: true });
 
       if (error) console.error("participants load error:", error);
-      setParticipants((data ?? []).map((x) => x.name));
+      setParticipants((data ?? []).map((x) => x.name).filter(Boolean));
       setLoadingParticipants(false);
     })();
   }, []);
 
-  const onChange = (e) =>
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: value }));
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -53,38 +55,52 @@ export default function BewertungForm({ album, onSubmitted }) {
       return;
     }
 
-    const rating = mapBewertungToRating(form.bewertung);
-    if (rating === null) {
-      alert("Bitte eine Gesamtbewertung auswählen.");
-      return;
-    }
-
     // Pflichtfelder (alles außer Textzeile)
     if (!form.name || !form.liebstes_lied || !form.schlechtestes_lied || !form.bewertung) {
       alert("Bitte alle Felder ausfüllen (außer Beste Textzeile).");
       return;
     }
 
+    const rating = mapBewertungToRating(form.bewertung);
+    if (rating === null) {
+      alert("Bitte eine gültige Gesamtbewertung auswählen.");
+      return;
+    }
+
     setSending(true);
 
     try {
+      // ✅ Token holen und mitschicken (Server prüft User + setzt user_id)
+      const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+      if (sessionErr) console.error("getSession error:", sessionErr);
+
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        alert("Bitte zuerst einloggen, um zu bewerten.");
+        return;
+      }
+
       const payload = {
-        album_week_id: album.id,
-        voter: form.name,
-        rating,
+        album_week_id: album.id, // UUID
+        rating, // -1/0/1
         favorite_song: form.liebstes_lied.trim(),
         favorite_lyric: form.beste_textzeile?.trim() || null, // optional
         worst_song: form.schlechtestes_lied.trim(),
         comment: null,
+        // ⚠️ voter NICHT senden (kommt serverseitig über auth / participants mapping)
       };
 
       const res = await fetch("/api/votes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify(payload),
       });
 
       const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
         alert(data?.error || `Fehler beim Absenden (HTTP ${res.status})`);
         return;
@@ -101,6 +117,7 @@ export default function BewertungForm({ album, onSubmitted }) {
 
       onSubmitted?.();
     } catch (err) {
+      console.error(err);
       alert(`Fehler beim Absenden 😢\n${err?.message ?? ""}`);
     } finally {
       setSending(false);
@@ -133,7 +150,7 @@ export default function BewertungForm({ album, onSubmitted }) {
           value={form.name}
           onChange={onChange}
           required
-          disabled={loadingParticipants}
+          disabled={loadingParticipants || sending}
         >
           <option value="">
             {loadingParticipants ? "Lade Teilnehmer…" : "Bitte wählen…"}
@@ -158,6 +175,7 @@ export default function BewertungForm({ album, onSubmitted }) {
           value={form.liebstes_lied}
           onChange={onChange}
           required
+          disabled={sending}
         />
       </div>
 
@@ -169,6 +187,7 @@ export default function BewertungForm({ album, onSubmitted }) {
           value={form.beste_textzeile}
           onChange={onChange}
           rows={3}
+          disabled={sending}
         />
       </div>
 
@@ -180,6 +199,7 @@ export default function BewertungForm({ album, onSubmitted }) {
           value={form.schlechtestes_lied}
           onChange={onChange}
           required
+          disabled={sending}
         />
       </div>
 
@@ -191,6 +211,7 @@ export default function BewertungForm({ album, onSubmitted }) {
           value={form.bewertung}
           onChange={onChange}
           required
+          disabled={sending}
         >
           <option value="">Bitte wählen…</option>
           <option value="Hit">Hit</option>
@@ -199,7 +220,7 @@ export default function BewertungForm({ album, onSubmitted }) {
         </select>
       </div>
 
-      <button type="submit" disabled={sending}>
+      <button type="submit" disabled={sending || loadingParticipants}>
         {sending ? "WIRD GESENDET…" : "SUBMIT"}
       </button>
     </form>
