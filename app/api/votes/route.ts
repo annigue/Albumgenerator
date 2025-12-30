@@ -3,13 +3,13 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../../src/types/supabase";
 
 type VotePayload = {
-  album_week_id: string;
+  album_week_id: string;          // UUID
   voter: string;
   rating: -1 | 0 | 1;
-  comment?: string | null;
   favorite_song?: string | null;
   favorite_lyric?: string | null;
   worst_song?: string | null;
+  comment?: string | null;
 };
 
 export async function POST(req: Request) {
@@ -24,8 +24,8 @@ export async function POST(req: Request) {
     }
 
     const supabase = createClient<Database>(
-      process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY! // nur serverseitig!
     );
 
     const { data, error } = await supabase
@@ -35,19 +35,17 @@ export async function POST(req: Request) {
           album_week_id: body.album_week_id,
           voter: body.voter,
           rating: body.rating,
-          comment: body.comment ?? null,
           favorite_song: body.favorite_song ?? null,
           favorite_lyric: body.favorite_lyric ?? null,
           worst_song: body.worst_song ?? null,
+          comment: body.comment ?? null,
         },
-        { onConflict: "album_week_id,voter" } // ✅ richtig
+        { onConflict: "album_week_id,voter" } // ✅ richtig!
       )
       .select("*")
       .single();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
     return NextResponse.json({ data }, { status: 200 });
   } catch (e: any) {
