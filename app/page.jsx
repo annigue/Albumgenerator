@@ -6,6 +6,8 @@ import { getSpotifyUrls } from "../lib/spotifyUrls";
 
 import BewertungForm from "../components/BewertungForm";
 import VorschlagForm from "../components/VorschlagForm";
+import ParticipantSignupForm from "../components/ParticipantSignupForm";
+
 /* import AlbumOfWeekCard from "../components/AlbumOfWeekCard";*/
 
 console.log("SUPA URL", process.env.NEXT_PUBLIC_SUPABASE_URL);
