@@ -15,7 +15,7 @@ export default function BewertungForm({ album, onSubmitted }) {
   const [loadingParticipants, setLoadingParticipants] = useState(true);
 
   const [form, setForm] = useState({
-    name: "",
+    display_name: "", // ✅ wichtig: so heißt das Feld jetzt
     liebstes_lied: "",
     beste_textzeile: "",
     schlechtestes_lied: "",
@@ -26,17 +26,31 @@ export default function BewertungForm({ album, onSubmitted }) {
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
+    let alive = true;
+
     (async () => {
       setLoadingParticipants(true);
+
       const { data, error } = await supabase
         .from("participants")
         .select("display_name")
         .order("display_name", { ascending: true });
 
-      if (error) console.error("participants load error:", error);
-      setParticipants((data ?? []).map((x) => x.display_name).filter(Boolean));
+      if (!alive) return;
+
+      if (error) {
+        console.error("participants load error:", error);
+        setParticipants([]);
+      } else {
+        setParticipants((data ?? []).map((x) => x.display_name).filter(Boolean));
+      }
+
       setLoadingParticipants(false);
     })();
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const onChange = (e) => {
@@ -56,7 +70,12 @@ export default function BewertungForm({ album, onSubmitted }) {
     }
 
     // Pflichtfelder (alles außer Textzeile)
-    if (!form.name || !form.liebstes_lied || !form.schlechtestes_lied || !form.bewertung) {
+    if (
+      !form.display_name ||
+      !form.liebstes_lied ||
+      !form.schlechtestes_lied ||
+      !form.bewertung
+    ) {
       alert("Bitte alle Felder ausfüllen (außer Beste Textzeile).");
       return;
     }
@@ -70,7 +89,7 @@ export default function BewertungForm({ album, onSubmitted }) {
     setSending(true);
 
     try {
-      // ✅ Token holen und mitschicken (Server prüft User + setzt user_id)
+      // ✅ Token holen und mitschicken (Server prüft User + setzt user_id serverseitig)
       const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
       if (sessionErr) console.error("getSession error:", sessionErr);
 
@@ -87,7 +106,7 @@ export default function BewertungForm({ album, onSubmitted }) {
         favorite_lyric: form.beste_textzeile?.trim() || null, // optional
         worst_song: form.schlechtestes_lied.trim(),
         comment: null,
-        // ⚠️ voter NICHT senden (kommt serverseitig über auth / participants mapping)
+        // ⚠️ KEIN voter / display_name mitsenden, das muss serverseitig über auth + participants kommen
       };
 
       const res = await fetch("/api/votes", {
@@ -102,13 +121,14 @@ export default function BewertungForm({ album, onSubmitted }) {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
+        console.error("Vote POST failed:", res.status, data);
         alert(data?.error || `Fehler beim Absenden (HTTP ${res.status})`);
         return;
       }
 
       setOk(true);
       setForm({
-        name: "",
+        display_name: "",
         liebstes_lied: "",
         beste_textzeile: "",
         schlechtestes_lied: "",
@@ -143,11 +163,11 @@ export default function BewertungForm({ album, onSubmitted }) {
       </h3>
 
       <div className="form-group">
-        <label htmlFor="name">Teilnehmer</label>
+        <label htmlFor="display_name">Teilnehmer</label>
         <select
-          id="name"
-          name="name"
-          value={form.name}
+          id="display_name"
+          name="display_name"
+          value={form.display_name}
           onChange={onChange}
           required
           disabled={loadingParticipants || sending}
