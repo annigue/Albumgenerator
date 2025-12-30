@@ -425,6 +425,7 @@ export default function Home() {
       </div>
 
       <div className="pattern-bottom" />
+      <ParticipantSignupForm onDone={() => window.location.reload()} />
     </main>
   );
 }
