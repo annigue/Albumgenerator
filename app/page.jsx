@@ -287,8 +287,8 @@ export default function Home() {
         <div className="max-w-2xl mx-auto p-8 relative z-10">
           <h1>ALBUM DER WOCHE</h1>
 
-          -         
-+          {/* AlbumOfWeekCard entfernt – aktuelles Album wird unten gerendert */}
+                
+         {/* AlbumOfWeekCard entfernt – aktuelles Album wird unten gerendert */}
 
           {/* Aktuelles Album */}
           {loading ? (
