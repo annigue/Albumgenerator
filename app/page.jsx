@@ -33,32 +33,42 @@ function topCounts(items, topN = 5) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Cover URL: robust + korrekt (KEIN image-cdn-ak rewrite)
-   - i.scdn.co funktioniert zuverlässig
-   - wenn irgendwo ein Hash steckt: i.scdn.co/image/<hash>
+   Spotify Cover URL Fallbacks (WICHTIG)
+   - image-cdn-ak.spotifycdn.com liefert oft 404 außerhalb des Spotify-Embeds
+   - i.scdn.co ist der verlässliche Hotlink-Host
    ────────────────────────────────────────────────────────── */
+function extractSpotifyImageHash(input) {
+  const s = (input ?? "").toString();
+  const m = s.match(/ab[0-9a-f]{20,}/i);
+  return m?.[0] ?? "";
+}
+
 function coverCandidates(raw) {
   const url = (raw ?? "").toString().trim();
   if (!url) return [];
 
-  // Extract spotify image hash if present
-  const m = url.match(/ab[0-9a-f]{20,}/i);
-  const hash = m?.[0];
+  const hash = extractSpotifyImageHash(url);
 
-  const list = [];
+  // Wenn es ein Spotify-Hash ist, ist i.scdn unser Goldstandard:
+  const isSpotifyCdn =
+    /spotifycdn\.com\/image\//i.test(url) || /image-cdn/i.test(url);
 
-  // 1) Original URL (falls es schon i.scdn oder https ist)
-  list.push(url);
-
-  // 2) Wenn Hash vorhanden: i.scdn Fallback (das ist bei dir der zuverlässige Host)
-  if (hash) {
-    list.push(`https://i.scdn.co/image/${hash}`);
-    // Optional: manchmal gibt es auch "image-cdn.spotifycdn.com", aber wir lassen es weg,
-    // weil "image-cdn-ak" bei dir 404 liefert.
+  // 1) Wenn URL schon i.scdn ist -> verwenden
+  if (/^https?:\/\/i\.scdn\.co\/image\//i.test(url)) {
+    return [url];
   }
 
-  // Dedupe + nur sinnvolle (http/https) URLs behalten
-  return Array.from(new Set(list)).filter((u) => /^https?:\/\//i.test(u));
+  // 2) Wenn es Spotify-CDN (image-cdn-ak etc.) ist -> NICHT nutzen, sondern i.scdn bauen
+  if (hash && isSpotifyCdn) {
+    return [`https://i.scdn.co/image/${hash}`];
+  }
+
+  // 3) Sonst: Original (wenn http) + i.scdn (wenn Hash vorhanden)
+  const list = [];
+  if (/^https?:\/\//i.test(url)) list.push(url);
+  if (hash) list.push(`https://i.scdn.co/image/${hash}`);
+
+  return Array.from(new Set(list));
 }
 
 /* Robust cover component that retries on error */
@@ -86,8 +96,7 @@ function CoverImage({ src, alt }) {
       alt={alt}
       className="w-full h-full object-cover border-2 border-retro-border"
       loading="lazy"
-      // wichtig: keine zusätzlichen CORS-Spielereien
-      referrerPolicy="no-referrer"
+      // KEIN referrerPolicy="no-referrer" hier erzwingen – unnötig und kann Host-Checks triggern
       onError={() => {
         if (idx < candidates.length - 1) setIdx((i) => i + 1);
       }}
