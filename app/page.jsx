@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-import LoginForm from "../components/LoginForm";
+import LoginForm from "../components/LoginForm.jsx";
 import MainApp from "../components/MainApp";
 
 export default function Page() {
