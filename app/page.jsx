@@ -33,29 +33,32 @@ function topCounts(items, topN = 5) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Spotify Cover URL Fallbacks
+   Cover URL: robust + korrekt (KEIN image-cdn-ak rewrite)
+   - i.scdn.co funktioniert zuverlässig
+   - wenn irgendwo ein Hash steckt: i.scdn.co/image/<hash>
    ────────────────────────────────────────────────────────── */
 function coverCandidates(raw) {
   const url = (raw ?? "").toString().trim();
   if (!url) return [];
 
-  // Already a "spotify image hash"
+  // Extract spotify image hash if present
   const m = url.match(/ab[0-9a-f]{20,}/i);
   const hash = m?.[0];
 
   const list = [];
-  // 1) Original
+
+  // 1) Original URL (falls es schon i.scdn oder https ist)
   list.push(url);
 
-  // 2) If i.scdn..., try image-cdn-ak... (often more reliable in apps)
+  // 2) Wenn Hash vorhanden: i.scdn Fallback (das ist bei dir der zuverlässige Host)
   if (hash) {
-    list.push(`https://image-cdn-ak.spotifycdn.com/image/${hash}`);
-    // sometimes also works:
     list.push(`https://i.scdn.co/image/${hash}`);
+    // Optional: manchmal gibt es auch "image-cdn.spotifycdn.com", aber wir lassen es weg,
+    // weil "image-cdn-ak" bei dir 404 liefert.
   }
 
-  // remove duplicates
-  return Array.from(new Set(list));
+  // Dedupe + nur sinnvolle (http/https) URLs behalten
+  return Array.from(new Set(list)).filter((u) => /^https?:\/\//i.test(u));
 }
 
 /* Robust cover component that retries on error */
@@ -83,10 +86,9 @@ function CoverImage({ src, alt }) {
       alt={alt}
       className="w-full h-full object-cover border-2 border-retro-border"
       loading="lazy"
+      // wichtig: keine zusätzlichen CORS-Spielereien
       referrerPolicy="no-referrer"
-      crossOrigin="anonymous"
       onError={() => {
-        // try next candidate
         if (idx < candidates.length - 1) setIdx((i) => i + 1);
       }}
     />
