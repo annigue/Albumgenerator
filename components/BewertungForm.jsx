@@ -4,13 +4,20 @@ import { useState } from "react";
 
 const TEILNEHMER = ["Anne", "Moritz", "Max", "Kathi", "Lena"];
 
+function mapBewertungToRating(bewertung) {
+  if (bewertung === "Hit") return 1;
+  if (bewertung === "Geht in Ordnung") return 0;
+  if (bewertung === "Niete") return -1;
+  return null;
+}
+
 export default function BewertungForm({ album, onSubmitted }) {
   const [form, setForm] = useState({
     name: "",
     liebstes_lied: "",
     beste_textzeile: "",
     schlechtestes_lied: "",
-    bewertung: "", // "Hit" | "Geht in Ordnung" | "Niete"
+    bewertung: "",
   });
 
   const [ok, setOk] = useState(false);
@@ -19,42 +26,37 @@ export default function BewertungForm({ album, onSubmitted }) {
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
-  const mapRating = (label) => {
-    if (label === "Hit") return 1;
-    if (label === "Geht in Ordnung") return 0;
-    if (label === "Niete") return -1;
-    return null;
-  };
-
   const onSubmit = async (e) => {
+    // WICHTIG: verhindert echtes Page-Reload Submit
     e.preventDefault();
+    e.stopPropagation();
+
+    setOk(false);
 
     if (!album?.id) {
-      alert("Kein Album ausgewählt. Bitte Seite neu laden.");
+      alert("Kein aktuelles Album gefunden (album.id fehlt).");
       return;
     }
 
-    const rating = mapRating(form.bewertung);
+    const rating = mapBewertungToRating(form.bewertung);
     if (rating === null) {
       alert("Bitte eine Gesamtbewertung auswählen.");
       return;
     }
 
     setSending(true);
-    setOk(false);
-
-    const payload = {
-      album_week_id: album.id, // ✅ UUID
-      voter: form.name,
-      rating, // ✅ -1/0/1
-
-      // ✅ Songs/Zeilen mitschicken (optional -> null)
-      favorite_song: form.liebstes_lied?.trim() ? form.liebstes_lied.trim() : null,
-      favorite_lyric: form.beste_textzeile?.trim() ? form.beste_textzeile.trim() : null,
-      worst_song: form.schlechtestes_lied?.trim() ? form.schlechtestes_lied.trim() : null,
-    };
 
     try {
+      const payload = {
+        album_week_id: album.id, // UUID!
+        voter: form.name,
+        rating, // -1/0/1
+        favorite_song: form.liebstes_lied?.trim() || null,
+        favorite_lyric: form.beste_textzeile?.trim() || null,
+        worst_song: form.schlechtestes_lied?.trim() || null,
+        comment: null,
+      };
+
       const res = await fetch("/api/votes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -64,9 +66,12 @@ export default function BewertungForm({ album, onSubmitted }) {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        throw new Error(data?.error || `Fehler beim Absenden (HTTP ${res.status})`);
+        console.error("Vote POST failed:", res.status, data);
+        alert(data?.error || `Fehler beim Absenden (HTTP ${res.status})`);
+        return;
       }
 
+      // Erfolg
       setOk(true);
       setForm({
         name: "",
@@ -76,6 +81,7 @@ export default function BewertungForm({ album, onSubmitted }) {
         bewertung: "",
       });
 
+      // Parent kann danach votes neu laden / UI updaten
       onSubmitted?.();
     } catch (err) {
       console.error(err);
@@ -98,7 +104,7 @@ export default function BewertungForm({ album, onSubmitted }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="form-card">
+    <form onSubmit={onSubmit} className="form-card" noValidate>
       <h3 className="text-retro-accent font-display text-2xl mb-1 tracking-widest text-center">
         ALBUM BEWERTEN
       </h3>
