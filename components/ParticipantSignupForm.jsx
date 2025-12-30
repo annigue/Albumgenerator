@@ -53,7 +53,7 @@ export default function ParticipantSignupForm({ onDone }) {
 
       <div className="form-group">
         <label>Name</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} required />
+        <input value={display_name} onChange={(e) => setName(e.target.value)} required />
       </div>
 
       <div className="form-group">
