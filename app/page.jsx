@@ -47,15 +47,9 @@ function coverCandidates(raw) {
 
   const hash = extractSpotifyImageHash(url);
 
-  // 1) Original URL, falls es eine normale Bild-URL ist
   const list = [];
   if (/^https?:\/\//i.test(url)) list.push(url);
-
-  // 2) i.scdn Variante (kann bei dir leider auch 404 sein -> trotzdem als Candidate)
   if (hash) list.push(`https://i.scdn.co/image/${hash}`);
-
-  // 3) image-cdn-ak NICHT priorisieren, aber als letzten Versuch drin lassen
-  // (bei dir oft 404 außerhalb des embeds, aber falls es doch mal geht)
   if (hash) list.push(`https://image-cdn-ak.spotifycdn.com/image/${hash}`);
 
   return Array.from(new Set(list));
@@ -80,11 +74,8 @@ function CoverImage({ src, alt, spotifyUrl }) {
   }, [src, spotifyUrl]);
 
   const currentCandidate = candidates[i] ?? "";
-
-  // Wenn wir schon oEmbed-URL haben, zeigen wir die (und probieren nichts anderes mehr)
   const finalSrc = oembedUrl || currentCandidate;
 
-  // Nichts vorhanden
   if (!finalSrc) {
     return (
       <div className="w-full h-full border-2 border-retro-border bg-white/60 flex items-center justify-center text-sm opacity-70">
@@ -118,16 +109,13 @@ function CoverImage({ src, alt, spotifyUrl }) {
       className="w-full h-full object-cover border-2 border-retro-border"
       loading="lazy"
       onError={() => {
-        // Wenn wir gerade oEmbed anzeigen und das auch fehlschlägt -> gib auf
         if (oembedUrl) return;
 
-        // Next candidate?
         if (i < candidates.length - 1) {
           setI((prev) => prev + 1);
           return;
         }
 
-        // Alle candidates durch -> oEmbed versuchen
         fetchOembed();
       }}
     />
@@ -178,13 +166,13 @@ function SongBars({ title, items }) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Hauptseite (NEUE WELT: albums_of_week + votes)
+   Hauptseite (albums_of_week + votes)
    ────────────────────────────────────────────────────────── */
 export default function Home() {
-  const [currentAlbum, setCurrentAlbum] = useState(null); // album_of_week_with_score (uuid id)
-  const [pastAlbums, setPastAlbums] = useState([]); // album_of_week_with_score
+  const [currentAlbum, setCurrentAlbum] = useState(null);
+  const [pastAlbums, setPastAlbums] = useState([]);
   const [idx, setIdx] = useState(0);
-  const [votes, setVotes] = useState([]); // votes rows
+  const [votes, setVotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadAlbums = useCallback(async () => {
@@ -244,26 +232,25 @@ export default function Home() {
       hits: 0,
       okays: 0,
       flops: 0,
+      winner: null,
     };
-  
+
     for (const v of votes) {
       if (v.rating === 1) stats.hits++;
       else if (v.rating === 0) stats.okays++;
       else if (v.rating === -1) stats.flops++;
     }
-  
-    // Gewinner für den Stempel
+
     const max = Math.max(stats.hits, stats.okays, stats.flops);
-    let winner = null;
     if (max > 0) {
-      if (stats.hits === max) winner = "Hit";
-      else if (stats.okays === max) winner = "Geht in Ordnung";
-      else if (stats.flops === max) winner = "Niete";
+      if (stats.hits === max) stats.winner = "Hit";
+      else if (stats.okays === max) stats.winner = "Geht in Ordnung";
+      else if (stats.flops === max) stats.winner = "Niete";
     }
-  
-    return { ...stats, winner };
+
+    return stats;
   }, [votes]);
-  
+
   const favoritesTop = useMemo(() => {
     const list = (votes ?? []).map((v) => v?.favorite_song);
     return topCounts(list, 5);
@@ -306,10 +293,7 @@ export default function Home() {
 
           <div className="w-24 h-[3px] bg-retro-accent mx-auto mb-10" />
 
-          {/* ──────────────────────────────────────────
-              AKTUELLES ALBUM DER WOCHE
-              (kein extra Cover – Player reicht)
-              ────────────────────────────────────────── */}
+          {/* Aktuelles Album */}
           {loading ? (
             <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
           ) : currentAlbum ? (
@@ -357,9 +341,7 @@ export default function Home() {
             </p>
           )}
 
-          {/* ──────────────────────────────────────────
-              BISHERIGE ALBEN
-              ────────────────────────────────────────── */}
+          {/* Bisherige Alben */}
           {pastAlbums.length > 0 && selectedPast ? (
             <div className="retro-card p-6 mb-12">
               <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
@@ -370,17 +352,16 @@ export default function Home() {
                 <CoverImage
                   src={selectedPast.cover_url}
                   alt={`${selectedPast.title} Cover`}
-                  // entscheidend: oEmbed braucht einen spotify URL
                   spotifyUrl={selectedPast.spotify_url || pastSpotify?.openUrl || ""}
                 />
 
-                {majority && (
+                {voteStats.winner && (
                   <div
-                    className={`rating-stamp rating-${majority.vote
+                    className={`rating-stamp rating-${voteStats.winner
                       .toLowerCase()
                       .replace(/\s/g, "-")}`}
                   >
-                    {majority.vote.toUpperCase()}
+                    {voteStats.winner.toUpperCase()}
                   </div>
                 )}
               </div>
@@ -412,11 +393,11 @@ export default function Home() {
                 <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
               </div>
 
-              {majority && (
-                <p className="text-center text-xs uppercase tracking-wider opacity-70 mt-2">
-                  {majority.count} Stimme{majority.count > 1 ? "n" : ""}
-                </p>
-              )}
+              {/* ✅ Vollständige Auswertung */}
+              <p className="text-center text-xs uppercase tracking-wider opacity-70 mt-3">
+                Votes: {voteStats.votes_total} – Hit {voteStats.hits} / Geht in Ordnung{" "}
+                {voteStats.okays} / Niete {voteStats.flops}
+              </p>
 
               <div className="flex justify-between mt-2">
                 <button
