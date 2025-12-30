@@ -11,11 +11,10 @@ function mapBewertungToRating(bewertung) {
 }
 
 export default function BewertungForm({ album, onSubmitted }) {
-  const [participants, setParticipants] = useState([]);
-  const [loadingParticipants, setLoadingParticipants] = useState(true);
+  const [me, setMe] = useState(null); // { user_id, display_name, email }
+  const [loadingMe, setLoadingMe] = useState(true);
 
   const [form, setForm] = useState({
-    display_name: "", // ✅ wichtig: so heißt das Feld jetzt
     liebstes_lied: "",
     beste_textzeile: "",
     schlechtestes_lied: "",
@@ -26,31 +25,33 @@ export default function BewertungForm({ album, onSubmitted }) {
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    let alive = true;
-
     (async () => {
-      setLoadingParticipants(true);
+      setLoadingMe(true);
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+
+      if (!user) {
+        setMe(null);
+        setLoadingMe(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from("participants")
-        .select("display_name")
-        .order("display_name", { ascending: true });
-
-      if (!alive) return;
+        .select("user_id, display_name, email")
+        .eq("user_id", user.id)
+        .single();
 
       if (error) {
-        console.error("participants load error:", error);
-        setParticipants([]);
+        console.error("participants(me) load error:", error);
+        setMe(null);
       } else {
-        setParticipants((data ?? []).map((x) => x.display_name).filter(Boolean));
+        setMe(data);
       }
 
-      setLoadingParticipants(false);
+      setLoadingMe(false);
     })();
-
-    return () => {
-      alive = false;
-    };
   }, []);
 
   const onChange = (e) => {
@@ -61,7 +62,6 @@ export default function BewertungForm({ album, onSubmitted }) {
   const onSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-
     setOk(false);
 
     if (!album?.id) {
@@ -69,13 +69,13 @@ export default function BewertungForm({ album, onSubmitted }) {
       return;
     }
 
+    if (!me?.user_id) {
+      alert("Bitte zuerst anmelden (Magic Link), um zu bewerten.");
+      return;
+    }
+
     // Pflichtfelder (alles außer Textzeile)
-    if (
-      !form.display_name ||
-      !form.liebstes_lied ||
-      !form.schlechtestes_lied ||
-      !form.bewertung
-    ) {
+    if (!form.liebstes_lied || !form.schlechtestes_lied || !form.bewertung) {
       alert("Bitte alle Felder ausfüllen (außer Beste Textzeile).");
       return;
     }
@@ -89,10 +89,8 @@ export default function BewertungForm({ album, onSubmitted }) {
     setSending(true);
 
     try {
-      // ✅ Token holen und mitschicken (Server prüft User + setzt user_id serverseitig)
-      const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
-      if (sessionErr) console.error("getSession error:", sessionErr);
-
+      // Token mitschicken (Route prüft User)
+      const { data: sessionData } = await supabase.auth.getSession();
       const accessToken = sessionData?.session?.access_token;
       if (!accessToken) {
         alert("Bitte zuerst einloggen, um zu bewerten.");
@@ -100,13 +98,12 @@ export default function BewertungForm({ album, onSubmitted }) {
       }
 
       const payload = {
-        album_week_id: album.id, // UUID
-        rating, // -1/0/1
+        album_week_id: album.id,
+        rating,
         favorite_song: form.liebstes_lied.trim(),
-        favorite_lyric: form.beste_textzeile?.trim() || null, // optional
+        favorite_lyric: form.beste_textzeile?.trim() || null,
         worst_song: form.schlechtestes_lied.trim(),
         comment: null,
-        // ⚠️ KEIN voter / display_name mitsenden, das muss serverseitig über auth + participants kommen
       };
 
       const res = await fetch("/api/votes", {
@@ -119,16 +116,13 @@ export default function BewertungForm({ album, onSubmitted }) {
       });
 
       const data = await res.json().catch(() => ({}));
-
       if (!res.ok) {
-        console.error("Vote POST failed:", res.status, data);
         alert(data?.error || `Fehler beim Absenden (HTTP ${res.status})`);
         return;
       }
 
       setOk(true);
       setForm({
-        display_name: "",
         liebstes_lied: "",
         beste_textzeile: "",
         schlechtestes_lied: "",
@@ -163,26 +157,16 @@ export default function BewertungForm({ album, onSubmitted }) {
       </h3>
 
       <div className="form-group">
-  <label htmlFor="display_name">Teilnehmer</label>
-  <select
-    id="display_name"
-    name="name"
-    value={form.name}
-    onChange={onChange}
-    required
-    disabled={loadingParticipants || sending}
-  >
-    <option value="">
-      {loadingParticipants ? "Lade Teilnehmer…" : "Bitte wählen…"}
-    </option>
-    {participants.map((n) => (
-      <option key={n} value={n}>
-        {n}
-      </option>
-    ))}
-  </select>
-</div>
-
+        <label>Teilnehmer</label>
+        <div className="border-2 border-retro-border bg-transparent p-2 text-sm tracking-wider">
+          {loadingMe ? "Lade…" : me?.display_name ? me.display_name : "Nicht angemeldet"}
+        </div>
+        {!me && !loadingMe && (
+          <p className="text-xs opacity-70 mt-1">
+            Bitte unten anmelden (Magic Link), dann kannst du bewerten.
+          </p>
+        )}
+      </div>
 
       <div className="form-group">
         <label htmlFor="liebstes_lied">Liebstes Lied</label>
@@ -192,7 +176,7 @@ export default function BewertungForm({ album, onSubmitted }) {
           value={form.liebstes_lied}
           onChange={onChange}
           required
-          disabled={sending}
+          disabled={sending || !me}
         />
       </div>
 
@@ -204,7 +188,7 @@ export default function BewertungForm({ album, onSubmitted }) {
           value={form.beste_textzeile}
           onChange={onChange}
           rows={3}
-          disabled={sending}
+          disabled={sending || !me}
         />
       </div>
 
@@ -216,7 +200,7 @@ export default function BewertungForm({ album, onSubmitted }) {
           value={form.schlechtestes_lied}
           onChange={onChange}
           required
-          disabled={sending}
+          disabled={sending || !me}
         />
       </div>
 
@@ -228,7 +212,7 @@ export default function BewertungForm({ album, onSubmitted }) {
           value={form.bewertung}
           onChange={onChange}
           required
-          disabled={sending}
+          disabled={sending || !me}
         >
           <option value="">Bitte wählen…</option>
           <option value="Hit">Hit</option>
@@ -237,7 +221,7 @@ export default function BewertungForm({ album, onSubmitted }) {
         </select>
       </div>
 
-      <button type="submit" disabled={sending || loadingParticipants}>
+      <button type="submit" disabled={sending || !me}>
         {sending ? "WIRD GESENDET…" : "SUBMIT"}
       </button>
     </form>

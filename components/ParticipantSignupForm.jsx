@@ -1,35 +1,61 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 export default function ParticipantSignupForm({ onDone }) {
-  const [display_name, setName] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
+
   const [sending, setSending] = useState(false);
   const [ok, setOk] = useState(false);
 
-  const submit = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
+
+    const dn = displayName.trim();
+    const em = email.trim();
+
+    if (!dn) {
+      alert("Bitte Name eingeben.");
+      return;
+    }
+    if (!em) {
+      alert("Bitte E-Mail eingeben.");
+      return;
+    }
+
     setSending(true);
     setOk(false);
 
     try {
-      const res = await fetch("/api/participants", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        alert(data?.error || `Fehler (HTTP ${res.status})`);
-        return;
+      // Display-Name für den Callback merken
+      if (typeof window !== "undefined") {
+        localStorage.setItem("pending_display_name", dn);
+        localStorage.setItem("pending_email", em);
       }
 
+      // Magic Link senden (Login)
+      const { error } = await supabase.auth.signInWithOtp({
+        email: em,
+        options: {
+          // WICHTIG: diese Route erstellen wir unten
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+
       setOk(true);
-      setName("");
-      setEmail("");
-      onDone?.(); // z.B. Liste neu laden
+      // optional: Felder leeren
+      // setDisplayName("");
+      // setEmail("");
+
+      onDone?.();
+    } catch (err) {
+      console.error(err);
+      alert(`Konnte Login-Link nicht senden.\n${err?.message ?? ""}`);
     } finally {
       setSending(false);
     }
@@ -37,32 +63,48 @@ export default function ParticipantSignupForm({ onDone }) {
 
   if (ok) {
     return (
-      <div className="form-card text-center">
+      <div className="form-card text-center mt-10">
         <p className="font-display text-xl tracking-wide text-retro-accent">
-          ✅ Angemeldet!
+          ✅ Check deine E-Mails – wir haben dir einen Login-Link geschickt.
+        </p>
+        <p className="text-sm opacity-70 mt-2">
+          Nach dem Klick bist du angemeldet und wirst als Teilnehmer gespeichert.
         </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={submit} className="form-card">
+    <form onSubmit={onSubmit} className="form-card mt-10" noValidate>
       <h3 className="text-retro-accent font-display text-2xl mb-4 tracking-widest text-center">
         TEILNEHMER ANMELDEN
       </h3>
 
       <div className="form-group">
-        <label>Name</label>
-        <input value={display_name} onChange={(e) => setName(e.target.value)} required />
+        <label htmlFor="displayName">Name</label>
+        <input
+          id="displayName"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          required
+          disabled={sending}
+        />
       </div>
 
       <div className="form-group">
-        <label>Email (optional)</label>
-        <input value={email} onChange={(e) => setEmail(e.target.value)} />
+        <label htmlFor="email">E-Mail</label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={sending}
+        />
       </div>
 
       <button type="submit" disabled={sending}>
-        {sending ? "WIRD GESENDET…" : "ANMELDEN"}
+        {sending ? "WIRD GESENDET…" : "LOGIN-LINK SENDEN"}
       </button>
     </form>
   );
