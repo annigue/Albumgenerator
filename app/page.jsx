@@ -11,31 +11,36 @@ export default function Page() {
   const [session, setSession] = useState(null);
 
   useEffect(() => {
-    // 1️⃣ Initiale Session prüfen
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+      setSession(data.session ?? null);
       setLoading(false);
     });
 
-    // 2️⃣ Auf Login / Logout reagieren
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    return () => data.subscription.unsubscribe();
   }, []);
 
+  // Loading
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <p className="meta">Lade…</p>
+      <main className="bg-retro-bg text-retro-text min-h-screen">
+        <div className="pattern-top" />
+        <div className="content-bg">
+          <div className="max-w-2xl mx-auto p-8">
+            <div className="retro-card p-6 text-center">
+              <p className="meta">Lade…</p>
+            </div>
+          </div>
+        </div>
+        <div className="pattern-bottom" />
       </main>
     );
   }
 
-  // ❌ Nicht eingeloggt → Login anzeigen
+  // Nicht eingeloggt
   if (!session) {
     return (
       <main className="bg-retro-bg text-retro-text min-h-screen">
@@ -50,6 +55,6 @@ export default function Page() {
     );
   }
 
-  // ✅ Eingeloggt → Haupt-App
+  // Eingeloggt
   return <MainApp />;
 }

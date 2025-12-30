@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient"; // falls dein Pfad anders ist: "@/lib/supabaseClient"
+import { supabase } from "../../../lib/supabaseClient";
+import LoginForm from "../components/LoginForm";
+
 
 export default function AuthCallbackPage() {
   const [msg, setMsg] = useState("Anmeldung wird abgeschlossen…");
