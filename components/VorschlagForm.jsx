@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 const initialForm = {
-  suggested_by: "",
   title: "",
   artist: "",
   reason: "",
@@ -14,8 +13,8 @@ const initialForm = {
 };
 
 export default function VorschlagForm() {
-  const [participants, setParticipants] = useState([]);
-  const [loadingParticipants, setLoadingParticipants] = useState(true);
+  const [me, setMe] = useState(null);
+  const [loadingMe, setLoadingMe] = useState(true);
 
   const [form, setForm] = useState(initialForm);
   const [sending, setSending] = useState(false);
@@ -23,58 +22,73 @@ export default function VorschlagForm() {
 
   useEffect(() => {
     (async () => {
-      setLoadingParticipants(true);
+      setLoadingMe(true);
 
-      const { data, error } = await supabase
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) {
+        setMe(null);
+        setLoadingMe(false);
+        return;
+      }
+
+      const { data: p, error } = await supabase
         .from("participants")
-        .select("display_name")
-        .order("display_name", { ascending: true });
+        .select("user_id, display_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
       if (error) console.error("participants load error:", error);
 
-      setParticipants((data ?? []).map((x) => x.display_name));
-      setLoadingParticipants(false);
+      setMe(p ?? null);
+      setLoadingMe(false);
     })();
   }, []);
 
-  const onChange = (e) =>
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const onChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation();
-
     setSending(true);
     setOk(false);
 
+    if (!me?.display_name) {
+      alert("Du bist nicht richtig registriert. Bitte einmal neu einloggen.");
+      setSending(false);
+      return;
+    }
+
     // Pflichtfelder: alles außer favorite_lyric
-    if (
-      !form.suggested_by ||
-      !form.title ||
-      !form.artist ||
-      !form.reason ||
-      !form.favorite_song ||
-      !form.worst_song
-    ) {
+    if (!form.title || !form.artist || !form.reason || !form.favorite_song || !form.worst_song) {
       alert("Bitte alle Felder ausfüllen (außer Liebste Textzeile).");
       setSending(false);
       return;
     }
 
-    const payload = {
-      suggested_by: form.suggested_by.trim(),
-      title: form.title.trim(),
-      artist: form.artist.trim(),
-      reason: form.reason.trim(),
-      favorite_song: form.favorite_song.trim(),
-      favorite_lyric: form.favorite_lyric?.trim() || null, // optional
-      worst_song: form.worst_song.trim(),
-    };
-
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        alert("Bitte zuerst einloggen, um vorzuschlagen.");
+        setSending(false);
+        return;
+      }
+
+      const payload = {
+        title: form.title.trim(),
+        artist: form.artist.trim(),
+        reason: form.reason.trim(),
+        favorite_song: form.favorite_song.trim(),
+        favorite_lyric: form.favorite_lyric?.trim() || null,
+        worst_song: form.worst_song.trim(),
+      };
+
       const res = await fetch("/api/suggestions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -114,91 +128,47 @@ export default function VorschlagForm() {
         NEUES ALBUM VORSCHLAGEN
       </h3>
 
-      <div className="form-group">
-        <label>Teilnehmer</label>
-        <select
-          name="suggested_by"
-          value={form.suggested_by}
-          onChange={onChange}
-          required
-          disabled={loadingParticipants}
-        >
-          <option value="">
-            {loadingParticipants ? "Lade Teilnehmer…" : "Bitte wählen…"}
-          </option>
-          {participants.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
+      <div className="text-center text-sm opacity-80 mb-2">
+        {loadingMe ? (
+          <span className="meta">Lade Benutzer…</span>
+        ) : me?.display_name ? (
+          <span className="meta">Eingeloggt als: {me.display_name}</span>
+        ) : (
+          <span className="meta">Kein Teilnehmerprofil gefunden.</span>
+        )}
       </div>
 
       <div className="form-group">
         <label>Albumtitel</label>
-        <input
-          name="title"
-          value={form.title}
-          onChange={onChange}
-          required
-          placeholder="z.B. OK Computer"
-        />
+        <input name="title" value={form.title} onChange={onChange} required disabled={sending || loadingMe} />
       </div>
 
       <div className="form-group">
         <label>Interpret</label>
-        <input
-          name="artist"
-          value={form.artist}
-          onChange={onChange}
-          required
-          placeholder="z.B. Radiohead"
-        />
+        <input name="artist" value={form.artist} onChange={onChange} required disabled={sending || loadingMe} />
       </div>
 
       <div className="form-group">
         <label>Warum dieses Album?</label>
-        <textarea
-          name="reason"
-          value={form.reason}
-          onChange={onChange}
-          rows={3}
-          required
-        />
+        <textarea name="reason" value={form.reason} onChange={onChange} rows={3} required disabled={sending || loadingMe} />
       </div>
 
       <div className="form-group">
         <label>Lieblingslied</label>
-        <input
-          name="favorite_song"
-          value={form.favorite_song}
-          onChange={onChange}
-          required
-        />
+        <input name="favorite_song" value={form.favorite_song} onChange={onChange} required disabled={sending || loadingMe} />
       </div>
 
       <div className="form-group">
         <label>Liebste Textzeile (optional)</label>
-        <textarea
-          name="favorite_lyric"
-          value={form.favorite_lyric}
-          onChange={onChange}
-          rows={2}
-          placeholder="optional"
-        />
+        <textarea name="favorite_lyric" value={form.favorite_lyric} onChange={onChange} rows={2} disabled={sending || loadingMe} />
       </div>
 
       <div className="form-group">
         <label>Schlechtestes Lied</label>
-        <input
-          name="worst_song"
-          value={form.worst_song}
-          onChange={onChange}
-          required
-        />
+        <input name="worst_song" value={form.worst_song} onChange={onChange} required disabled={sending || loadingMe} />
       </div>
 
-      <button type="submit" disabled={sending}>
+      <button type="submit" disabled={sending || loadingMe || !me?.display_name}>
         {sending ? "WIRD GESENDET…" : "SUBMIT"}
       </button>
     </form>
