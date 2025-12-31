@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-function mapBewertungToRating(bewertung) {
-  if (bewertung === "Hit") return 1;
-  if (bewertung === "Geht in Ordnung") return 0;
-  if (bewertung === "Niete") return -1;
+function mapBewertungToRating(b) {
+  if (b === "Hit") return 1;
+  if (b === "Geht in Ordnung") return 0;
+  if (b === "Niete") return -1;
   return null;
 }
 
 export default function BewertungForm({ album, onSubmitted }) {
-  const [me, setMe] = useState(null); // { user_id, display_name }
+  const [displayName, setDisplayName] = useState("");
   const [loadingMe, setLoadingMe] = useState(true);
 
   const [form, setForm] = useState({
@@ -28,69 +28,55 @@ export default function BewertungForm({ album, onSubmitted }) {
     (async () => {
       setLoadingMe(true);
 
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
-      if (userErr) console.error("getUser error:", userErr);
+      const { data: sess } = await supabase.auth.getSession();
+      const user = sess?.session?.user;
 
-      const user = userData?.user;
       if (!user) {
-        setMe(null);
+        setDisplayName("");
         setLoadingMe(false);
         return;
       }
 
-      const { data: p, error: pErr } = await supabase
+      const { data, error } = await supabase
         .from("participants")
-        .select("user_id, display_name")
+        .select("display_name")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (pErr) console.error("participants load error:", pErr);
-
-      setMe(p ?? null);
+      if (error) console.error(error);
+      setDisplayName(data?.display_name || "");
       setLoadingMe(false);
     })();
   }, []);
 
-  const onChange = (e) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
-  };
+  const onChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation();
-
     setOk(false);
 
-    if (!album?.id) {
-      alert("Kein aktuelles Album gefunden (album.id fehlt).");
+    if (!album?.id) return alert("Kein aktuelles Album gefunden.");
+
+    if (!displayName) {
+      alert("Nicht angemeldet. Bitte zuerst anmelden (Magic Link).");
       return;
     }
 
-    if (!me?.user_id) {
-      alert("Du bist nicht richtig registriert. Bitte einmal neu einloggen und Name/E-Mail speichern.");
-      return;
-    }
-
-    // Pflichtfelder (alles außer Textzeile)
+    // Pflichtfelder (Textzeile optional)
     if (!form.liebstes_lied || !form.schlechtestes_lied || !form.bewertung) {
       alert("Bitte alle Felder ausfüllen (außer Beste Textzeile).");
       return;
     }
 
     const rating = mapBewertungToRating(form.bewertung);
-    if (rating === null) {
-      alert("Bitte eine gültige Gesamtbewertung auswählen.");
-      return;
-    }
+    if (rating === null) return alert("Bitte eine gültige Gesamtbewertung auswählen.");
 
     setSending(true);
-
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
-      if (!accessToken) {
-        alert("Bitte zuerst einloggen, um zu bewerten.");
+      const token = sessionData?.session?.access_token;
+      if (!token) {
+        alert("Nicht eingeloggt. Bitte Magic Link nutzen.");
         return;
       }
 
@@ -98,38 +84,23 @@ export default function BewertungForm({ album, onSubmitted }) {
         album_week_id: album.id,
         rating,
         favorite_song: form.liebstes_lied.trim(),
-        favorite_lyric: form.beste_textzeile?.trim() || null, // optional
+        favorite_lyric: form.beste_textzeile?.trim() || null,
         worst_song: form.schlechtestes_lied.trim(),
         comment: null,
       };
 
       const res = await fetch("/api/votes", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        alert(data?.error || `Fehler beim Absenden (HTTP ${res.status})`);
-        return;
-      }
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) return alert(out?.error || `Fehler (HTTP ${res.status})`);
 
       setOk(true);
-      setForm({
-        liebstes_lied: "",
-        beste_textzeile: "",
-        schlechtestes_lied: "",
-        bewertung: "",
-      });
-
+      setForm({ liebstes_lied: "", beste_textzeile: "", schlechtestes_lied: "", bewertung: "" });
       onSubmitted?.();
-    } catch (err) {
-      console.error(err);
-      alert(`Fehler beim Absenden 😢\n${err?.message ?? ""}`);
     } finally {
       setSending(false);
     }
@@ -137,12 +108,22 @@ export default function BewertungForm({ album, onSubmitted }) {
 
   if (!album) return null;
 
+  if (!displayName && !loadingMe) {
+    return (
+      <div className="form-card text-left">
+        <p className="meta">Teilnehmer</p>
+        <p className="text-sm opacity-80">
+          Nicht angemeldet.<br />
+          Bitte unten anmelden (Magic Link), dann kannst du bewerten.
+        </p>
+      </div>
+    );
+  }
+
   if (ok) {
     return (
       <div className="form-card text-center">
-        <p className="font-display text-xl tracking-wide text-retro-accent">
-          ✅ Danke für deine Bewertung!
-        </p>
+        <p className="font-display text-xl tracking-wide text-retro-accent">✅ Danke für deine Bewertung!</p>
       </div>
     );
   }
@@ -153,62 +134,29 @@ export default function BewertungForm({ album, onSubmitted }) {
         ALBUM BEWERTEN
       </h3>
 
-      <div className="text-center text-sm opacity-80">
-        {loadingMe ? (
-          <span className="meta">Lade Benutzer…</span>
-        ) : me?.display_name ? (
-          <span className="meta">Eingeloggt als: {me.display_name}</span>
-        ) : (
-          <span className="meta">Kein Teilnehmerprofil gefunden.</span>
-        )}
+      <div className="form-group">
+        <label>Teilnehmer</label>
+        <input value={displayName || "…"} disabled className="opacity-80" />
       </div>
 
       <div className="form-group">
         <label htmlFor="liebstes_lied">Liebstes Lied</label>
-        <input
-          id="liebstes_lied"
-          name="liebstes_lied"
-          value={form.liebstes_lied}
-          onChange={onChange}
-          required
-          disabled={sending || loadingMe}
-        />
+        <input id="liebstes_lied" name="liebstes_lied" value={form.liebstes_lied} onChange={onChange} required disabled={sending} />
       </div>
 
       <div className="form-group">
         <label htmlFor="beste_textzeile">Beste Textzeile (optional)</label>
-        <textarea
-          id="beste_textzeile"
-          name="beste_textzeile"
-          value={form.beste_textzeile}
-          onChange={onChange}
-          rows={3}
-          disabled={sending || loadingMe}
-        />
+        <textarea id="beste_textzeile" name="beste_textzeile" value={form.beste_textzeile} onChange={onChange} rows={3} disabled={sending} />
       </div>
 
       <div className="form-group">
         <label htmlFor="schlechtestes_lied">Schlechtestes Lied</label>
-        <input
-          id="schlechtestes_lied"
-          name="schlechtestes_lied"
-          value={form.schlechtestes_lied}
-          onChange={onChange}
-          required
-          disabled={sending || loadingMe}
-        />
+        <input id="schlechtestes_lied" name="schlechtestes_lied" value={form.schlechtestes_lied} onChange={onChange} required disabled={sending} />
       </div>
 
       <div className="form-group">
         <label htmlFor="bewertung">Gesamtbewertung</label>
-        <select
-          id="bewertung"
-          name="bewertung"
-          value={form.bewertung}
-          onChange={onChange}
-          required
-          disabled={sending || loadingMe}
-        >
+        <select id="bewertung" name="bewertung" value={form.bewertung} onChange={onChange} required disabled={sending}>
           <option value="">Bitte wählen…</option>
           <option value="Hit">Hit</option>
           <option value="Geht in Ordnung">Geht in Ordnung</option>
@@ -216,7 +164,7 @@ export default function BewertungForm({ album, onSubmitted }) {
         </select>
       </div>
 
-      <button type="submit" disabled={sending || loadingMe || !me?.display_name}>
+      <button type="submit" disabled={sending || loadingMe}>
         {sending ? "WIRD GESENDET…" : "SUBMIT"}
       </button>
     </form>
