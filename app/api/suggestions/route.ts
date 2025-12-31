@@ -1,45 +1,23 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Wenn du KEIN Supabase-Types-File stabil hast, lass Database weg.
-// import type { Database } from "@/types/supabase";
+export const runtime = "nodejs";
 
-type Body = {
-  // Frontend kann entweder "title/artist" schicken oder deine deutschen Feldnamen
-  title?: string;
-  artist?: string;
+function getBearerToken(req) {
+  const h = req.headers.get("authorization") || req.headers.get("Authorization") || "";
+  const m = h.match(/^Bearer\s+(.+)$/i);
+  return m?.[1] ?? "";
+}
 
-  albumtitel?: string;
-  interpret?: string;
-
-  suggested_by?: string;
-  name?: string;
-
-  note?: string;
-
-  reason?: string;
-  begruendung?: string;
-
-  favorite_song?: string;
-  liebstes_lied?: string;
-
-  favorite_lyric?: string;
-  liebste_textzeile?: string;
-
-  worst_song?: string;
-  schlechtestes_lied?: string;
-};
-
-function pickString(...vals: Array<unknown>): string | undefined {
+function pickString(...vals) {
   for (const v of vals) {
     if (typeof v === "string" && v.trim().length) return v.trim();
   }
   return undefined;
 }
 
-// Minimaler Spotify Search Helper (Client-Credentials Flow)
-// Erwartet SPOTIFY_CLIENT_ID + SPOTIFY_CLIENT_SECRET in env (Vercel + lokal)
-async function getSpotifyAlbumMeta(title: string, artist?: string) {
+// Spotify Client-Credentials Flow
+async function getSpotifyAlbumMeta(title, artist) {
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
@@ -62,7 +40,7 @@ async function getSpotifyAlbumMeta(title: string, artist?: string) {
     throw new Error(tokenJson?.error_description || "Spotify token error");
   }
 
-  const accessToken = tokenJson.access_token as string;
+  const accessToken = tokenJson.access_token;
 
   // 2) search album
   const q = artist ? `album:${title} artist:${artist}` : `album:${title}`;
@@ -78,92 +56,123 @@ async function getSpotifyAlbumMeta(title: string, artist?: string) {
   }
 
   const album = searchJson?.albums?.items?.[0];
-  if (!album?.id) {
-    return { spotify_id: null, spotify_url: null, cover_url: null };
-  }
+  if (!album?.id) return { spotify_id: null, spotify_url: null, cover_url: null };
 
   const cover = album.images?.[0]?.url ?? null;
 
   return {
-    spotify_id: album.id as string,
+    spotify_id: album.id,
     spotify_url: album.external_urls?.spotify ?? `https://open.spotify.com/album/${album.id}`,
     cover_url: cover,
   };
 }
 
-export async function POST(req: Request) {
-  let body: Body;
+export async function POST(req) {
   try {
-    body = (await req.json()) as Body;
-  } catch {
-    return NextResponse.json({ error: "Ungültiges JSON." }, { status: 400 });
-  }
+    const token = getBearerToken(req);
+    if (!token) {
+      return NextResponse.json(
+        { error: "Nicht eingeloggt (Bearer Token fehlt)." },
+        { status: 401 }
+      );
+    }
 
-  const title = pickString(body.title, body.albumtitel);
-  const artist = pickString(body.artist, body.interpret);
-  const suggested_by = pickString(body.suggested_by, body.name);
+    const body = await req.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json({ error: "Ungültiges JSON." }, { status: 400 });
+    }
 
-  const reason = pickString(body.reason, body.begruendung) ?? null;
-  const favorite_song = pickString(body.favorite_song, body.liebstes_lied) ?? null;
-  const favorite_lyric = pickString(body.favorite_lyric, body.liebste_textzeile) ?? null;
-  const worst_song = pickString(body.worst_song, body.schlechtestes_lied) ?? null;
+    // akzeptiere alte + neue Feldnamen (aber KEIN suggested_by mehr)
+    const title = pickString(body.title, body.albumtitel);
+    const artist = pickString(body.artist, body.interpret);
 
-  if (!title) {
-    return NextResponse.json({ error: "title ist ein Pflichtfeld." }, { status: 400 });
-  }
+    const reason = pickString(body.reason, body.begruendung) ?? null;
+    const favorite_song = pickString(body.favorite_song, body.liebstes_lied) ?? null;
+    const favorite_lyric = pickString(body.favorite_lyric, body.liebste_textzeile) ?? null;
+    const worst_song = pickString(body.worst_song, body.schlechtestes_lied) ?? null;
 
-  // Spotify Daten automatisch holen
-  let spotify_id: string | null = null;
-  let spotify_url: string | null = null;
-  let cover_url: string | null = null;
+    if (!title || !artist || !reason || !favorite_song || !worst_song) {
+      return NextResponse.json(
+        { error: "Pflicht: title, artist, reason, favorite_song, worst_song (Textzeile optional)." },
+        { status: 400 }
+      );
+    }
 
-  try {
+    // ✅ Supabase Client "as user"
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      }
+    );
+
+    // ✅ User serverseitig bestimmen
+    const { data: authData, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !authData?.user) {
+      return NextResponse.json({ error: "Ungültiger Login/Token." }, { status: 401 });
+    }
+    const userId = authData.user.id;
+
+    // ✅ participant holen (Name serverseitig)
+    const { data: me, error: meErr } = await supabase
+      .from("participants")
+      .select("user_id, display_name")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (meErr) return NextResponse.json({ error: meErr.message }, { status: 400 });
+    if (!me?.display_name) {
+      return NextResponse.json(
+        { error: "Kein Teilnehmerprofil gefunden. Bitte einmal (neu) anmelden." },
+        { status: 403 }
+      );
+    }
+
+    // Spotify Daten automatisch holen
     const meta = await getSpotifyAlbumMeta(title, artist);
-    spotify_id = meta.spotify_id;
-    spotify_url = meta.spotify_url;
-    cover_url = meta.cover_url;
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Spotify Lookup fehlgeschlagen." }, { status: 400 });
-  }
+    if (!meta.spotify_id) {
+      return NextResponse.json(
+        { error: "Kein Spotify-Album gefunden – bitte Titel/Interpret prüfen." },
+        { status: 400 }
+      );
+    }
 
-  if (!spotify_id) {
+    // ✅ Upsert suggestion (user_id serverseitig)
+    // Empfehlung: unique constraint auf (spotify_id, user_id) ODER "eine suggestion pro spotify_id" (deine Wahl)
+    const { data, error } = await supabase
+      .from("suggestions")
+      .upsert(
+        {
+          spotify_id: meta.spotify_id,
+          spotify_url: meta.spotify_url,
+          cover_url: meta.cover_url,
+          title: title.trim(),
+          artist: artist.trim(),
+          user_id: userId,
+          suggested_by: me.display_name, // nur Anzeige, nicht "auth"
+          note: body.note ?? null,
+          reason,
+          favorite_song,
+          favorite_lyric,
+          worst_song,
+          is_active: true,
+        },
+        // WICHTIG: Das muss zu deinem DB-Constraint passen!
+        // Wenn du "nur ein Vorschlag pro Album global" willst: onConflict: "spotify_id"
+        // Wenn du "jeder darf das Album vorschlagen" willst: onConflict: "spotify_id,user_id"
+        { onConflict: "spotify_id" }
+      )
+      .select("*")
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+    return NextResponse.json({ status: "inserted", data }, { status: 200 });
+  } catch (e) {
     return NextResponse.json(
-      { error: "Kein Spotify-Album gefunden – bitte Titel/Interpret prüfen." },
-      { status: 400 }
+      { error: e?.message ?? "Unbekannter Fehler" },
+      { status: 500 }
     );
   }
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
-  // Upsert verhindert duplicate key errors, wenn spotify_id unique ist
-  const { data, error } = await supabase
-    .from("suggestions")
-    .upsert(
-      {
-        spotify_id,
-        spotify_url,
-        cover_url,
-        title,
-        artist: artist ?? null,
-        suggested_by: suggested_by ?? null,
-        note: body.note ?? null,
-        reason,
-        favorite_song,
-        favorite_lyric,
-        worst_song,
-        is_active: true,
-      },
-      { onConflict: "spotify_id" }
-    )
-    .select("*")
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-
-  return NextResponse.json({ status: "inserted", data });
 }
