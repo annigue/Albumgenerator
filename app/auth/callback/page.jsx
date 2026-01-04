@@ -27,13 +27,23 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        const dn = (user.user_metadata?.display_name || "").trim();
-        const em = (user.email || "").trim();
+        const dnLocal =
+  (typeof window !== "undefined" && localStorage.getItem("pending_display_name")) || "";
 
-        if (!dn) {
-          setMsg("Kein Name im Profil gefunden. Bitte erneut anmelden und Name eingeben.");
-          return;
-        }
+const dnMeta = user?.user_metadata?.display_name || "";
+const dn = (dnLocal || dnMeta || "").trim();
+
+const em =
+  (typeof window !== "undefined" && localStorage.getItem("pending_email")) ||
+  user.email ||
+  "";
+
+
+  if (!dn) {
+    setMsg("Name fehlt. Bitte nochmal anmelden und Name eingeben.");
+    return;
+  }
+  
 
         // ✅ participants upsert
         const { error: upsertErr } = await supabase

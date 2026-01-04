@@ -27,10 +27,11 @@ export default function LoginForm() {
         email: em,
         options: {
           emailRedirectTo: redirectTo,
-          // ✅ WICHTIG: Name in user_metadata speichern (funktioniert auch auf anderen Geräten)
+          // ✅ wichtig: Name in User-Metadata speichern (funktioniert auch wenn Link auf anderem Gerät geöffnet wird)
           data: { display_name: dn },
         },
       });
+      
 
       if (error) throw error;
 
