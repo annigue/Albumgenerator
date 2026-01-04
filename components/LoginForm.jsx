@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
-
 export default function LoginForm() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -22,15 +21,15 @@ export default function LoginForm() {
 
     setSending(true);
     try {
-      // für callback-seite speichern
-      localStorage.setItem("pending_display_name", dn);
-      localStorage.setItem("pending_email", em);
-
       const redirectTo = `${window.location.origin}/auth/callback`;
 
       const { error } = await supabase.auth.signInWithOtp({
         email: em,
-        options: { emailRedirectTo: redirectTo },
+        options: {
+          emailRedirectTo: redirectTo,
+          // ✅ WICHTIG: Name in user_metadata speichern (funktioniert auch auf anderen Geräten)
+          data: { display_name: dn },
+        },
       });
 
       if (error) throw error;

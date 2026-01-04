@@ -3,22 +3,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 
-function fallbackNameFromEmail(email) {
-  if (!email) return "";
-  const local = email.split("@")[0] || "";
-  // hübscher machen: a.gue -> A gue
-  const nice = local.replace(/[._-]+/g, " ").trim();
-  if (!nice) return "";
-  return nice.charAt(0).toUpperCase() + nice.slice(1);
-}
-
 export default function AuthCallbackPage() {
   const [msg, setMsg] = useState("Anmeldung wird abgeschlossen…");
 
   useEffect(() => {
     (async () => {
       try {
-        // 1) Wenn Supabase "code"-flow nutzt: Session explizit tauschen
+        // ✅ Code-Flow abfangen (wenn Supabase ?code=... nutzt)
         const url = new URL(window.location.href);
         const code = url.searchParams.get("code");
         if (code) {
@@ -26,7 +17,7 @@ export default function AuthCallbackPage() {
           if (error) throw error;
         }
 
-        // 2) User holen (verlässlicher als getSession im Callback)
+        // ✅ User holen (damit haben wir session+metadata sicher)
         const { data: userData, error: userErr } = await supabase.auth.getUser();
         if (userErr) throw userErr;
 
@@ -36,21 +27,15 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        // 3) Name/E-Mail aus localStorage – ABER fallback wenn leer (anderes Gerät / Mail-App)
-        const dnRaw =
-          (typeof window !== "undefined" && localStorage.getItem("pending_display_name")) || "";
-        const emRaw =
-          (typeof window !== "undefined" && localStorage.getItem("pending_email")) || "";
-
-        const em = emRaw || user.email || "";
-        const dn = dnRaw || fallbackNameFromEmail(user.email);
+        const dn = (user.user_metadata?.display_name || "").trim();
+        const em = (user.email || "").trim();
 
         if (!dn) {
-          setMsg("Name fehlt. Bitte nochmal anmelden und Namen eingeben.");
+          setMsg("Kein Name im Profil gefunden. Bitte erneut anmelden und Name eingeben.");
           return;
         }
 
-        // 4) Participants upsert (RLS: user_id = auth.uid())
+        // ✅ participants upsert
         const { error: upsertErr } = await supabase
           .from("participants")
           .upsert(
@@ -63,12 +48,6 @@ export default function AuthCallbackPage() {
           );
 
         if (upsertErr) throw upsertErr;
-
-        // Cleanup
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("pending_display_name");
-          localStorage.removeItem("pending_email");
-        }
 
         setMsg("✅ Fertig! Weiterleitung…");
         window.location.replace("/");
