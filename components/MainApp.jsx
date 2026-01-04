@@ -7,14 +7,11 @@ import { getSpotifyUrls } from "../lib/spotifyUrls";
 import BewertungForm from "./BewertungForm";
 import VorschlagForm from "./VorschlagForm";
 
-/* ──────────────────────────────────────────────────────────
-   Helpers: zählen + normalisieren
-   ────────────────────────────────────────────────────────── */
+/* helpers */
 function normalizeSongName(s) {
   if (!s) return "";
   return String(s).trim().replace(/\s+/g, " ").replace(/["“”]/g, '"');
 }
-
 function topCounts(items, topN = 5) {
   const map = new Map();
   for (const raw of items) {
@@ -28,38 +25,25 @@ function topCounts(items, topN = 5) {
     .slice(0, topN);
 }
 
-/* ──────────────────────────────────────────────────────────
-   Spotify Cover URL Kandidaten + oEmbed Fallback
-   ────────────────────────────────────────────────────────── */
+/* cover helpers */
 function extractSpotifyImageHash(input) {
   const s = (input ?? "").toString();
   const m = s.match(/ab[0-9a-f]{20,}/i);
   return m?.[0] ?? "";
 }
-
 function coverCandidates(raw) {
   const url = (raw ?? "").toString().trim();
   if (!url) return [];
-
   const hash = extractSpotifyImageHash(url);
-
   const list = [];
   if (/^https?:\/\//i.test(url)) list.push(url);
   if (hash) list.push(`https://i.scdn.co/image/${hash}`);
   if (hash) list.push(`https://image-cdn-ak.spotifycdn.com/image/${hash}`);
-
   return Array.from(new Set(list));
 }
-
-/**
- * CoverImage:
- * - probiert Candidates der Reihe nach
- * - wenn alle scheitern: holt thumbnail_url über Spotify oEmbed (kein Key nötig)
- */
 function CoverImage({ src, alt, spotifyUrl }) {
   const candidates = useMemo(() => coverCandidates(src), [src]);
   const [i, setI] = useState(0);
-
   const [oembedUrl, setOembedUrl] = useState("");
   const [triedOembed, setTriedOembed] = useState(false);
 
@@ -83,19 +67,15 @@ function CoverImage({ src, alt, spotifyUrl }) {
   async function fetchOembed() {
     if (!spotifyUrl || triedOembed) return;
     setTriedOembed(true);
-
     try {
       const res = await fetch(
         `https://open.spotify.com/oembed?url=${encodeURIComponent(spotifyUrl)}`
       );
       if (!res.ok) return;
-
       const data = await res.json().catch(() => null);
       const thumb = data?.thumbnail_url;
       if (thumb) setOembedUrl(thumb);
-    } catch {
-      // ignore
-    }
+    } catch {}
   }
 
   return (
@@ -106,21 +86,17 @@ function CoverImage({ src, alt, spotifyUrl }) {
       loading="lazy"
       onError={() => {
         if (oembedUrl) return;
-
         if (i < candidates.length - 1) {
           setI((prev) => prev + 1);
           return;
         }
-
         fetchOembed();
       }}
     />
   );
 }
 
-/* ──────────────────────────────────────────────────────────
-   Mini-“Chart” Komponente (CSS Bars)
-   ────────────────────────────────────────────────────────── */
+/* bars */
 function SongBars({ title, items }) {
   if (!items?.length) {
     return (
@@ -130,13 +106,10 @@ function SongBars({ title, items }) {
       </div>
     );
   }
-
   const max = Math.max(...items.map((x) => x.count), 1);
-
   return (
     <div className="border-2 border-retro-border bg-white/60 p-4">
       <p className="meta text-center mb-3">{title}</p>
-
       <div className="space-y-2">
         {items.map((x) => {
           const w = Math.round((x.count / max) * 100);
@@ -145,11 +118,9 @@ function SongBars({ title, items }) {
               <div className="w-40 text-sm truncate" title={x.label}>
                 {x.label}
               </div>
-
               <div className="flex-1 h-3 border-2 border-retro-border bg-transparent">
                 <div className="h-full bg-retro-accent" style={{ width: `${w}%` }} />
               </div>
-
               <div className="w-10 text-right text-sm font-semibold tabular-nums">
                 {x.count}
               </div>
@@ -161,16 +132,41 @@ function SongBars({ title, items }) {
   );
 }
 
-/* ──────────────────────────────────────────────────────────
-   MainApp
-   ────────────────────────────────────────────────────────── */
 export default function MainApp() {
+  const [me, setMe] = useState(null);
+  const [loadingMe, setLoadingMe] = useState(true);
+
   const [currentAlbum, setCurrentAlbum] = useState(null);
   const [pastAlbums, setPastAlbums] = useState([]);
   const [idx, setIdx] = useState(0);
   const [votes, setVotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // ✅ 1) Me laden (participants row)
+  const loadMe = useCallback(async () => {
+    setLoadingMe(true);
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr) console.error("getUser error:", userErr);
+
+    const user = userData?.user;
+    if (!user) {
+      setMe(null);
+      setLoadingMe(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("participants")
+      .select("user_id, display_name, email")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) console.error("loadMe participants error:", error);
+    setMe(data ?? null);
+    setLoadingMe(false);
+  }, []);
+
+  // ✅ 2) Albums laden
   const loadAlbums = useCallback(async () => {
     setLoading(true);
 
@@ -212,8 +208,9 @@ export default function MainApp() {
   }, []);
 
   useEffect(() => {
+    loadMe();
     loadAlbums();
-  }, [loadAlbums]);
+  }, [loadMe, loadAlbums]);
 
   useEffect(() => {
     const album = pastAlbums[idx];
@@ -230,32 +227,22 @@ export default function MainApp() {
       flops: 0,
       winner: null,
     };
-
     for (const v of votes) {
       if (v.rating === 1) stats.hits++;
       else if (v.rating === 0) stats.okays++;
       else if (v.rating === -1) stats.flops++;
     }
-
     const max = Math.max(stats.hits, stats.okays, stats.flops);
     if (max > 0) {
       if (stats.hits === max) stats.winner = "Hit";
       else if (stats.okays === max) stats.winner = "Geht in Ordnung";
       else if (stats.flops === max) stats.winner = "Niete";
     }
-
     return stats;
   }, [votes]);
 
-  const favoritesTop = useMemo(() => {
-    const list = (votes ?? []).map((v) => v?.favorite_song);
-    return topCounts(list, 5);
-  }, [votes]);
-
-  const worstTop = useMemo(() => {
-    const list = (votes ?? []).map((v) => v?.worst_song);
-    return topCounts(list, 5);
-  }, [votes]);
+  const favoritesTop = useMemo(() => topCounts((votes ?? []).map((v) => v?.favorite_song), 5), [votes]);
+  const worstTop = useMemo(() => topCounts((votes ?? []).map((v) => v?.worst_song), 5), [votes]);
 
   const currentSpotify = currentAlbum
     ? getSpotifyUrls({
@@ -322,8 +309,17 @@ export default function MainApp() {
               )}
 
               <div className="mt-6">
-                <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
+                {/* ✅ me wird runtergereicht */}
+                <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} me={me} loadingMe={loadingMe} />
               </div>
+
+              {/* Debug-Hinweis (kannst du später entfernen) */}
+              {!loadingMe && !me && (
+                <p className="text-xs opacity-70 mt-3">
+                  ⚠️ Du bist eingeloggt, aber hast noch kein Teilnehmerprofil (participants). Öffne den Magic Link erneut
+                  oder gehe einmal auf <span className="underline">/auth/callback</span>.
+                </p>
+              )}
             </div>
           ) : (
             <p className="text-center text-gray-500 italic mb-8">
@@ -413,7 +409,7 @@ export default function MainApp() {
           )}
 
           {/* Vorschlagen */}
-          <VorschlagForm />
+          <VorschlagForm me={me} loadingMe={loadingMe} />
         </div>
       </div>
 
