@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { ensureParticipant } from "../lib/ensureParticipant";
 
 function mapBewertungToRating(b) {
   if (b === "Hit") return 1;
@@ -10,8 +11,9 @@ function mapBewertungToRating(b) {
   return null;
 }
 
-export default function BewertungForm({ album, onSubmitted, me }) {
-  const displayName = me?.display_name || "";
+export default function BewertungForm({ album, onSubmitted }) {
+  const [me, setMe] = useState(null);
+  const [loadingMe, setLoadingMe] = useState(true);
 
   const [form, setForm] = useState({
     liebstes_lied: "",
@@ -23,6 +25,29 @@ export default function BewertungForm({ album, onSubmitted, me }) {
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
 
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      setLoadingMe(true);
+      try {
+        const p = await ensureParticipant(); // ✅ auto-repair
+        if (!alive) return;
+        setMe(p);
+      } catch (e) {
+        console.error("ensureParticipant failed:", e);
+        if (!alive) return;
+        setMe(null);
+      } finally {
+        if (alive) setLoadingMe(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const onChange = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -32,8 +57,8 @@ export default function BewertungForm({ album, onSubmitted, me }) {
 
     if (!album?.id) return alert("Kein aktuelles Album gefunden.");
 
-    if (!displayName) {
-      alert("Nicht angemeldet. Bitte zuerst anmelden (Magic Link).");
+    if (!me?.display_name) {
+      alert("Nicht angemeldet. Bitte Magic Link nutzen.");
       return;
     }
 
@@ -49,10 +74,7 @@ export default function BewertungForm({ album, onSubmitted, me }) {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
-      if (!token) {
-        alert("Nicht eingeloggt. Bitte Magic Link nutzen.");
-        return;
-      }
+      if (!token) return alert("Nicht eingeloggt. Bitte Magic Link nutzen.");
 
       const payload = {
         album_week_id: album.id,
@@ -85,7 +107,7 @@ export default function BewertungForm({ album, onSubmitted, me }) {
 
   if (!album) return null;
 
-  if (!displayName) {
+  if (!loadingMe && !me?.display_name) {
     return (
       <div className="form-card text-left">
         <p className="meta">Teilnehmer</p>
@@ -115,7 +137,7 @@ export default function BewertungForm({ album, onSubmitted, me }) {
 
       <div className="form-group">
         <label>Teilnehmer</label>
-        <input value={displayName} disabled className="opacity-80" />
+        <input value={loadingMe ? "…" : me?.display_name || ""} disabled className="opacity-80" />
       </div>
 
       <div className="form-group">
@@ -126,7 +148,7 @@ export default function BewertungForm({ album, onSubmitted, me }) {
           value={form.liebstes_lied}
           onChange={onChange}
           required
-          disabled={sending}
+          disabled={sending || loadingMe}
         />
       </div>
 
@@ -138,7 +160,7 @@ export default function BewertungForm({ album, onSubmitted, me }) {
           value={form.beste_textzeile}
           onChange={onChange}
           rows={3}
-          disabled={sending}
+          disabled={sending || loadingMe}
         />
       </div>
 
@@ -150,7 +172,7 @@ export default function BewertungForm({ album, onSubmitted, me }) {
           value={form.schlechtestes_lied}
           onChange={onChange}
           required
-          disabled={sending}
+          disabled={sending || loadingMe}
         />
       </div>
 
@@ -162,7 +184,7 @@ export default function BewertungForm({ album, onSubmitted, me }) {
           value={form.bewertung}
           onChange={onChange}
           required
-          disabled={sending}
+          disabled={sending || loadingMe}
         >
           <option value="">Bitte wählen…</option>
           <option value="Hit">Hit</option>
@@ -171,7 +193,7 @@ export default function BewertungForm({ album, onSubmitted, me }) {
         </select>
       </div>
 
-      <button type="submit" disabled={sending}>
+      <button type="submit" disabled={sending || loadingMe}>
         {sending ? "WIRD GESENDET…" : "SUBMIT"}
       </button>
     </form>
