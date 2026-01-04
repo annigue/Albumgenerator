@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 function mapBewertungToRating(b) {
@@ -10,9 +10,8 @@ function mapBewertungToRating(b) {
   return null;
 }
 
-export default function BewertungForm({ album, onSubmitted }) {
-  const [displayName, setDisplayName] = useState("");
-  const [loadingMe, setLoadingMe] = useState(true);
+export default function BewertungForm({ album, onSubmitted, me }) {
+  const displayName = me?.display_name || "";
 
   const [form, setForm] = useState({
     liebstes_lied: "",
@@ -24,32 +23,8 @@ export default function BewertungForm({ album, onSubmitted }) {
   const [ok, setOk] = useState(false);
   const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      setLoadingMe(true);
-
-      const { data: sess } = await supabase.auth.getSession();
-      const user = sess?.session?.user;
-
-      if (!user) {
-        setDisplayName("");
-        setLoadingMe(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("participants")
-        .select("display_name")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error) console.error(error);
-      setDisplayName(data?.display_name || "");
-      setLoadingMe(false);
-    })();
-  }, []);
-
-  const onChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const onChange = (e) =>
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -62,7 +37,6 @@ export default function BewertungForm({ album, onSubmitted }) {
       return;
     }
 
-    // Pflichtfelder (Textzeile optional)
     if (!form.liebstes_lied || !form.schlechtestes_lied || !form.bewertung) {
       alert("Bitte alle Felder ausfüllen (außer Beste Textzeile).");
       return;
@@ -91,7 +65,10 @@ export default function BewertungForm({ album, onSubmitted }) {
 
       const res = await fetch("/api/votes", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -108,13 +85,13 @@ export default function BewertungForm({ album, onSubmitted }) {
 
   if (!album) return null;
 
-  if (!displayName && !loadingMe) {
+  if (!displayName) {
     return (
       <div className="form-card text-left">
         <p className="meta">Teilnehmer</p>
         <p className="text-sm opacity-80">
           Nicht angemeldet.<br />
-          Bitte unten anmelden (Magic Link), dann kannst du bewerten.
+          Bitte oben einloggen (Magic Link), dann kannst du bewerten.
         </p>
       </div>
     );
@@ -123,7 +100,9 @@ export default function BewertungForm({ album, onSubmitted }) {
   if (ok) {
     return (
       <div className="form-card text-center">
-        <p className="font-display text-xl tracking-wide text-retro-accent">✅ Danke für deine Bewertung!</p>
+        <p className="font-display text-xl tracking-wide text-retro-accent">
+          ✅ Danke für deine Bewertung!
+        </p>
       </div>
     );
   }
@@ -136,27 +115,55 @@ export default function BewertungForm({ album, onSubmitted }) {
 
       <div className="form-group">
         <label>Teilnehmer</label>
-        <input value={displayName || "…"} disabled className="opacity-80" />
+        <input value={displayName} disabled className="opacity-80" />
       </div>
 
       <div className="form-group">
         <label htmlFor="liebstes_lied">Liebstes Lied</label>
-        <input id="liebstes_lied" name="liebstes_lied" value={form.liebstes_lied} onChange={onChange} required disabled={sending} />
+        <input
+          id="liebstes_lied"
+          name="liebstes_lied"
+          value={form.liebstes_lied}
+          onChange={onChange}
+          required
+          disabled={sending}
+        />
       </div>
 
       <div className="form-group">
         <label htmlFor="beste_textzeile">Beste Textzeile (optional)</label>
-        <textarea id="beste_textzeile" name="beste_textzeile" value={form.beste_textzeile} onChange={onChange} rows={3} disabled={sending} />
+        <textarea
+          id="beste_textzeile"
+          name="beste_textzeile"
+          value={form.beste_textzeile}
+          onChange={onChange}
+          rows={3}
+          disabled={sending}
+        />
       </div>
 
       <div className="form-group">
         <label htmlFor="schlechtestes_lied">Schlechtestes Lied</label>
-        <input id="schlechtestes_lied" name="schlechtestes_lied" value={form.schlechtestes_lied} onChange={onChange} required disabled={sending} />
+        <input
+          id="schlechtestes_lied"
+          name="schlechtestes_lied"
+          value={form.schlechtestes_lied}
+          onChange={onChange}
+          required
+          disabled={sending}
+        />
       </div>
 
       <div className="form-group">
         <label htmlFor="bewertung">Gesamtbewertung</label>
-        <select id="bewertung" name="bewertung" value={form.bewertung} onChange={onChange} required disabled={sending}>
+        <select
+          id="bewertung"
+          name="bewertung"
+          value={form.bewertung}
+          onChange={onChange}
+          required
+          disabled={sending}
+        >
           <option value="">Bitte wählen…</option>
           <option value="Hit">Hit</option>
           <option value="Geht in Ordnung">Geht in Ordnung</option>
@@ -164,7 +171,7 @@ export default function BewertungForm({ album, onSubmitted }) {
         </select>
       </div>
 
-      <button type="submit" disabled={sending || loadingMe}>
+      <button type="submit" disabled={sending}>
         {sending ? "WIRD GESENDET…" : "SUBMIT"}
       </button>
     </form>
