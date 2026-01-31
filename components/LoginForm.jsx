@@ -22,6 +22,9 @@ export default function LoginForm() {
     setSending(true);
     try {
       const redirectTo = `${window.location.origin}/auth/callback`;
+      localStorage.setItem("pending_display_name", dn);
+      localStorage.setItem("pending_email", em);
+
 
       const { error } = await supabase.auth.signInWithOtp({
         email: em,
