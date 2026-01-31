@@ -9,56 +9,60 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     (async () => {
       try {
-        // ✅ Code-Flow abfangen (wenn Supabase ?code=... nutzt)
+        // 1) PKCE-Code tauschen, falls vorhanden
         const url = new URL(window.location.href);
         const code = url.searchParams.get("code");
         if (code) {
           const { error } = await supabase.auth.exchangeCodeForSession(code);
           if (error) throw error;
         }
-
-        // ✅ User holen (damit haben wir session+metadata sicher)
-        const { data: userData, error: userErr } = await supabase.auth.getUser();
+  
+        // 2) Session prüfen
+        const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+        if (sessionErr) throw sessionErr;
+  
+        if (!sessionData?.session) {
+          setMsg("Kein Login gefunden. Bitte den Magic Link erneut öffnen.");
+          return;
+        }
+  
+        // 3) User holen
+        const { data: userRes, error: userErr } = await supabase.auth.getUser();
         if (userErr) throw userErr;
-
-        const user = userData?.user;
+  
+        const user = userRes?.user;
         if (!user) {
           setMsg("Kein Login gefunden. Bitte den Magic Link erneut öffnen.");
           return;
         }
-
-        const dnLocal =
-  (typeof window !== "undefined" && localStorage.getItem("pending_display_name")) || "";
-
-const dnMeta = user?.user_metadata?.display_name || "";
-const dn = (dnLocal || dnMeta || "").trim();
-
-const em =
-  (typeof window !== "undefined" && localStorage.getItem("pending_email")) ||
-  user.email ||
-  "";
-
-
-  if (!dn) {
-    setMsg("Name fehlt. Bitte nochmal anmelden und Name eingeben.");
-    return;
-  }
   
-
-        // ✅ participants upsert
+        // 4) Display Name / Email bestimmen
+        const dnLocal = localStorage.getItem("pending_display_name") || "";
+        const dnMeta = user.user_metadata?.display_name || "";
+        const dn = (dnLocal || dnMeta || "").trim();
+  
+        const emLocal = localStorage.getItem("pending_email") || "";
+        const em = (emLocal || user.email || "").trim();
+  
+        if (!dn) {
+          setMsg("Name fehlt. Bitte nochmal anmelden und Name eingeben.");
+          return;
+        }
+  
+        // 5) participants upsert
         const { error: upsertErr } = await supabase
           .from("participants")
           .upsert(
-            {
-              user_id: user.id,
-              display_name: dn,
-              email: em || null,
-            },
+            { user_id: user.id, display_name: dn, email: em || null },
             { onConflict: "user_id" }
           );
-
+  
         if (upsertErr) throw upsertErr;
-
+  
+        // optional: localStorage aufräumen
+        localStorage.removeItem("pending_display_name");
+        localStorage.removeItem("pending_email");
+  
         setMsg("✅ Fertig! Weiterleitung…");
         window.location.replace("/");
       } catch (e) {
@@ -67,6 +71,7 @@ const em =
       }
     })();
   }, []);
+  
 
   return (
     <main className="bg-retro-bg text-retro-text min-h-screen">
