@@ -57,7 +57,12 @@ export default function AuthCallbackPage() {
             { onConflict: "user_id" }
           );
   
-        if (upsertErr) throw upsertErr;
+          if (upsertErr) {
+            console.error("participants upsert failed", upsertErr);
+            setMsg(`participants upsert failed: ${upsertErr.message}`);
+            return;
+          }
+          
   
         // optional: localStorage aufräumen
         localStorage.removeItem("pending_display_name");
