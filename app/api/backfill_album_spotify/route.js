@@ -5,6 +5,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const BACKFILL_SECRET = process.env.BACKFILL_SECRET;
 
 // WICHTIG: server-only, NIE als NEXT_PUBLIC!
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -67,6 +68,14 @@ async function searchAlbum(token, title, artist) {
 
 export async function POST(request) {
   try {
+    const secret =
+      request.headers.get("x-backfill-secret") ||
+      request.headers.get("X-Backfill-Secret") ||
+      "";
+    if (!BACKFILL_SECRET || secret !== BACKFILL_SECRET) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     assertEnv();
 
     const body = await request.json().catch(() => ({}));

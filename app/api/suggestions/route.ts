@@ -161,7 +161,7 @@ export async function POST(req) {
         // WICHTIG: Das muss zu deinem DB-Constraint passen!
         // Wenn du "nur ein Vorschlag pro Album global" willst: onConflict: "spotify_id"
         // Wenn du "jeder darf das Album vorschlagen" willst: onConflict: "spotify_id,user_id"
-        { onConflict: "spotify_id" }
+        { onConflict: "spotify_id,user_id" }
       )
       .select("*")
       .single();

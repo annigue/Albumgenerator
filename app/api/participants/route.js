@@ -4,6 +4,14 @@ export const runtime = "nodejs"; // wichtig, damit Resend/Node libs laufen
 
 export async function POST(req) {
   try {
+    const secret =
+      req.headers.get("x-webhook-secret") ||
+      req.headers.get("X-Webhook-Secret") ||
+      "";
+    if (!process.env.SUPABASE_WEBHOOK_SECRET || secret !== process.env.SUPABASE_WEBHOOK_SECRET) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json().catch(() => ({}));
 
     // optional: minimal validation
