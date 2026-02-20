@@ -7,6 +7,10 @@ import LoginForm from "../components/LoginForm.jsx";
 import MainApp from "../components/MainApp";
 
 export default function Page() {
+  const skipAuth =
+    typeof process.env.NEXT_PUBLIC_SKIP_AUTH === "string" &&
+    process.env.NEXT_PUBLIC_SKIP_AUTH.toLowerCase() === "true";
+
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
 
@@ -22,6 +26,11 @@ export default function Page() {
 
     return () => data.subscription.unsubscribe();
   }, []);
+
+  // Skip auth (dev/testing)
+  if (skipAuth) {
+    return <MainApp />;
+  }
 
   // Loading
   if (loading) {
