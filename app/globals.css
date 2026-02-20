@@ -199,6 +199,15 @@ iframe {
   border-radius: 0;
 }
 
+/* Spotify Icon */
+.spotify-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+  flex: 0 0 auto;
+}
+
 /* Utility Fixes */
 .text-center {
   text-align: center;

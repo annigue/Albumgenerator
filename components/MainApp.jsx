@@ -318,10 +318,12 @@ export default function MainApp() {
                     className="inline-flex items-center gap-2 text-retro-accent hover:underline"
                   >
                     <img
-  src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-  alt=""
-  style={{ width: 20, height: 20, border: "none", display: "inline-block" }}
-/>
+                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                      alt=""
+                      className="spotify-icon"
+                      width="18"
+                      height="18"
+                    />
 
                     Auf Spotify ansehen
                   </a>
@@ -380,10 +382,12 @@ export default function MainApp() {
                       title="Auf Spotify öffnen"
                     >
                       <img
-  src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-  alt=""
-  style={{ width: 20, height: 20, border: "none", display: "inline-block" }}
-/>
+                        src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                        alt=""
+                        className="spotify-icon"
+                        width="18"
+                        height="18"
+                      />
 
                     </a>
                   )}
