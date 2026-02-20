@@ -1,0 +1,16 @@
+Unchecked runtime.lastError: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+Unchecked runtime.lastError: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+Unchecked runtime.lastError: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+Unchecked runtime.lastError: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+Unchecked runtime.lastError: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+Unchecked runtime.lastError: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+cwdiqgzltxzpfonyryrv.supabase.co/rest/v1/participants?select=*:1     Failed to load resource: the server responded with a status of 500 ()
+117-ceb5ee30655d2e76.js:1 ensureParticipant failed: Object
+window.console.error @ 117-ceb5ee30655d2e76.js:1
+cwdiqgzltxzpfonyryrv.supabase.co/rest/v1/participants?select=*:1     Failed to load resource: the server responded with a status of 500 ()
+117-ceb5ee30655d2e76.js:1 ensureParticipant failed: Object
+window.console.error @ 117-ceb5ee30655d2e76.js:1
+ab67616d0000b2732fd153b6f7c4b1d8c7ef2f0f:1     Failed to load resource: the server responded with a status of 404 ()
+ab67616d0000b2732fd153b6f7c4b1d8c7ef2f0f:1     Failed to load resource: the server responded with a status of 404 ()
+/api/ensure-participant
+VM24:1 Uncaught SyntaxError: Invalid regular expression flags

@@ -323,6 +323,7 @@ export default function MainApp() {
                       className="spotify-icon"
                       width="18"
                       height="18"
+                      style={{ width: 18, height: 18 }}
                     />
 
                     Auf Spotify ansehen
@@ -348,7 +349,7 @@ export default function MainApp() {
               </h3>
 
               {/* Cover + Stempel */}
-              <div className="relative mx-auto mb-4 w-[240px] h-[240px]">
+              <div className="relative mx-auto mb-4 w-[240px] h-[240px]" style={{ position: "relative" }}>
                 <CoverImage
                   src={selectedPast.cover_url}
                   alt={`${selectedPast.title} Cover`}
@@ -387,6 +388,7 @@ export default function MainApp() {
                         className="spotify-icon"
                         width="18"
                         height="18"
+                        style={{ width: 18, height: 18 }}
                       />
 
                     </a>
