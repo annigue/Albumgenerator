@@ -10,11 +10,24 @@ export default function Page() {
   const skipAuth =
     typeof process.env.NEXT_PUBLIC_SKIP_AUTH === "string" &&
     process.env.NEXT_PUBLIC_SKIP_AUTH.toLowerCase() === "true";
+  const [skipAuthLocal, setSkipAuthLocal] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
 
   useEffect(() => {
+    // Allow temporary bypass via URL: ?skipAuth=1 (stored in localStorage)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("skipAuth") === "1") {
+        localStorage.setItem("skip_auth", "true");
+      }
+      const saved = localStorage.getItem("skip_auth") === "true";
+      setSkipAuthLocal(saved);
+    } catch {
+      setSkipAuthLocal(false);
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session ?? null);
       setLoading(false);
@@ -28,7 +41,7 @@ export default function Page() {
   }, []);
 
   // Skip auth (dev/testing)
-  if (skipAuth) {
+  if (skipAuth || skipAuthLocal) {
     return <MainApp />;
   }
 
