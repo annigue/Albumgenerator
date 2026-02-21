@@ -84,6 +84,15 @@ ol {
   background: #fffaf0;
   border: 3px solid #111;
   padding: 28px;
+  width: min(66vw, 980px);
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .poster {
+    width: 94vw;
+    padding: 20px;
+  }
 }
 
 .poster-header {
@@ -214,9 +223,14 @@ form {
 /* ✅ Form-Karte an retro-card angeglichen (vorher zu flach/anders) */
 .form-card {
   background-color: #fff8eb;
-  border: 2px solid #111;
+  border: 0;
   box-shadow: none;
   padding: 1.5rem;
+}
+
+/* Only outer poster-block should have a frame */
+.poster-block .form-card::after {
+  display: none;
 }
 
 .form-group {
@@ -333,7 +347,7 @@ iframe {
 /* Embed frame: cover rounded corners with a bold red frame */
 .poster-embed-frame {
   position: relative;
-  background: #111;
+  background: #fff8eb;
   padding: 8px;
   overflow: hidden;
 }
@@ -348,7 +362,7 @@ iframe {
   content: "";
   position: absolute;
   inset: 0;
-  border: 6px solid #111;
+  border: 8px solid #fff8eb;
   pointer-events: none;
 }
 
