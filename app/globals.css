@@ -465,19 +465,13 @@ iframe {
   top: -18px; /* 👈 weiter nach außen */
   right: -22px;
 
-  padding: 6px 12px; /* 👈 kleiner & eleganter */
-  border: 2px solid #1d1d1d;
+  padding: 0;
+  border: 0;
 
   font-family: "Bebas Neue", sans-serif;
-  font-size: 0.65rem; /* 👈 deutlich kleiner */
+  font-size: 0.65rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-
-  background: #fff8eb;
-  color: #1d1d1d;
-
-  transform: rotate(6deg);
-  box-shadow: 2px 2px 0 #1d1d1d;
 
   pointer-events: none;
   border-radius: 4px; /* ✅ passt zur neuen Karten-Rundung */
@@ -498,6 +492,6 @@ iframe {
 
 .rating-stamp-img {
   display: block;
-  width: 96px;
+  width: 120px;
   height: auto;
 }

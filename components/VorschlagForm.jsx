@@ -126,14 +126,13 @@ export default function VorschlagForm() {
         NEUES ALBUM VORSCHLAGEN
       </h3>
 
-      <div className="text-center text-sm opacity-80 mb-2">
-        {loadingMe ? (
-          <span className="meta">Lade Benutzer…</span>
-        ) : me?.display_name ? (
-          <span className="meta">Eingeloggt als: {me.display_name}</span>
-        ) : (
-          <span className="meta">Kein Teilnehmerprofil gefunden.</span>
-        )}
+      <div className="form-group">
+        <label>Teilnehmer</label>
+        <input
+          value={loadingMe ? "…" : me?.display_name || ""}
+          disabled
+          className="opacity-80"
+        />
       </div>
 
       <div className="form-group">

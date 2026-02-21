@@ -349,15 +349,16 @@ export default function MainApp() {
                 )}
               </section>
 
-              {/* Micro Image */}
-              <section className="poster-block poster-block--image">
-                <img src="/micro.png" alt="" className="poster-image" />
-              </section>
-
               {/* Bewertung */}
               <section className="poster-block poster-block--form">
                 <div className="poster-label">ALBUM BEWERTEN</div>
                 <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
+              </section>
+
+              {/* Vorschlagen */}
+              <section className="poster-block poster-block--form">
+                <div className="poster-label">NEUES ALBUM VORSCHLAGEN</div>
+                <VorschlagForm />
               </section>
 
               {/* Bisherige Alben */}
@@ -460,10 +461,9 @@ export default function MainApp() {
                 )}
               </section>
 
-              {/* Vorschlagen */}
-              <section className="poster-block poster-block--form">
-                <div className="poster-label">NEUES ALBUM VORSCHLAGEN</div>
-                <VorschlagForm />
+              {/* Micro Image */}
+              <section className="poster-block poster-block--image">
+                <img src="/micro.png" alt="" className="poster-image" />
               </section>
             </div>
           </div>
