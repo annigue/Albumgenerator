@@ -7,6 +7,7 @@
 
 /* === 🪩 GLOBAL STYLES === */
 
+/* Base body colors + font */
 body {
   @apply bg-retro-bg text-retro-text font-sans;
 }
@@ -20,6 +21,7 @@ ol {
 }
 
 /* 🟧🖤 Schachbrett-Dekor oben & unten */
+/* Top/bottom checker stripe */
 .pattern-top,
 .pattern-bottom {
   display: block;
@@ -53,6 +55,7 @@ ol {
    (Karos oben/unten bleiben unverändert)
    ========================================= */
 
+/* Page background image */
 .content-bg {
   position: relative;
   background-image: url("/background.jpg");
@@ -62,6 +65,7 @@ ol {
 }
 
 /* Overlay fürs Foto: unter dem Content */
+/* Soft overlay to keep text legible */
 .content-bg::before {
   content: "";
   position: absolute;
@@ -80,6 +84,7 @@ ol {
 /* =========================================
    Poster Layout (rockig, aber clean)
    ========================================= */
+/* Poster container (main yellow box) */
 .poster {
   background: #fffaf0;
   border: 3px solid #111;
@@ -134,6 +139,7 @@ ol {
   gap: 20px;
 }
 
+/* Desktop 2/3 + 1/3 layout */
 @media (min-width: 900px) {
   .poster-grid {
     grid-template-columns: 2fr 1fr;
@@ -183,10 +189,10 @@ ol {
   left: 14px;
   background: #111;
   color: #fff;
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
+  font-size: 1.6rem;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  padding: 4px 8px;
+  padding: 8px 4px;
 }
 
 .poster-block-title {
@@ -243,6 +249,7 @@ ol {
    FORMULAR DESIGN
    ========================================= */
 
+/* Form layout and fields */
 form {
   @apply flex flex-col space-y-4 text-left;
 }
@@ -250,7 +257,7 @@ form {
 /* ✅ Form-Karte an retro-card angeglichen (vorher zu flach/anders) */
 .form-card {
   background-color: #fff8eb;
-  border: 0;
+  border: 2px solid #979494;
   box-shadow: none;
   padding: 1.5rem;
 }
@@ -282,6 +289,7 @@ textarea {
 }
 
 /* Buttons (nur einmal definieren – keine Doppel-Regeln) */
+/* Primary button style */
 button[type="submit"],
 button {
   @apply bg-retro-accent text-white font-display py-2 px-4 border-2 border-retro-border
@@ -371,12 +379,13 @@ h4 {
 }
 
 /* Tighter embedded media frame */
+/* Embed base */
 iframe {
   border-radius: 0;
   box-shadow: 4px 4px 0 #616060;
 }
 
-/* Embed frame: cover rounded corners with a bold red frame */
+/* Embed frame: hide rounded corners */
 .poster-embed-frame {
   position: relative;
   background: #fff8eb;
@@ -399,6 +408,7 @@ iframe {
 }
 
 /* Tour-date style lists for statistics */
+/* Tour list look for stats */
 .tour-block {
   border: 0;
   padding: 6px 2px;
@@ -459,6 +469,7 @@ iframe {
 }
 
 /* Utility Fixes */
+/* Utility text alignment helpers */
 .text-center {
   text-align: center;
 }
@@ -473,6 +484,7 @@ iframe {
    Album-Bewertungs-Stempel (verfeinert)
    ========================================= */
 
+/* Rating stamp image positioning */
 .rating-stamp {
   position: absolute;
   top: -18px; /* 👈 weiter nach außen */
@@ -492,15 +504,15 @@ iframe {
 
 /* Farbvarianten – bewusst entsättigt */
 .rating-hit {
-  background: #e7f3df;
+  background: #c43114;
 }
 
 .rating-geht-in-ordnung {
-  background: #f4f1e8;
+  background: #c43114;
 }
 
 .rating-niete {
-  background: #f6e4e4;
+  background: #c43114;
 }
 
 .rating-stamp-img {
