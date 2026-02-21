@@ -173,8 +173,8 @@ ol {
 }
 
 .poster-block--stats-gray {
-  background: #fff6de;
-  border: 1px solid #eed8ab;
+  background: #f3e8cb;
+  border: 1px solid #f3e8cb;
 }
 
 .poster-block--image {
@@ -230,7 +230,7 @@ ol {
 
 /* ✅ Karten-Design vereinheitlicht (gleiche DNA) */
 .retro-card {
-  background-color: #fff8eb;
+  background-color: #f3e8cb;
   border: 2px solid #eed8ab;
   box-shadow: 6px 6px 0 #eed8ab;
 }
@@ -390,13 +390,13 @@ h4 {
 /* Embed base */
 iframe {
   border-radius: 0;
-  box-shadow: 4px 4px 0 #616060;
+  box-shadow: 4px 4px 0 #eed8ab;
 }
 
 /* Embed frame: hide rounded corners */
 .poster-embed-frame {
   position: relative;
-  background: #fff8eb;
+  background: #f3e8cb;
   padding: 8px;
   overflow: hidden;
 }
@@ -411,7 +411,7 @@ iframe {
   content: "";
   position: absolute;
   inset: 0;
-  border: 8px solid #fff8eb;
+  border: 8px solid #f3e8cb;
   pointer-events: none;
 }
 
