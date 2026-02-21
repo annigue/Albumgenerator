@@ -161,6 +161,12 @@ function stampImageSrc(winner) {
   return "";
 }
 
+function wikipediaArtistUrl(artist) {
+  const q = encodeURIComponent(String(artist || "").trim());
+  if (!q) return "";
+  return `https://de.wikipedia.org/wiki/Spezial:Suche?search=${q}`;
+}
+
 /* ──────────────────────────────────────────────────────────
    MainApp
    ────────────────────────────────────────────────────────── */
@@ -306,41 +312,62 @@ export default function MainApp() {
                     </h2>
                     <p className="meta text-center mb-4">{currentAlbum.artist}</p>
 
-                    {currentSpotify?.embedUrl && (
-                      <div className="mx-auto max-w-2xl">
-                        <div className="poster-embed-frame">
-                          <iframe
-                            src={currentSpotify.embedUrl}
-                            width="100%"
-                            height="420"
-                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                            loading="lazy"
-                            className="poster-embed"
-                          />
+                    <div className="current-album-grid">
+                      <div className="current-album-cover">
+                        <CoverImage
+                          src={currentAlbum.cover_url}
+                          alt={`${currentAlbum.title} Cover`}
+                          spotifyUrl={currentAlbum.spotify_url || currentSpotify?.openUrl || ""}
+                        />
+                      </div>
+
+                      <div className="current-album-player">
+                        {currentSpotify?.embedUrl && (
+                          <div className="poster-embed-frame">
+                            <iframe
+                              src={currentSpotify.embedUrl}
+                              width="100%"
+                              height="180"
+                              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                              loading="lazy"
+                              className="poster-embed"
+                            />
+                          </div>
+                        )}
+
+                        <div className="mt-3 flex flex-col items-center gap-2">
+                          {currentSpotify?.openUrl && (
+                            <a
+                              href={currentSpotify.openUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-retro-accent hover:underline"
+                            >
+                              <img
+                                src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                                alt=""
+                                className="spotify-icon"
+                                width="18"
+                                height="18"
+                                style={{ width: 18, height: 18 }}
+                              />
+                              Auf Spotify ansehen
+                            </a>
+                          )}
+
+                          {wikipediaArtistUrl(currentAlbum.artist) && (
+                            <a
+                              href={wikipediaArtistUrl(currentAlbum.artist)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-retro-text hover:underline text-sm"
+                            >
+                              Wikipedia: {currentAlbum.artist}
+                            </a>
+                          )}
                         </div>
                       </div>
-                    )}
-
-                    {currentSpotify?.openUrl && (
-                      <div className="mt-3">
-                        <a
-                          href={currentSpotify.openUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-retro-accent hover:underline"
-                        >
-                          <img
-                            src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                            alt=""
-                            className="spotify-icon"
-                            width="18"
-                            height="18"
-                            style={{ width: 18, height: 18 }}
-                          />
-                          Auf Spotify ansehen
-                        </a>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 ) : (
                   <p className="text-center text-gray-500 italic mb-8">
