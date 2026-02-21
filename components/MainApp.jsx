@@ -359,11 +359,15 @@ export default function MainApp() {
                 )}
               </section>
 
+              <div className="poster-sep" />
+
               {/* Bewertung */}
               <section className="poster-block poster-block--form">
                 <div className="poster-label">ALBUM BEWERTEN</div>
                 <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
               </section>
+
+              <div className="poster-sep" />
 
               {/* Vorschlagen */}
               <section className="poster-block poster-block--form">
@@ -371,110 +375,112 @@ export default function MainApp() {
                 <VorschlagForm />
               </section>
 
-              {/* Bisherige Alben */}
-              <section className="poster-block poster-block--stats poster-block--stats-gray">
-                <div className="poster-label">BISHERIGE ALBEN</div>
-                {pastAlbums.length > 0 && selectedPast ? (
-                  <>
-                    {/* Cover + Stempel */}
-                    <div
-                      className="relative mx-auto mb-4 w-[240px] h-[240px]"
-                      style={{ position: "relative" }}
-                    >
-                      <CoverImage
-                        src={selectedPast.cover_url}
-                        alt={`${selectedPast.title} Cover`}
-                        spotifyUrl={selectedPast.spotify_url || pastSpotify?.openUrl || ""}
-                      />
+              <div className="poster-sep" />
 
-                {voteStats.winner && (
-                        <div className={stampClass(voteStats.winner)}>
-                          <img
-                            src={stampImageSrc(voteStats.winner)}
-                            alt={voteStats.winner}
-                            className="rating-stamp-img"
-                          />
-                        </div>
-                      )}
-                    </div>
+              {/* Bisherige Alben + Micro */}
+              <div className="poster-row">
+                <section className="poster-block poster-block--stats poster-block--stats-gray">
+                  <div className="poster-label">BISHERIGE ALBEN</div>
+                  {pastAlbums.length > 0 && selectedPast ? (
+                    <>
+                      {/* Cover + Stempel */}
+                      <div
+                        className="relative mx-auto mb-4 w-[240px] h-[240px]"
+                        style={{ position: "relative" }}
+                      >
+                        <CoverImage
+                          src={selectedPast.cover_url}
+                          alt={`${selectedPast.title} Cover`}
+                          spotifyUrl={selectedPast.spotify_url || pastSpotify?.openUrl || ""}
+                        />
 
-                    {/* Titel + Spotify Link (unterhalb, wie gewünscht) */}
-                    <div className="text-center">
-                      <h4 className="text-xl font-semibold leading-snug">
-                        {selectedPast.title}
-                      </h4>
-
-                      <div className="mt-1 flex items-center justify-center gap-2">
-                        <p className="meta">{selectedPast.artist}</p>
-
-                        {pastSpotify?.openUrl && (
-                          <a
-                            href={pastSpotify.openUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center"
-                            style={{ border: "none" }}
-                            aria-label="Auf Spotify öffnen"
-                            title="Auf Spotify öffnen"
-                          >
+                        {voteStats.winner && (
+                          <div className={stampClass(voteStats.winner)}>
                             <img
-                              src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                              alt=""
-                              className="spotify-icon"
-                              width="18"
-                              height="18"
-                              style={{ width: 18, height: 18 }}
+                              src={stampImageSrc(voteStats.winner)}
+                              alt={voteStats.winner}
+                              className="rating-stamp-img"
                             />
-
-                          </a>
+                          </div>
                         )}
                       </div>
-                    </div>
 
-                    {/* Top Songs */}
-                    <div className="grid gap-4 md:grid-cols-2 mt-6">
-                      <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
-                      <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
-                    </div>
+                      {/* Titel + Spotify Link (unterhalb, wie gewünscht) */}
+                      <div className="text-center">
+                        <h4 className="text-xl font-semibold leading-snug">
+                          {selectedPast.title}
+                        </h4>
 
-                    {/* Vollständige Auswertung */}
-                    <p className="text-center text-xs uppercase tracking-wider opacity-70 mt-4">
-                      Votes: {voteStats.votes_total} – Hit {voteStats.hits} / Geht in Ordnung{" "}
-                      {voteStats.okays} / Niete {voteStats.flops}
+                        <div className="mt-1 flex items-center justify-center gap-2">
+                          <p className="meta">{selectedPast.artist}</p>
+
+                          {pastSpotify?.openUrl && (
+                            <a
+                              href={pastSpotify.openUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center"
+                              style={{ border: "none" }}
+                              aria-label="Auf Spotify öffnen"
+                              title="Auf Spotify öffnen"
+                            >
+                              <img
+                                src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                                alt=""
+                                className="spotify-icon"
+                                width="18"
+                                height="18"
+                                style={{ width: 18, height: 18 }}
+                              />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Top Songs */}
+                      <div className="grid gap-4 md:grid-cols-2 mt-6">
+                        <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
+                        <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
+                      </div>
+
+                      {/* Vollständige Auswertung */}
+                      <p className="text-center text-xs uppercase tracking-wider opacity-70 mt-4">
+                        Votes: {voteStats.votes_total} – Hit {voteStats.hits} / Geht in Ordnung{" "}
+                        {voteStats.okays} / Niete {voteStats.flops}
+                      </p>
+
+                      {/* Navigation */}
+                      <div className="flex justify-between mt-3">
+                        <button
+                          onClick={() => setIdx((i) => Math.max(i - 1, 0))}
+                          disabled={idx === 0}
+                          className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                          aria-label="Vorheriges Album"
+                        >
+                          ◀
+                        </button>
+
+                        <button
+                          onClick={() => setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))}
+                          disabled={idx === pastAlbums.length - 1}
+                          className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                          aria-label="Nächstes Album"
+                        >
+                          ▶
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-center text-gray-500 italic mb-8">
+                      Noch keine bisherigen Alben vorhanden.
                     </p>
+                  )}
+                </section>
 
-                    {/* Navigation */}
-                    <div className="flex justify-between mt-3">
-                      <button
-                        onClick={() => setIdx((i) => Math.max(i - 1, 0))}
-                        disabled={idx === 0}
-                        className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
-                        aria-label="Vorheriges Album"
-                      >
-                        ◀
-                      </button>
-
-                      <button
-                        onClick={() => setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))}
-                        disabled={idx === pastAlbums.length - 1}
-                        className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
-                        aria-label="Nächstes Album"
-                      >
-                        ▶
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-center text-gray-500 italic mb-8">
-                    Noch keine bisherigen Alben vorhanden.
-                  </p>
-                )}
-              </section>
-
-              {/* Micro Image */}
-              <section className="poster-block poster-block--image">
-                <img src="/micro.png" alt="" className="poster-image" />
-              </section>
+                <section className="poster-block poster-block--image">
+                  <img src="/micro.png" alt="" className="poster-image" />
+                </section>
+              </div>
             </div>
           </div>
         </div>

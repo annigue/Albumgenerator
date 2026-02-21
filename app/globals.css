@@ -139,23 +139,36 @@ ol {
   gap: 20px;
 }
 
-/* Desktop 2/3 + 1/3 layout */
+/* Horizontal separators between blocks */
+.poster-sep {
+  height: 1px;
+  background: #111;
+  opacity: 0.6;
+}
+
+/* Row for stats + micro image */
+.poster-row {
+  display: grid;
+  gap: 20px;
+}
+
+@media (min-width: 900px) {
+  .poster-row {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
 @media (min-width: 900px) {
   .poster-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .poster-block--hero {
-    grid-column: 1 / -1;
-  }
-  .poster-block--image {
-    grid-column: 2;
+    grid-template-columns: 1fr;
   }
 }
 
 .poster-image {
   width: 100%;
-  max-width: 300px;
-  margin-left: auto;
+  max-width: 360px;
+  margin: 0 auto;
   display: block;
 }
 
@@ -167,14 +180,14 @@ ol {
 
 .poster-block {
   position: relative;
-  background: #fff6de;
+  background: #f4f0e4;
   border: 0;
   padding: 26px 18px 18px;
 }
 
 .poster-block--stats-gray {
-  background: #f3e8cb;
-  border: 1px solid #f3e8cb;
+  background: #f4f0e4;
+  border: 1px solid #c9c6bf;
 }
 
 .poster-block--image {
@@ -292,7 +305,7 @@ label {
 input,
 select,
 textarea {
-  @apply border-0 bg-[#f1efe9] text-retro-text p-2 text-sm tracking-wider
+  @apply border border-[#e3ded2] bg-[#fffaf0] text-retro-text p-2 text-sm tracking-wider
   focus:outline-none focus:ring-2 focus:ring-retro-accent w-full;
 }
 
