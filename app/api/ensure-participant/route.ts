@@ -21,13 +21,22 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => ({}));
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || "";
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || "";
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || "";
 
     if (!supabaseUrl || !anonKey || !serviceKey) {
       return NextResponse.json(
         { error: "Supabase env vars fehlen (URL/ANON/SERVICE_ROLE)." },
+        { status: 500 }
+      );
+    }
+
+    try {
+      new URL(supabaseUrl);
+    } catch {
+      return NextResponse.json(
+        { error: "Supabase URL ist ungültig (NEXT_PUBLIC_SUPABASE_URL)." },
         { status: 500 }
       );
     }
