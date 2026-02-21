@@ -136,7 +136,7 @@ ol {
 
 @media (min-width: 900px) {
   .poster-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 2fr 1fr;
   }
   .poster-block--hero {
     grid-column: 1 / -1;
@@ -144,6 +144,13 @@ ol {
   .poster-block--image {
     grid-column: 2;
   }
+}
+
+.poster-image {
+  width: 100%;
+  max-width: 220px;
+  margin-left: auto;
+  display: block;
 }
 
 .poster-block--form,
@@ -155,7 +162,7 @@ ol {
 .poster-block {
   position: relative;
   background: #fff8eb;
-  border: 2px solid #111;
+  border: 0;
   padding: 18px;
 }
 

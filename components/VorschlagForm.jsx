@@ -7,10 +7,10 @@ import { ensureParticipant } from "../lib/ensureParticipant";
 const initialForm = {
   title: "",
   artist: "",
-  reason: "",
   favorite_song: "",
   favorite_lyric: "",
   worst_song: "",
+  reason: "",
 };
 
 export default function VorschlagForm() {
@@ -146,23 +146,23 @@ export default function VorschlagForm() {
       </div>
 
       <div className="form-group">
-        <label>Warum dieses Album?</label>
-        <textarea name="reason" value={form.reason} onChange={onChange} rows={3} required disabled={sending || loadingMe} />
-      </div>
-
-      <div className="form-group">
         <label>Lieblingslied</label>
         <input name="favorite_song" value={form.favorite_song} onChange={onChange} required disabled={sending || loadingMe} />
       </div>
 
       <div className="form-group">
-        <label>Liebste Textzeile (optional)</label>
+        <label>Beste Textzeile</label>
         <textarea name="favorite_lyric" value={form.favorite_lyric} onChange={onChange} rows={2} disabled={sending || loadingMe} />
       </div>
 
       <div className="form-group">
         <label>Schlechtestes Lied</label>
         <input name="worst_song" value={form.worst_song} onChange={onChange} required disabled={sending || loadingMe} />
+      </div>
+
+      <div className="form-group">
+        <label>Warum dieses Album</label>
+        <textarea name="reason" value={form.reason} onChange={onChange} rows={3} required disabled={sending || loadingMe} />
       </div>
 
       <button type="submit" disabled={sending || loadingMe || !me?.display_name}>

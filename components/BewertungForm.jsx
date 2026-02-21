@@ -131,9 +131,12 @@ export default function BewertungForm({ album, onSubmitted }) {
 
   return (
     <form onSubmit={onSubmit} className="form-card" noValidate>
-      <h3 className="text-retro-accent font-display text-2xl mb-1 tracking-widest text-center">
-        ALBUM BEWERTEN
-      </h3>
+      <div className="text-center mb-4">
+        <p className="font-display text-xl tracking-widest text-retro-text">
+          {album?.title || "ALBUMTITEL"}
+        </p>
+        <p className="meta">{album?.artist || "INTERPRET"}</p>
+      </div>
 
       <div className="form-group">
         <label>Teilnehmer</label>
@@ -141,7 +144,7 @@ export default function BewertungForm({ album, onSubmitted }) {
       </div>
 
       <div className="form-group">
-        <label htmlFor="liebstes_lied">Liebstes Lied</label>
+        <label htmlFor="liebstes_lied">Lieblingslied</label>
         <input
           id="liebstes_lied"
           name="liebstes_lied"
@@ -153,7 +156,7 @@ export default function BewertungForm({ album, onSubmitted }) {
       </div>
 
       <div className="form-group">
-        <label htmlFor="beste_textzeile">Beste Textzeile (optional)</label>
+        <label htmlFor="beste_textzeile">Beste Textzeile</label>
         <textarea
           id="beste_textzeile"
           name="beste_textzeile"
