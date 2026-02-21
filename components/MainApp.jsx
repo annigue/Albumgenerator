@@ -362,7 +362,7 @@ export default function MainApp() {
               </section>
 
               {/* Bisherige Alben */}
-              <section className="poster-block poster-block--stats">
+              <section className="poster-block poster-block--stats poster-block--stats-gray">
                 <div className="poster-label">BISHERIGE ALBEN</div>
                 {pastAlbums.length > 0 && selectedPast ? (
                   <>

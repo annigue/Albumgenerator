@@ -142,7 +142,7 @@ ol {
 /* Desktop 2/3 + 1/3 layout */
 @media (min-width: 900px) {
   .poster-grid {
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1fr 1fr;
   }
   .poster-block--hero {
     grid-column: 1 / -1;
@@ -169,7 +169,7 @@ ol {
   position: relative;
   background: #fff8eb;
   border: 0;
-  padding: 18px;
+  padding: 26px 18px 18px;
 }
 
 .poster-block--image {
@@ -185,14 +185,17 @@ ol {
 
 .poster-label {
   position: absolute;
-  top: -12px;
-  left: 14px;
+  top: -14px;
+  left: 12px;
   background: #111;
   color: #fff;
-  font-size: 1.6rem;
-  letter-spacing: 0.32em;
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  padding: 8px 4px;
+  padding: 6px 10px;
+  line-height: 1;
+  z-index: 2;
+  white-space: nowrap;
 }
 
 .poster-block-title {
