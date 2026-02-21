@@ -124,38 +124,26 @@ function CoverImage({ src, alt, spotifyUrl }) {
 function SongBars({ title, items }) {
   if (!items?.length) {
     return (
-      <div className="border-2 border-retro-border bg-white/60 p-4">
-        <p className="meta text-center">{title}</p>
-        <p className="text-center text-sm opacity-70 mt-2">Keine Einträge</p>
+      <div className="tour-block">
+        <p className="tour-title">{title}</p>
+        <p className="tour-empty">Keine Einträge</p>
       </div>
     );
   }
 
-  const max = Math.max(...items.map((x) => x.count), 1);
-
   return (
-    <div className="border-2 border-retro-border bg-white/60 p-4">
-      <p className="meta text-center mb-3">{title}</p>
-
-      <div className="space-y-2">
-        {items.map((x) => {
-          const w = Math.round((x.count / max) * 100);
-          return (
-            <div key={x.label} className="flex items-center gap-3">
-              <div className="w-40 text-sm truncate" title={x.label}>
-                {x.label}
-              </div>
-
-              <div className="flex-1 h-3 border-2 border-retro-border bg-transparent">
-                <div className="h-full bg-retro-accent" style={{ width: `${w}%` }} />
-              </div>
-
-              <div className="w-10 text-right text-sm font-semibold tabular-nums">
-                {x.count}
-              </div>
-            </div>
-          );
-        })}
+    <div className="tour-block">
+      <p className="tour-title">{title}</p>
+      <div className="tour-list">
+        {items.map((x) => (
+          <div key={x.label} className="tour-row">
+            <span className="tour-city" title={x.label}>
+              {x.label}
+            </span>
+            <span className="tour-dots" />
+            <span className="tour-count">{x.count}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -307,14 +295,16 @@ export default function MainApp() {
 
                     {currentSpotify?.embedUrl && (
                       <div className="mx-auto max-w-2xl">
-                        <iframe
-                          src={currentSpotify.embedUrl}
-                          width="100%"
-                          height="420"
-                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                          loading="lazy"
-                          className="w-full overflow-hidden border-2 border-retro-border"
-                        />
+                        <div className="poster-embed-frame">
+                          <iframe
+                            src={currentSpotify.embedUrl}
+                            width="100%"
+                            height="420"
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                            loading="lazy"
+                            className="poster-embed"
+                          />
+                        </div>
                       </div>
                     )}
 
