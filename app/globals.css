@@ -86,7 +86,7 @@ ol {
    ========================================= */
 /* Poster container (main yellow box) */
 .poster {
-  background: #fffaf0;
+  background: #eed8ab;
   border: 3px solid #111;
   padding: 28px;
   width: min(82vw, 1180px);
@@ -167,13 +167,13 @@ ol {
 
 .poster-block {
   position: relative;
-  background: #fff8eb;
+  background: #eed8ab;
   border: 0;
   padding: 26px 18px 18px;
 }
 
 .poster-block--stats-gray {
-  background: #fff8eb;
+  background: #eed8ab;
   border: 1px solid #c9c6bf;
 }
 
@@ -249,7 +249,7 @@ ol {
   content: "";
   position: absolute;
   inset: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.18);
+  border: 1px solid #969595(0, 0, 0, 0.18);
   pointer-events: none;
 }
 
@@ -264,8 +264,8 @@ form {
 
 /* ✅ Form-Karte an retro-card angeglichen (vorher zu flach/anders) */
 .form-card {
-  background-color: #fff8eb;
-  border: 2px solid #979494;
+  background-color: #eed8ab;
+  border: 2px solid #fff8eb;
   box-shadow: none;
   padding: 1.5rem;
 }
