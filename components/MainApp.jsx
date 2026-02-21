@@ -154,6 +154,13 @@ function stampClass(winner) {
   return `rating-stamp rating-${k}`;
 }
 
+function stampImageSrc(winner) {
+  if (winner === "Hit") return "/hit.png";
+  if (winner === "Geht in Ordnung") return "/gehtinordnung.png";
+  if (winner === "Niete") return "/niete.png";
+  return "";
+}
+
 /* ──────────────────────────────────────────────────────────
    MainApp
    ────────────────────────────────────────────────────────── */
@@ -287,11 +294,6 @@ export default function MainApp() {
             </header>
 
             <div className="poster-grid">
-              {/* Micro Image */}
-              <section className="poster-block poster-block--image">
-                <img src="/micro.png" alt="" className="poster-image" />
-              </section>
-
               {/* Aktuelles Album */}
               <section className="poster-block poster-block--hero">
                 <div className="poster-label">Aktuelles Album</div>
@@ -347,6 +349,11 @@ export default function MainApp() {
                 )}
               </section>
 
+              {/* Micro Image */}
+              <section className="poster-block poster-block--image">
+                <img src="/micro.png" alt="" className="poster-image" />
+              </section>
+
               {/* Bewertung */}
               <section className="poster-block poster-block--form">
                 <div className="poster-label">ALBUM BEWERTEN</div>
@@ -369,9 +376,13 @@ export default function MainApp() {
                         spotifyUrl={selectedPast.spotify_url || pastSpotify?.openUrl || ""}
                       />
 
-                      {voteStats.winner && (
+                {voteStats.winner && (
                         <div className={stampClass(voteStats.winner)}>
-                          {voteStats.winner.toUpperCase()}
+                          <img
+                            src={stampImageSrc(voteStats.winner)}
+                            alt={voteStats.winner}
+                            className="rating-stamp-img"
+                          />
                         </div>
                       )}
                     </div>

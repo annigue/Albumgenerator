@@ -141,6 +141,9 @@ ol {
   .poster-block--hero {
     grid-column: 1 / -1;
   }
+  .poster-block--image {
+    grid-column: 2;
+  }
 }
 
 .poster-block {
@@ -491,4 +494,10 @@ iframe {
 
 .rating-niete {
   background: #f6e4e4;
+}
+
+.rating-stamp-img {
+  display: block;
+  width: 96px;
+  height: auto;
 }
