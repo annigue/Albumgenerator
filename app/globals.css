@@ -86,7 +86,7 @@ ol {
    ========================================= */
 /* Poster container (main yellow box) */
 .poster {
-  background: #eed8ab;
+  background: #fff6de;
   border: 3px solid #111;
   padding: 28px;
   width: min(82vw, 1180px);
@@ -120,7 +120,7 @@ ol {
 
 .poster-title-img {
   display: block;
-  width: 100%;
+  width: 120%;
   max-width: 960px;
   margin: -8px auto 8px;
   transform: translateY(-6px);
@@ -167,14 +167,14 @@ ol {
 
 .poster-block {
   position: relative;
-  background: #eed8ab;
+  background: #fff6de;
   border: 0;
   padding: 26px 18px 18px;
 }
 
 .poster-block--stats-gray {
-  background: #eed8ab;
-  border: 1px solid #c9c6bf;
+  background: #fff6de;
+  border: 1px solid #eed8ab;
 }
 
 .poster-block--image {
@@ -231,12 +231,12 @@ ol {
 /* ✅ Karten-Design vereinheitlicht (gleiche DNA) */
 .retro-card {
   background-color: #fff8eb;
-  border: 2px solid #969595;
-  box-shadow: 6px 6px 0 #616060;
+  border: 2px solid #eed8ab;
+  box-shadow: 6px 6px 0 #eed8ab;
 }
 
 .retro-card--soft {
-  box-shadow: 4px 4px 0 #616060;
+  box-shadow: 4px 4px 0 #eed8ab;
 }
 
 /* Subtle inner edge for a more "printed" feel */
@@ -249,7 +249,7 @@ ol {
   content: "";
   position: absolute;
   inset: 6px;
-  border: 1px solid #969595(0, 0, 0, 0.18);
+  border: 1px solid #eed8ab(0, 0, 0, 0.18);
   pointer-events: none;
 }
 
@@ -264,8 +264,8 @@ form {
 
 /* ✅ Form-Karte an retro-card angeglichen (vorher zu flach/anders) */
 .form-card {
-  background-color: #eed8ab;
-  border: 2px solid #fff8eb;
+  background-color: #fff6de;
+  border: 2px solid #eed8ab;
   box-shadow: none;
   padding: 1.5rem;
 }
@@ -415,32 +415,18 @@ iframe {
   pointer-events: none;
 }
 
-/* Current album layout: cover + small player */
-.current-album-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  align-items: start;
-  justify-items: center;
-}
-
-@media (min-width: 900px) {
-  .current-album-grid {
-    grid-template-columns: auto 1fr;
-    align-items: center;
-  }
-}
-
+/* Current album cover */
 .current-album-cover {
   width: 440px;
   height: 440px;
+  margin: 0 auto;
 }
 
-.current-album-links {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-start;
+@media (max-width: 900px) {
+  .current-album-cover {
+    width: 280px;
+    height: 280px;
+  }
 }
 
 /* Tour-date style lists for statistics */

@@ -310,48 +310,46 @@ export default function MainApp() {
                     <h2 className="font-display text-3xl mb-1">
                       {currentAlbum.title}
                     </h2>
-                    <p className="meta text-center mb-4">{currentAlbum.artist}</p>
 
-                    <div className="current-album-grid">
-                      <div className="current-album-cover">
+                    <div className="mt-1 flex items-center justify-center gap-2 mb-4">
+                      <p className="meta">{currentAlbum.artist}</p>
+
+                      {currentSpotify?.openUrl && (
+                        <a
+                          href={currentSpotify.openUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center"
+                          style={{ border: "none" }}
+                          aria-label="Auf Spotify öffnen"
+                          title="Auf Spotify öffnen"
+                        >
+                          <img
+                            src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                            alt=""
+                            className="spotify-icon"
+                            width="18"
+                            height="18"
+                            style={{ width: 18, height: 18 }}
+                          />
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="current-album-cover">
+                      <a
+                        href={wikipediaArtistUrl(currentAlbum.artist)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Wikipedia: ${currentAlbum.artist}`}
+                        title={`Wikipedia: ${currentAlbum.artist}`}
+                      >
                         <CoverImage
                           src={currentAlbum.cover_url}
                           alt={`${currentAlbum.title} Cover`}
                           spotifyUrl={currentAlbum.spotify_url || currentSpotify?.openUrl || ""}
                         />
-                      </div>
-
-                      <div className="current-album-links">
-                        {currentSpotify?.openUrl && (
-                          <a
-                            href={currentSpotify.openUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-retro-accent hover:underline"
-                          >
-                            <img
-                              src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                              alt=""
-                              className="spotify-icon"
-                              width="18"
-                              height="18"
-                              style={{ width: 18, height: 18 }}
-                            />
-                            Auf Spotify ansehen
-                          </a>
-                        )}
-
-                        {wikipediaArtistUrl(currentAlbum.artist) && (
-                          <a
-                            href={wikipediaArtistUrl(currentAlbum.artist)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-retro-text hover:underline text-sm"
-                          >
-                            Wikipedia: {currentAlbum.artist}
-                          </a>
-                        )}
-                      </div>
+                      </a>
                     </div>
                   </div>
                 ) : (
