@@ -287,6 +287,11 @@ export default function MainApp() {
             </header>
 
             <div className="poster-grid">
+              {/* Micro Image */}
+              <section className="poster-block poster-block--image">
+                <img src="/micro.png" alt="" className="poster-image" />
+              </section>
+
               {/* Aktuelles Album */}
               <section className="poster-block poster-block--hero">
                 <div className="poster-label">Aktuelles Album</div>
@@ -344,19 +349,15 @@ export default function MainApp() {
 
               {/* Bewertung */}
               <section className="poster-block poster-block--form">
-                <div className="poster-label">Bewertung</div>
+                <div className="poster-label">ALBUM BEWERTEN</div>
                 <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
               </section>
 
               {/* Bisherige Alben */}
               <section className="poster-block poster-block--stats">
-                <div className="poster-label">Statistiken</div>
+                <div className="poster-label">BISHERIGE ALBEN</div>
                 {pastAlbums.length > 0 && selectedPast ? (
                   <>
-                    <h3 className="poster-block-title">
-                      BISHERIGE ALBEN
-                    </h3>
-
                     {/* Cover + Stempel */}
                     <div
                       className="relative mx-auto mb-4 w-[240px] h-[240px]"
@@ -450,7 +451,7 @@ export default function MainApp() {
 
               {/* Vorschlagen */}
               <section className="poster-block poster-block--form">
-                <div className="poster-label">Neues Album</div>
+                <div className="poster-label">NEUES ALBUM VORSCHLAGEN</div>
                 <VorschlagForm />
               </section>
             </div>

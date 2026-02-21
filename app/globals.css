@@ -84,7 +84,7 @@ ol {
   background: #fffaf0;
   border: 3px solid #111;
   padding: 28px;
-  width: min(66vw, 980px);
+  width: min(82vw, 1180px);
   margin: 0 auto;
 }
 
@@ -150,13 +150,24 @@ ol {
   padding: 18px;
 }
 
+.poster-block--image {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.poster-image {
+  width: 100%;
+  display: block;
+}
+
 .poster-label {
   position: absolute;
   top: -12px;
   left: 14px;
   background: #111;
   color: #fff;
-  font-size: 0.65rem;
+  font-size: 0.78rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   padding: 4px 8px;
@@ -285,6 +296,11 @@ button:hover {
   text-shadow: 0 0 0 #111;
 }
 
+/* Avoid duplicate titles inside poster blocks */
+.poster-block .form-card h3 {
+  display: none;
+}
+
 /* Tabellen */
 table {
   @apply w-full border-collapse mt-4;
@@ -368,9 +384,9 @@ iframe {
 
 /* Tour-date style lists for statistics */
 .tour-block {
-  border: 2px solid #111;
-  padding: 12px 14px;
-  background: #fffdf6;
+  border: 0;
+  padding: 6px 2px;
+  background: transparent;
 }
 .tour-title {
   text-transform: uppercase;
