@@ -285,158 +285,180 @@ export default function MainApp() {
       <div className="pattern-top" />
 
       <div className="content-bg">
-        <div className="max-w-2xl mx-auto p-8 relative z-10">
-          <h1 className="text-center">ALBUM DER WOCHE</h1>
+        <div className="max-w-4xl mx-auto p-8 relative z-10">
+          <div className="poster">
+            <header className="poster-header">
+              <h1 className="poster-title">ALBUM DER WOCHE</h1>
+              <p className="poster-subtitle">Woche für Woche – hören, bewerten, vorschlagen.</p>
+            </header>
 
-          {/* Aktuelles Album */}
-          {loading ? (
-            <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
-          ) : currentAlbum ? (
-            <div className="retro-card p-6 mb-10 text-center">
-              <h2 className="font-display text-3xl mb-1">{currentAlbum.title}</h2>
-              <p className="meta text-center mb-4">{currentAlbum.artist}</p>
+            <div className="poster-grid">
+              {/* Aktuelles Album */}
+              <section className="poster-block poster-block--hero">
+                <div className="poster-label">Aktuelles Album</div>
+                {loading ? (
+                  <p className="text-center text-gray-500 italic mb-8">Lädt…</p>
+                ) : currentAlbum ? (
+                  <div className="text-center">
+                    <h2 className="font-display text-3xl mb-1">
+                      {currentAlbum.title}
+                    </h2>
+                    <p className="meta text-center mb-4">{currentAlbum.artist}</p>
 
-              {currentSpotify?.embedUrl && (
-                <div className="mx-auto max-w-2xl">
-                  <iframe
-                    src={currentSpotify.embedUrl}
-                    width="100%"
-                    height="420"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                    className="w-full rounded-xl overflow-hidden border-2 border-retro-border"
-                  />
-                </div>
-              )}
+                    {currentSpotify?.embedUrl && (
+                      <div className="mx-auto max-w-2xl">
+                        <iframe
+                          src={currentSpotify.embedUrl}
+                          width="100%"
+                          height="420"
+                          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                          loading="lazy"
+                          className="w-full overflow-hidden border-2 border-retro-border"
+                        />
+                      </div>
+                    )}
 
-              {currentSpotify?.openUrl && (
-                <div className="mt-3">
-                  <a
-                    href={currentSpotify.openUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-retro-accent hover:underline"
-                  >
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                      alt=""
-                      className="spotify-icon"
-                      width="18"
-                      height="18"
-                      style={{ width: 18, height: 18 }}
-                    />
-
-                    Auf Spotify ansehen
-                  </a>
-                </div>
-              )}
-
-              <div className="mt-6">
-                <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
-              </div>
-            </div>
-          ) : (
-            <p className="text-center text-gray-500 italic mb-8">
-              Noch kein aktuelles Album gesetzt.
-            </p>
-          )}
-
-          {/* Bisherige Alben */}
-          {pastAlbums.length > 0 && selectedPast ? (
-            <div className="retro-card p-6 mb-10">
-              <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
-                BISHERIGE ALBEN
-              </h3>
-
-              {/* Cover + Stempel */}
-              <div className="relative mx-auto mb-4 w-[240px] h-[240px]" style={{ position: "relative" }}>
-                <CoverImage
-                  src={selectedPast.cover_url}
-                  alt={`${selectedPast.title} Cover`}
-                  spotifyUrl={selectedPast.spotify_url || pastSpotify?.openUrl || ""}
-                />
-
-                {voteStats.winner && (
-                  <div className={stampClass(voteStats.winner)}>
-                    {voteStats.winner.toUpperCase()}
+                    {currentSpotify?.openUrl && (
+                      <div className="mt-3">
+                        <a
+                          href={currentSpotify.openUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-retro-accent hover:underline"
+                        >
+                          <img
+                            src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                            alt=""
+                            className="spotify-icon"
+                            width="18"
+                            height="18"
+                            style={{ width: 18, height: 18 }}
+                          />
+                          Auf Spotify ansehen
+                        </a>
+                      </div>
+                    )}
                   </div>
+                ) : (
+                  <p className="text-center text-gray-500 italic mb-8">
+                    Noch kein aktuelles Album gesetzt.
+                  </p>
                 )}
-              </div>
+              </section>
 
-              {/* Titel + Spotify Link (unterhalb, wie gewünscht) */}
-              <div className="text-center">
-                <h4 className="text-xl font-semibold leading-snug">
-                  {selectedPast.title}
-                </h4>
+              {/* Bewertung */}
+              <section className="poster-block">
+                <div className="poster-label">Bewertung</div>
+                <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
+              </section>
 
-                <div className="mt-1 flex items-center justify-center gap-2">
-                  <p className="meta">{selectedPast.artist}</p>
+              {/* Bisherige Alben */}
+              <section className="poster-block">
+                <div className="poster-label">Statistiken</div>
+                {pastAlbums.length > 0 && selectedPast ? (
+                  <>
+                    <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
+                      BISHERIGE ALBEN
+                    </h3>
 
-                  {pastSpotify?.openUrl && (
-                    <a
-                      href={pastSpotify.openUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center"
-                      style={{ border: "none" }}
-                      aria-label="Auf Spotify öffnen"
-                      title="Auf Spotify öffnen"
+                    {/* Cover + Stempel */}
+                    <div
+                      className="relative mx-auto mb-4 w-[240px] h-[240px]"
+                      style={{ position: "relative" }}
                     >
-                      <img
-                        src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                        alt=""
-                        className="spotify-icon"
-                        width="18"
-                        height="18"
-                        style={{ width: 18, height: 18 }}
+                      <CoverImage
+                        src={selectedPast.cover_url}
+                        alt={`${selectedPast.title} Cover`}
+                        spotifyUrl={selectedPast.spotify_url || pastSpotify?.openUrl || ""}
                       />
 
-                    </a>
-                  )}
-                </div>
-              </div>
+                      {voteStats.winner && (
+                        <div className={stampClass(voteStats.winner)}>
+                          {voteStats.winner.toUpperCase()}
+                        </div>
+                      )}
+                    </div>
 
-              {/* Top Songs */}
-              <div className="grid gap-4 md:grid-cols-2 mt-6">
-                <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
-                <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
-              </div>
+                    {/* Titel + Spotify Link (unterhalb, wie gewünscht) */}
+                    <div className="text-center">
+                      <h4 className="text-xl font-semibold leading-snug">
+                        {selectedPast.title}
+                      </h4>
 
-              {/* Vollständige Auswertung */}
-              <p className="text-center text-xs uppercase tracking-wider opacity-70 mt-4">
-                Votes: {voteStats.votes_total} – Hit {voteStats.hits} / Geht in Ordnung{" "}
-                {voteStats.okays} / Niete {voteStats.flops}
-              </p>
+                      <div className="mt-1 flex items-center justify-center gap-2">
+                        <p className="meta">{selectedPast.artist}</p>
 
-              {/* Navigation */}
-              <div className="flex justify-between mt-3">
-                <button
-                  onClick={() => setIdx((i) => Math.max(i - 1, 0))}
-                  disabled={idx === 0}
-                  className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
-                  aria-label="Vorheriges Album"
-                >
-                  ◀
-                </button>
+                        {pastSpotify?.openUrl && (
+                          <a
+                            href={pastSpotify.openUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center"
+                            style={{ border: "none" }}
+                            aria-label="Auf Spotify öffnen"
+                            title="Auf Spotify öffnen"
+                          >
+                            <img
+                              src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                              alt=""
+                              className="spotify-icon"
+                              width="18"
+                              height="18"
+                              style={{ width: 18, height: 18 }}
+                            />
 
-                <button
-                  onClick={() => setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))}
-                  disabled={idx === pastAlbums.length - 1}
-                  className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
-                  aria-label="Nächstes Album"
-                >
-                  ▶
-                </button>
-              </div>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Top Songs */}
+                    <div className="grid gap-4 md:grid-cols-2 mt-6">
+                      <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
+                      <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
+                    </div>
+
+                    {/* Vollständige Auswertung */}
+                    <p className="text-center text-xs uppercase tracking-wider opacity-70 mt-4">
+                      Votes: {voteStats.votes_total} – Hit {voteStats.hits} / Geht in Ordnung{" "}
+                      {voteStats.okays} / Niete {voteStats.flops}
+                    </p>
+
+                    {/* Navigation */}
+                    <div className="flex justify-between mt-3">
+                      <button
+                        onClick={() => setIdx((i) => Math.max(i - 1, 0))}
+                        disabled={idx === 0}
+                        className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                        aria-label="Vorheriges Album"
+                      >
+                        ◀
+                      </button>
+
+                      <button
+                        onClick={() => setIdx((i) => Math.min(i + 1, pastAlbums.length - 1))}
+                        disabled={idx === pastAlbums.length - 1}
+                        className="px-4 py-2 bg-retro-accent text-white border-2 border-retro-border hover:bg-black transition disabled:opacity-50"
+                        aria-label="Nächstes Album"
+                      >
+                        ▶
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-center text-gray-500 italic mb-8">
+                    Noch keine bisherigen Alben vorhanden.
+                  </p>
+                )}
+              </section>
+
+              {/* Vorschlagen */}
+              <section className="poster-block">
+                <div className="poster-label">Neues Album</div>
+                <VorschlagForm />
+              </section>
             </div>
-          ) : (
-            <p className="text-center text-gray-500 italic mb-8">
-              Noch keine bisherigen Alben vorhanden.
-            </p>
-          )}
-
-          {/* Vorschlagen */}
-          <VorschlagForm />
+          </div>
         </div>
       </div>
 

@@ -78,6 +78,75 @@ ol {
 }
 
 /* =========================================
+   Poster Layout (rockig, aber clean)
+   ========================================= */
+.poster {
+  background: #fffaf0;
+  border: 3px solid #111;
+  box-shadow: 10px 10px 0 #111;
+  padding: 28px;
+}
+
+.poster-header {
+  border-bottom: 2px solid #111;
+  padding-bottom: 18px;
+  margin-bottom: 22px;
+}
+
+.poster-title {
+  font-family: "Bebas Neue", sans-serif;
+  color: #c43114;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 3.6rem;
+  line-height: 0.95;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.poster-subtitle {
+  text-align: center;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.poster-grid {
+  display: grid;
+  gap: 20px;
+}
+
+@media (min-width: 900px) {
+  .poster-grid {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+  .poster-block--hero {
+    grid-column: 1 / -1;
+  }
+}
+
+.poster-block {
+  position: relative;
+  background: #fff8eb;
+  border: 2px solid #111;
+  padding: 18px;
+  box-shadow: 6px 6px 0 #111;
+}
+
+.poster-label {
+  position: absolute;
+  top: -12px;
+  left: 14px;
+  background: #111;
+  color: #fff;
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+}
+
+/* =========================================
    Card / Kasten Look (rockig aber clean)
    ========================================= */
 
@@ -96,6 +165,20 @@ ol {
 
 .retro-card--soft {
   box-shadow: 4px 4px 0 #616060;
+}
+
+/* Subtle inner edge for a more "printed" feel */
+.retro-card,
+.form-card {
+  position: relative;
+}
+.retro-card::after,
+.form-card::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  pointer-events: none;
 }
 
 /* =========================================
@@ -192,6 +275,20 @@ h4 {
   @apply font-display text-xl mb-1;
   letter-spacing: 0.04em;
   font-weight: 600;
+}
+
+/* Professional spacing rhythm */
+.retro-card + .retro-card,
+.retro-card + .form-card,
+.form-card + .retro-card,
+.form-card + .form-card {
+  margin-top: 1.25rem;
+}
+
+/* Tighter embedded media frame */
+iframe {
+  border-radius: 0;
+  box-shadow: 4px 4px 0 #616060;
 }
 
 /* Spotify-Embed */
