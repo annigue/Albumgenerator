@@ -276,8 +276,14 @@ export default function MainApp() {
         <div className="max-w-4xl mx-auto p-8 relative z-10">
           <div className="poster">
             <header className="poster-header">
-              <h1 className="poster-title">ALBUM DER WOCHE</h1>
-              <p className="poster-subtitle">Woche für Woche – hören, bewerten, vorschlagen.</p>
+              <img
+                src="/title.png"
+                alt="Album der Woche"
+                className="poster-title-img"
+              />
+              <p className="poster-subtitle">
+                Woche für Woche – hören, bewerten, vorschlagen.
+              </p>
             </header>
 
             <div className="poster-grid">
@@ -337,17 +343,17 @@ export default function MainApp() {
               </section>
 
               {/* Bewertung */}
-              <section className="poster-block">
+              <section className="poster-block poster-block--form">
                 <div className="poster-label">Bewertung</div>
                 <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
               </section>
 
               {/* Bisherige Alben */}
-              <section className="poster-block">
+              <section className="poster-block poster-block--stats">
                 <div className="poster-label">Statistiken</div>
                 {pastAlbums.length > 0 && selectedPast ? (
                   <>
-                    <h3 className="font-display text-2xl text-retro-accent text-center mb-6">
+                    <h3 className="poster-block-title">
                       BISHERIGE ALBEN
                     </h3>
 
@@ -443,7 +449,7 @@ export default function MainApp() {
               </section>
 
               {/* Vorschlagen */}
-              <section className="poster-block">
+              <section className="poster-block poster-block--form">
                 <div className="poster-label">Neues Album</div>
                 <VorschlagForm />
               </section>
