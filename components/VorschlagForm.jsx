@@ -121,7 +121,7 @@ export default function VorschlagForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="form-card mt-10" noValidate>
+    <form onSubmit={onSubmit} className="form-card" noValidate>
       <h3 className="text-retro-accent font-display text-2xl mb-4 tracking-widest text-center">
         NEUES ALBUM VORSCHLAGEN
       </h3>
