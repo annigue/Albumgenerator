@@ -70,7 +70,7 @@ ol {
   content: "";
   position: absolute;
   inset: 0;
-  background: #fff6de; /* mehr Foto sichtbar */
+  background: rgba(255, 246, 222, 0.45); /* leichtes Overlay */
   pointer-events: none;
   z-index: 0;
 }
@@ -180,13 +180,13 @@ ol {
 
 .poster-block {
   position: relative;
-  background: #f4f0e4;
+  background: #fdf6e0;
   border: 0;
   padding: 26px 18px 18px;
 }
 
 .poster-block--stats-gray {
-  background: #f4f0e4;
+  background: #fdf6e0;
   border: 0;
 }
 
@@ -305,7 +305,7 @@ label {
 input,
 select,
 textarea {
-  @apply border border-[#e3ded2] bg-[#fffaf0] text-retro-text p-2 text-sm tracking-wider
+  @apply border border-[#e3ded2] bg-[#fdf6e0] text-retro-text p-2 text-sm tracking-wider
   focus:outline-none focus:ring-2 focus:ring-retro-accent w-full;
 }
 
