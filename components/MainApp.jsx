@@ -321,51 +321,36 @@ export default function MainApp() {
                         />
                       </div>
 
-                      <div className="current-album-player">
-                        {currentSpotify?.embedUrl && (
-                          <div className="poster-embed-frame">
-                            <iframe
-                              src={currentSpotify.embedUrl}
-                              width="100%"
-                              height="180"
-                              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                              loading="lazy"
-                              className="poster-embed"
+                      <div className="current-album-links">
+                        {currentSpotify?.openUrl && (
+                          <a
+                            href={currentSpotify.openUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-retro-accent hover:underline"
+                          >
+                            <img
+                              src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
+                              alt=""
+                              className="spotify-icon"
+                              width="18"
+                              height="18"
+                              style={{ width: 18, height: 18 }}
                             />
-                          </div>
+                            Auf Spotify ansehen
+                          </a>
                         )}
 
-                        <div className="mt-3 flex flex-col items-center gap-2">
-                          {currentSpotify?.openUrl && (
-                            <a
-                              href={currentSpotify.openUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 text-retro-accent hover:underline"
-                            >
-                              <img
-                                src="https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg"
-                                alt=""
-                                className="spotify-icon"
-                                width="18"
-                                height="18"
-                                style={{ width: 18, height: 18 }}
-                              />
-                              Auf Spotify ansehen
-                            </a>
-                          )}
-
-                          {wikipediaArtistUrl(currentAlbum.artist) && (
-                            <a
-                              href={wikipediaArtistUrl(currentAlbum.artist)}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-retro-text hover:underline text-sm"
-                            >
-                              Wikipedia: {currentAlbum.artist}
-                            </a>
-                          )}
-                        </div>
+                        {wikipediaArtistUrl(currentAlbum.artist) && (
+                          <a
+                            href={wikipediaArtistUrl(currentAlbum.artist)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-retro-text hover:underline text-sm"
+                          >
+                            Wikipedia: {currentAlbum.artist}
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>

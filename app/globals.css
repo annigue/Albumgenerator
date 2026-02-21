@@ -173,7 +173,8 @@ ol {
 }
 
 .poster-block--stats-gray {
-  background: #f1efe9;
+  background: #fff8eb;
+  border: 1px solid #c9c6bf;
 }
 
 .poster-block--image {
@@ -291,7 +292,7 @@ label {
 input,
 select,
 textarea {
-  @apply border border-retro-border bg-transparent text-retro-text p-2 text-sm tracking-wider
+  @apply border-0 bg-[#f1efe9] text-retro-text p-2 text-sm tracking-wider
   focus:outline-none focus:ring-2 focus:ring-retro-accent w-full;
 }
 
@@ -425,18 +426,21 @@ iframe {
 
 @media (min-width: 900px) {
   .current-album-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: auto 1fr;
     align-items: center;
   }
 }
 
 .current-album-cover {
-  width: 220px;
-  height: 220px;
+  width: 440px;
+  height: 440px;
 }
 
-.current-album-player {
-  width: min(420px, 90%);
+.current-album-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
 }
 
 /* Tour-date style lists for statistics */
