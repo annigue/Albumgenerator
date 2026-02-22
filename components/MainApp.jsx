@@ -370,7 +370,7 @@ export default function MainApp() {
 
               <div className="poster-sep" />
 
-              {/* Bisherige Alben + Micro */}
+              {/* Bisherige Alben*/}
               <div className="poster-row">
                 <section className="poster-block poster-block--stats poster-block--stats-gray">
                   <div className="poster-label poster-label--stats">BISHERIGE ALBEN</div>
@@ -469,6 +469,8 @@ export default function MainApp() {
                     </p>
                   )}
                 </section>
+
+                <div className="poster-sep" />
 
                 <section className="poster-block poster-block--image">
                   <img src="/micro.png" alt="" className="poster-image" />
