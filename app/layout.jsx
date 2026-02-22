@@ -9,7 +9,14 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="de">
-      <body>{children}</body>
+      <body>
+        {children}
+        <div className="legal-links">
+          <a href="/impressum">Impressum</a>
+          <span>·</span>
+          <a href="/datenschutz">Datenschutz</a>
+        </div>
+      </body>
     </html>
   );
 }

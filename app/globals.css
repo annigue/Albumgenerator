@@ -583,6 +583,26 @@ iframe {
   flex: 0 0 auto;
 }
 
+/* Legal links (bottom right above checkerboard) */
+.legal-links {
+  position: fixed;
+  right: 24px;
+  bottom: 140px;
+  z-index: 20;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  display: flex;
+  gap: 8px;
+}
+.legal-links a {
+  color: #111;
+  text-decoration: none;
+}
+.legal-links a:hover {
+  text-decoration: underline;
+}
+
 /* Utility Fixes */
 /* Utility text alignment helpers */
 .text-center {
