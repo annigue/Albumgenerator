@@ -140,6 +140,7 @@ ol {
   letter-spacing: 0.2em;
   text-transform: uppercase;
   opacity: 0.7;
+  margin-top: 20px;
 }
 
 .poster-grid {
@@ -540,7 +541,7 @@ iframe {
 }
 .lyrics-box {
   border: 1px solid #fff6de;
-  background: #fdf6e0 url("/paper.png") center/cover no-repeat;
+  background: #fff6de url("/paper.png") center/cover no-repeat;
   width: min(400px, 90%);
   min-height: 180px;
   display: flex;
