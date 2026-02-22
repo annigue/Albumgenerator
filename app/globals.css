@@ -540,7 +540,7 @@ iframe {
 }
 .lyrics-box {
   border: 1px solid #e3ded2;
-  background: #fdf6e0;
+  background: #fdf6e0 url("/papaer.png") center/cover no-repeat;
   width: min(240px, 90%);
   min-height: 180px;
   display: flex;
