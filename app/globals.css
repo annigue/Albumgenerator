@@ -124,7 +124,7 @@ ol {
 
 .poster-title-img {
   position: absolute;
-  top: -44px;
+  top: +44px;
   left: 50%;
   transform: translateX(-50%);
   display: block;
@@ -196,7 +196,7 @@ ol {
 }
 
 .poster-block--form {
-  padding-top: 64px;
+  padding-top: 52px;
 }
 
 .poster-block--hero,
@@ -223,7 +223,7 @@ ol {
 .poster-label {
   position: relative;
   top: 0;
-  left: 12;
+  left: 0;
   background: #111;
   color: #fff;
   font-size: 1.8rem;
@@ -234,7 +234,7 @@ ol {
   z-index: 2;
   white-space: nowrap;
   display: inline-block;
-  margin: 0 0 14px;
+  margin: 0 0 36px;
 }
 
 .poster-block-title {

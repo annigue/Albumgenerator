@@ -300,6 +300,7 @@ export default function MainApp() {
             </header>
 
             <div className="poster-grid">
+
               {/* Aktuelles Album */}
               <section className="poster-block poster-block--hero">
                 <div className="poster-label">Aktuelles Album</div>
@@ -370,9 +371,10 @@ export default function MainApp() {
 
               <div className="poster-sep" />
 
-               {/* Bisherige Alben + Micro */}
-               <div className="poster-row">
-               <div className="poster-label">BISHERIGE ALBEN</div>
+              {/* Bisherige Alben + Micro */}
+              <div className="poster-row">
+                <div className="poster-label">BISHERIGE ALBEN</div>
+               
                 <section className="poster-block poster-block--stats poster-block--stats-gray">
                   
                   {pastAlbums.length > 0 && selectedPast ? (
