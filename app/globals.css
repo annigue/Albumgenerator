@@ -565,8 +565,11 @@ iframe {
   gap: 12px;
 }
 .lyrics-controls button {
-  padding: 0.2rem 0.4rem;
+  padding: 0.15rem 0.35rem;
   font-size: 0.8rem;
+  background: #fdf6e0;
+  border: 1px solid #e3ded2;
+  color: #111;
 }
 
 /* Spotify-Embed */

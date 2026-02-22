@@ -184,24 +184,24 @@ function LyricCarousel({ title, items }) {
         <div className="lyrics-meta">{current.name || ""}</div>
         <div className="lyrics-text">{current.text ? `“${current.text}”` : ""}</div>
       </div>
-      {hasItems && (
-        <div className="lyrics-controls">
-          <button
-            type="button"
-            onClick={() => setI((v) => (v - 1 + items.length) % items.length)}
-            aria-label="Vorherige Textzeile"
-          >
-            ◀
-          </button>
-          <button
-            type="button"
-            onClick={() => setI((v) => (v + 1) % items.length)}
-            aria-label="Nächste Textzeile"
-          >
-            ▶
-          </button>
-        </div>
-      )}
+      <div className="lyrics-controls">
+        <button
+          type="button"
+          onClick={() => hasItems && setI((v) => (v - 1 + items.length) % items.length)}
+          aria-label="Vorherige Textzeile"
+          disabled={!hasItems}
+        >
+          ◀
+        </button>
+        <button
+          type="button"
+          onClick={() => hasItems && setI((v) => (v + 1) % items.length)}
+          aria-label="Nächste Textzeile"
+          disabled={!hasItems}
+        >
+          ▶
+        </button>
+      </div>
     </div>
   );
 }
