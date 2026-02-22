@@ -530,12 +530,19 @@ iframe {
   background: #fdf6e0;
   padding: 12px 14px;
 }
+.lyrics-head {
+  display: grid;
+  grid-template-columns: 24px 1fr 24px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
 .lyrics-title {
   text-transform: uppercase;
   letter-spacing: 0.16em;
   font-size: 0.65rem;
   opacity: 0.75;
-  margin-bottom: 6px;
+  text-align: center;
 }
 .lyrics-meta {
   font-size: 0.7rem;
@@ -548,12 +555,8 @@ iframe {
   line-height: 1.35;
   margin-bottom: 10px;
 }
-.lyrics-controls {
-  display: flex;
-  gap: 8px;
-}
-.lyrics-controls button {
-  padding: 0.25rem 0.5rem;
+.lyrics-head button {
+  padding: 0.15rem 0.3rem;
   font-size: 0.7rem;
 }
 

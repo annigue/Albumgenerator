@@ -174,30 +174,31 @@ function LyricCarousel({ title, items }) {
     setI(0);
   }, [items?.length]);
 
-  if (!items?.length) {
-    return (
-      <div className="lyrics-block">
-        <div className="lyrics-title">{title}</div>
-        <p className="lyrics-empty">Keine Textzeilen</p>
-      </div>
-    );
-  }
+  if (!items?.length) return null;
 
   const current = items[i % items.length];
 
   return (
     <div className="lyrics-block">
-      <div className="lyrics-title">{title}</div>
-      <div className="lyrics-meta">{current.name || "Unbekannt"}</div>
-      <div className="lyrics-text">“{current.text}”</div>
-      <div className="lyrics-controls">
-        <button type="button" onClick={() => setI((v) => (v - 1 + items.length) % items.length)}>
+      <div className="lyrics-head">
+        <button
+          type="button"
+          onClick={() => setI((v) => (v - 1 + items.length) % items.length)}
+          aria-label="Vorherige Textzeile"
+        >
           ◀
         </button>
-        <button type="button" onClick={() => setI((v) => (v + 1) % items.length)}>
+        <div className="lyrics-title">{title}</div>
+        <button
+          type="button"
+          onClick={() => setI((v) => (v + 1) % items.length)}
+          aria-label="Nächste Textzeile"
+        >
           ▶
         </button>
       </div>
+      <div className="lyrics-meta">{current.name || "Unbekannt"}</div>
+      <div className="lyrics-text">“{current.text}”</div>
     </div>
   );
 }
