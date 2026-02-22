@@ -536,8 +536,8 @@ iframe {
   text-align: center;
 }
 .lyrics-box {
-  border: 1px solid #fff6de;
-  background: #fff6de url("/paper.png") center/cover no-repeat;
+  border: 1px solid #FDF8ED;
+  background: #FDF8ED url("/paper.png") center/cover no-repeat;
   width: min(400px, 90%);
   min-height: 180px;
   display: flex;
@@ -581,26 +581,6 @@ iframe {
   display: inline-block;
   vertical-align: middle;
   flex: 0 0 auto;
-}
-
-/* Legal links (bottom right above checkerboard) */
-.legal-links {
-  position: fixed;
-  right: 24px;
-  bottom: 140px;
-  z-index: 20;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  display: flex;
-  gap: 8px;
-}
-.legal-links a {
-  color: #111;
-  text-decoration: none;
-}
-.legal-links a:hover {
-  text-decoration: underline;
 }
 
 /* Utility Fixes */
