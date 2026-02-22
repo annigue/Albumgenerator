@@ -119,16 +119,16 @@ ol {
   font-size: 3.6rem;
   line-height: 0.95;
   text-align: center;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .poster-title-img {
   position: absolute;
-  top: +44px;
+  top: -100x;
   left: 50%;
   transform: translateX(-50%);
   display: block;
-  width: 120%;
+  width: 150%;
   max-width: 1100px;
   margin: 0;
   z-index: 2;
@@ -235,6 +235,11 @@ ol {
   white-space: nowrap;
   display: inline-block;
   margin: 0 0 36px;
+}
+
+/* Extra spacing for the stats label */
+.poster-label--stats {
+  margin-bottom: 54px;
 }
 
 .poster-block-title {
