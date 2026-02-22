@@ -158,7 +158,7 @@ ol {
 /* Row for stats + micro image */
 .poster-row {
   display: grid;
-  gap: 20px;
+  gap: 40px;
 }
 
 @media (min-width: 900px) {
@@ -222,7 +222,7 @@ ol {
 
 .poster-label {
   position: absolute;
-  top: -14px;
+  top: -22px;
   left: 12px;
   background: #111;
   color: #fff;
