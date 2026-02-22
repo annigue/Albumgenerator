@@ -270,13 +270,13 @@ ol {
 
 /* ✅ Karten-Design vereinheitlicht (gleiche DNA) */
 .retro-card {
-  background-color: #fff6de;
-  border: 2px solid #fff6de;
-  box-shadow: 6px 6px 0 #eed8ab;
+  background-color: #fdf6e0;
+  border: 0;
+  box-shadow: none;
 }
 
 .retro-card--soft {
-  box-shadow: 4px 4px 0 #eed8ab;
+  box-shadow: none;
 }
 
 /* Subtle inner edge for a more "printed" feel */
@@ -286,11 +286,7 @@ ol {
 }
 .retro-card::after,
 .form-card::after {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border: 1px solid #fff6de(0, 0, 0, 0.18);
-  pointer-events: none;
+  display: none;
 }
 
 /* =========================================
@@ -304,8 +300,8 @@ form {
 
 /* ✅ Form-Karte an retro-card angeglichen (vorher zu flach/anders) */
 .form-card {
-  background-color: #fff6de;
-  border: 2px solid #fff6de;
+  background-color: #fdf6e0;
+  border: 0;
   box-shadow: none;
   padding: 1.5rem;
 }
