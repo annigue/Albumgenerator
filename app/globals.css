@@ -124,7 +124,7 @@ ol {
 
 .poster-title-img {
   position: absolute;
-  top: -100x;
+  top: 100x;
   left: 50%;
   transform: translateX(-50%);
   display: block;
