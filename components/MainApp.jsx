@@ -370,10 +370,9 @@ export default function MainApp() {
 
               <div className="poster-sep" />
 
-              {/* Bisherige Alben + Micro */}
-              <div className="poster-row">
-                <section className="poster-block poster-block--stats poster-block--stats-gray">
-                  <div className="poster-label poster-label--stats">BISHERIGE ALBEN</div>
+              {/* Bisherige Alben */}
+              <section className="poster-block poster-block--stats poster-block--stats-gray">
+                <div className="poster-label poster-label--stats">BISHERIGE ALBEN</div>
                   {pastAlbums.length > 0 && selectedPast ? (
                     <>
                       {/* Cover + Stempel */}
@@ -468,7 +467,7 @@ export default function MainApp() {
                       Noch keine bisherigen Alben vorhanden.
                     </p>
                   )}
-                </section>
+              </section>
 
               <div className="poster-sep" />
 
@@ -480,10 +479,10 @@ export default function MainApp() {
 
               <div className="poster-sep" />
 
+              {/* Micro Image */}
               <section className="poster-block poster-block--image">
-                  <img src="/micro.png" alt="" className="poster-image" />
-                </section>
-              </div>
+                <img src="/micro.png" alt="" className="poster-image" />
+              </section>
             </div>
           </div>
         </div>
