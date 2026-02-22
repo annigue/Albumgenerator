@@ -539,9 +539,9 @@ iframe {
   text-align: center;
 }
 .lyrics-box {
-  border: 1px solid #e3ded2;
-  background: #fdf6e0 url("/paper.png") center/cover no-repeat;
-  width: min(240px, 90%);
+  border: 1px solid ##fff6de;
+  background: ##fff6de url("/paper.png") center/cover no-repeat;
+  width: min(400px, 90%);
   min-height: 180px;
   display: flex;
   flex-direction: column;
