@@ -362,25 +362,19 @@ export default function MainApp() {
               <div className="poster-sep" />
 
               {/* Bewertung */}
+              <div className="poster-label">ALBUM BEWERTEN</div>
               <section className="poster-block poster-block--form">
-                <div className="poster-label">ALBUM BEWERTEN</div>
+                
                 <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
               </section>
 
               <div className="poster-sep" />
 
-              {/* Vorschlagen */}
-              <section className="poster-block poster-block--form">
-                <div className="poster-label">NEUES ALBUM VORSCHLAGEN</div>
-                <VorschlagForm />
-              </section>
-
-              <div className="poster-sep" />
-
-              {/* Bisherige Alben + Micro */}
-              <div className="poster-row">
+               {/* Bisherige Alben + Micro */}
+               <div className="poster-row">
+               <div className="poster-label">BISHERIGE ALBEN</div>
                 <section className="poster-block poster-block--stats poster-block--stats-gray">
-                  <div className="poster-label">BISHERIGE ALBEN</div>
+                  
                   {pastAlbums.length > 0 && selectedPast ? (
                     <>
                       {/* Cover + Stempel */}
@@ -480,6 +474,16 @@ export default function MainApp() {
                 <section className="poster-block poster-block--image">
                   <img src="/micro.png" alt="" className="poster-image" />
                 </section>
+
+              {/* Vorschlagen */}
+              <div className="poster-label">NEUES ALBUM VORSCHLAGEN</div>
+              <section className="poster-block poster-block--form">
+                <VorschlagForm />
+              </section>
+
+              <div className="poster-sep" />
+
+             
               </div>
             </div>
           </div>
