@@ -363,8 +363,8 @@ export default function MainApp() {
               <div className="poster-sep" />
 
               {/* Bewertung */}
+              <section><div className="poster-label">ALBUM BEWERTEN</div></section>
               <section className="poster-block poster-block--form">
-                <div className="poster-label">ALBUM BEWERTEN</div>
                 <BewertungForm album={currentAlbum} onSubmitted={loadAlbums} />
               </section>
 
