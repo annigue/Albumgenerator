@@ -470,14 +470,6 @@ export default function MainApp() {
                   )}
                 </section>
 
-                <div className="poster-sep" />
-
-                <section className="poster-block poster-block--image">
-                  <img src="/micro.png" alt="" className="poster-image" />
-                </section>
-
-              </div>
-
               <div className="poster-sep" />
 
               {/* Vorschlagen */}
@@ -485,6 +477,13 @@ export default function MainApp() {
               <section className="poster-block poster-block--form">
                 <VorschlagForm />
               </section>
+              <div className="poster-sep" />
+
+<section className="poster-block poster-block--image">
+  <img src="/micro.png" alt="" className="poster-image" />
+</section>
+
+</div>
             </div>
           </div>
         </div>
