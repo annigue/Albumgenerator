@@ -92,7 +92,7 @@ ol {
   border: 3px solid #111;
   padding: 88px 28px 28px;
   width: min(82vw, 1180px);
-  margin: 0 auto;
+  margin: 40px auto 0;
 }
 
 @media (max-width: 900px) {
@@ -124,7 +124,7 @@ ol {
 
 .poster-title-img {
   position: absolute;
-  top: -60x;
+  top: -80px;
   left: 50%;
   transform: translateX(-50%);
   display: block;
