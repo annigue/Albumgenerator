@@ -86,7 +86,7 @@ ol {
    ========================================= */
 /* Poster container (main yellow box) */
 .poster {
-  background: #fff6de;
+  background: #FDF8ED;
   border: 3px solid #111;
   padding: 28px;
   width: min(82vw, 1180px);
@@ -120,8 +120,8 @@ ol {
 
 .poster-title-img {
   display: block;
-  width: 120%;
-  max-width: 960px;
+  width: 150%;
+  max-width: 2000px;
   margin: -8px auto 8px;
   transform: translateY(-6px);
 }
@@ -207,10 +207,10 @@ ol {
   left: 12px;
   background: #111;
   color: #fff;
-  font-size: 0.9rem;
-  letter-spacing: 0.2em;
+  font-size: 1.8rem;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  padding: 6px 10px;
+  padding: 12px px;
   line-height: 1;
   z-index: 2;
   white-space: nowrap;
@@ -243,8 +243,8 @@ ol {
 
 /* ✅ Karten-Design vereinheitlicht (gleiche DNA) */
 .retro-card {
-  background-color: #f3e8cb;
-  border: 2px solid #eed8ab;
+  background-color: #fff6de;
+  border: 2px solid #fff6de;
   box-shadow: 6px 6px 0 #eed8ab;
 }
 
@@ -262,7 +262,7 @@ ol {
   content: "";
   position: absolute;
   inset: 6px;
-  border: 1px solid #eed8ab(0, 0, 0, 0.18);
+  border: 1px solid #fff6de(0, 0, 0, 0.18);
   pointer-events: none;
 }
 
@@ -278,7 +278,7 @@ form {
 /* ✅ Form-Karte an retro-card angeglichen (vorher zu flach/anders) */
 .form-card {
   background-color: #fff6de;
-  border: 2px solid #eed8ab;
+  border: 2px solid #fff6de;
   box-shadow: none;
   padding: 1.5rem;
 }
@@ -305,7 +305,7 @@ label {
 input,
 select,
 textarea {
-  @apply border border-[#e3ded2] bg-[#fdf6e0] text-retro-text p-2 text-sm tracking-wider
+  @apply border border-[#e3ded2] bg-[#fff6de] text-retro-text p-2 text-sm tracking-wider
   focus:outline-none focus:ring-2 focus:ring-retro-accent w-full;
 }
 
