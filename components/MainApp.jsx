@@ -179,8 +179,13 @@ function LyricCarousel({ title, items }) {
   const current = items[i % items.length];
 
   return (
-    <div className="lyrics-block">
-      <div className="lyrics-head">
+    <div className="lyrics-card">
+      <div className="lyrics-title">{title}</div>
+      <div className="lyrics-box">
+        <div className="lyrics-meta">{current.name || "Unbekannt"}</div>
+        <div className="lyrics-text">“{current.text}”</div>
+      </div>
+      <div className="lyrics-controls">
         <button
           type="button"
           onClick={() => setI((v) => (v - 1 + items.length) % items.length)}
@@ -188,7 +193,6 @@ function LyricCarousel({ title, items }) {
         >
           ◀
         </button>
-        <div className="lyrics-title">{title}</div>
         <button
           type="button"
           onClick={() => setI((v) => (v + 1) % items.length)}
@@ -197,8 +201,6 @@ function LyricCarousel({ title, items }) {
           ▶
         </button>
       </div>
-      <div className="lyrics-meta">{current.name || "Unbekannt"}</div>
-      <div className="lyrics-text">“{current.text}”</div>
     </div>
   );
 }

@@ -518,34 +518,40 @@ iframe {
 /* Lyrics carousel */
 .lyrics-grid {
   display: grid;
-  gap: 16px;
+  gap: 24px;
 }
 @media (min-width: 900px) {
   .lyrics-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
-.lyrics-block {
-  border: 1px solid #e3ded2;
-  background: #fdf6e0;
-  padding: 12px 14px;
-}
-.lyrics-head {
-  display: grid;
-  grid-template-columns: 24px 1fr 24px;
+.lyrics-card {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 10px;
 }
 .lyrics-title {
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   opacity: 0.75;
   text-align: center;
 }
+.lyrics-box {
+  border: 1px solid #e3ded2;
+  background: #fdf6e0;
+  width: min(240px, 90%);
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 14px;
+  text-align: center;
+}
 .lyrics-meta {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   margin-bottom: 8px;
@@ -553,11 +559,14 @@ iframe {
 .lyrics-text {
   font-size: 0.9rem;
   line-height: 1.35;
-  margin-bottom: 10px;
 }
-.lyrics-head button {
-  padding: 0.15rem 0.3rem;
-  font-size: 0.7rem;
+.lyrics-controls {
+  display: flex;
+  gap: 12px;
+}
+.lyrics-controls button {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.8rem;
 }
 
 /* Spotify-Embed */
