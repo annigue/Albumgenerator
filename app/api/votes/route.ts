@@ -60,7 +60,7 @@ export async function POST(req) {
     // ✅ Optional: sicherstellen, dass Teilnehmerprofil existiert
     const { data: me, error: meErr } = await supabase
       .from("participants")
-      .select("user_id")
+      .select("user_id, display_name")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -82,6 +82,7 @@ export async function POST(req) {
           album_week_id,
           user_id: userId,
           rating,
+          voter: me?.display_name ?? null,
           favorite_song: String(favorite_song).trim(),
           favorite_lyric: favorite_lyric ? String(favorite_lyric).trim() : null,
           worst_song: String(worst_song).trim(),

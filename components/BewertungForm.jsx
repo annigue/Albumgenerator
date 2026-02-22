@@ -18,6 +18,7 @@ export default function BewertungForm({ album, onSubmitted }) {
   const [form, setForm] = useState({
     liebstes_lied: "",
     beste_textzeile: "",
+    schlechteste_textzeile: "",
     schlechtestes_lied: "",
     bewertung: "",
   });
@@ -81,8 +82,8 @@ export default function BewertungForm({ album, onSubmitted }) {
         rating,
         favorite_song: form.liebstes_lied.trim(),
         favorite_lyric: form.beste_textzeile?.trim() || null,
+        comment: form.schlechteste_textzeile?.trim() || null,
         worst_song: form.schlechtestes_lied.trim(),
-        comment: null,
       };
 
       const res = await fetch("/api/votes", {
@@ -98,7 +99,13 @@ export default function BewertungForm({ album, onSubmitted }) {
       if (!res.ok) return alert(out?.error || `Fehler (HTTP ${res.status})`);
 
       setOk(true);
-      setForm({ liebstes_lied: "", beste_textzeile: "", schlechtestes_lied: "", bewertung: "" });
+      setForm({
+        liebstes_lied: "",
+        beste_textzeile: "",
+        schlechteste_textzeile: "",
+        schlechtestes_lied: "",
+        bewertung: "",
+      });
       onSubmitted?.();
     } finally {
       setSending(false);
@@ -161,6 +168,18 @@ export default function BewertungForm({ album, onSubmitted }) {
           id="beste_textzeile"
           name="beste_textzeile"
           value={form.beste_textzeile}
+          onChange={onChange}
+          rows={3}
+          disabled={sending || loadingMe}
+        />
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="schlechteste_textzeile">Schlechteste Textzeile</label>
+        <textarea
+          id="schlechteste_textzeile"
+          name="schlechteste_textzeile"
+          value={form.schlechteste_textzeile}
           onChange={onChange}
           rows={3}
           disabled={sending || loadingMe}

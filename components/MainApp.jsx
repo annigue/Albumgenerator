@@ -167,6 +167,41 @@ function wikipediaArtistUrl(artist) {
   return `https://de.wikipedia.org/wiki/Spezial:Suche?search=${q}`;
 }
 
+function LyricCarousel({ title, items }) {
+  const [i, setI] = useState(0);
+
+  useEffect(() => {
+    setI(0);
+  }, [items?.length]);
+
+  if (!items?.length) {
+    return (
+      <div className="lyrics-block">
+        <div className="lyrics-title">{title}</div>
+        <p className="lyrics-empty">Keine Textzeilen</p>
+      </div>
+    );
+  }
+
+  const current = items[i % items.length];
+
+  return (
+    <div className="lyrics-block">
+      <div className="lyrics-title">{title}</div>
+      <div className="lyrics-meta">{current.name || "Unbekannt"}</div>
+      <div className="lyrics-text">“{current.text}”</div>
+      <div className="lyrics-controls">
+        <button type="button" onClick={() => setI((v) => (v - 1 + items.length) % items.length)}>
+          ◀
+        </button>
+        <button type="button" onClick={() => setI((v) => (v + 1) % items.length)}>
+          ▶
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ──────────────────────────────────────────────────────────
    MainApp
    ────────────────────────────────────────────────────────── */
@@ -261,6 +296,18 @@ export default function MainApp() {
   const worstTop = useMemo(() => {
     const list = (votes ?? []).map((v) => v?.worst_song);
     return topCounts(list, 5);
+  }, [votes]);
+
+  const bestLyrics = useMemo(() => {
+    return (votes ?? [])
+      .filter((v) => v?.favorite_lyric)
+      .map((v) => ({ text: v.favorite_lyric, name: v.voter }));
+  }, [votes]);
+
+  const worstLyrics = useMemo(() => {
+    return (votes ?? [])
+      .filter((v) => v?.comment)
+      .map((v) => ({ text: v.comment, name: v.voter }));
   }, [votes]);
 
   const currentSpotify = currentAlbum
@@ -429,11 +476,17 @@ export default function MainApp() {
                         </div>
                       </div>
 
-                      {/* Top Songs */}
-                      <div className="grid gap-4 md:grid-cols-2 mt-6">
-                        <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
-                        <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
-                      </div>
+                    {/* Top Songs */}
+                    <div className="grid gap-4 md:grid-cols-2 mt-6">
+                      <SongBars title="Lieblingslieder (Top)" items={favoritesTop} />
+                      <SongBars title="Schlechteste Lieder (Top)" items={worstTop} />
+                    </div>
+
+                    {/* Textzeilen */}
+                    <div className="lyrics-grid mt-6">
+                      <LyricCarousel title="Beste Textzeilen" items={bestLyrics} />
+                      <LyricCarousel title="Schlechteste Textzeilen" items={worstLyrics} />
+                    </div>
 
                       {/* Vollständige Auswertung */}
                       <p className="text-center text-xs uppercase tracking-wider opacity-70 mt-4">

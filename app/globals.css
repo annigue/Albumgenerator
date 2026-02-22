@@ -515,6 +515,48 @@ iframe {
   opacity: 0.7;
 }
 
+/* Lyrics carousel */
+.lyrics-grid {
+  display: grid;
+  gap: 16px;
+}
+@media (min-width: 900px) {
+  .lyrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.lyrics-block {
+  border: 1px solid #e3ded2;
+  background: #fdf6e0;
+  padding: 12px 14px;
+}
+.lyrics-title {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.65rem;
+  opacity: 0.75;
+  margin-bottom: 6px;
+}
+.lyrics-meta {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
+}
+.lyrics-text {
+  font-size: 0.9rem;
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+.lyrics-controls {
+  display: flex;
+  gap: 8px;
+}
+.lyrics-controls button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+}
+
 /* Spotify-Embed */
 iframe {
   border-radius: 0;
