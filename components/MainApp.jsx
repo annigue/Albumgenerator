@@ -479,8 +479,8 @@ export default function MainApp() {
               <div className="poster-sep" />
 
               {/* Vorschlagen */}
+              <section><div className="poster-label">NEUES ALBUM VORSCHLAGEN</div></section>
               <section className="poster-block poster-block--form">
-                <div className="poster-label">NEUES ALBUM VORSCHLAGEN</div>
                 <VorschlagForm />
               </section>
             </div>
